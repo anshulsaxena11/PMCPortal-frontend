@@ -329,6 +329,7 @@ const HomePage = () => {
   }
 
   const handleTypeOfWorkChange = (selected) =>{
+      setValue('selectedProjectTypes', []);
       setSelectedTypeOfWorkOptions(selected)
       setDisableScopeOfWork(selected)
       const selectedString = selected?.label;
