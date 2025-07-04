@@ -1,0 +1,19 @@
+.tabs-container {
+  width: 100%;
+  max-width: 1000px;
+  background-color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.tab-text {
+  font-size: 16px !important;
+  font-weight: bold !important;
+  text-transform: none !important;
+}
+
+.tab-panel {
+  padding: 20px;
+  font-size: 18px;
+  color: #333;
+}

@@ -1,0 +1,4 @@
+.popup-dimmed .modal-content {
+  opacity: 0.3;
+  pointer-events: none;
+}

@@ -1,0 +1,45 @@
+.content-body {
+  transition: margin-left 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+  padding: 20px;
+  background-color: #f7f4f0; 
+  height: 100vh; 
+  overflow-y: auto; 
+}
+
+.content-body.expanded {
+  margin-left: 250px; 
+}
+
+.content-body.collapsed {
+  margin-left: 50px; 
+}
+
+.page-content {
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.default-content,
+.about-page-content,
+.services-page-content,
+.contact-page-content {
+  text-align: center;
+}
+
+.default-content h1,
+.about-page-content h1,
+.services-page-content h1,
+.contact-page-content h1 {
+  font-size: 2rem;
+  color: #333;
+}
+
+.default-content p,
+.about-page-content p,
+.services-page-content p,
+.contact-page-content p {
+  font-size: 1rem;
+  color: #777;
+}
+
+

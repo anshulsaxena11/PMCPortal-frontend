@@ -1,0 +1,7 @@
+.timeline-container {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-radius: 5px;
+}
