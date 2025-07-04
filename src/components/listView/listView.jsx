@@ -224,7 +224,13 @@ const ListView = ({
                 Loading...
               </td>
             </tr>
-          ) : (
+               ) : data.length === 0 ? (
+            <tr>
+              <td colSpan={columns.length + 2} className="text-center text-muted">
+                No data found.
+              </td>
+            </tr>
+            ) : (
             data.map((item, index) => (
               <tr key={item.empid || index}>
                 {/* Serial number */}
@@ -303,7 +309,8 @@ const ListView = ({
                         </>
                         )}
                     </>
-                  )}                </td>
+                  )}                
+                </td>
                   {statusMember && (
                     <td className="text-center align-middle">
                       <span className='fs-4' style={{ color: 'green', fontWeight: 'bold' }}>
