@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { getReportList ,deleteReportBYId} from '../../../api/reportApi/reportApi';
 import ListView from '../../../components/listView/listView';
 import {getAllRound} from '../../../api/roundApi/round'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {getDeviceList} from '../../../api/deviceListAPI/decicelistApi'
 import { getProjectNameList } from '../../../api/ProjectDetailsAPI/projectDetailsApi'
 import {getProjectTypeList} from '../../../api/projectTypeListApi/projectTypeListApi'
@@ -28,6 +28,7 @@ const ReportList = () => {
   const [selectedDevice, setSelectedDevice] = useState(null);
   const navigate = useNavigate();
   const MySwal = withReactContent(Swal);
+  const location = useLocation();
 
   // Define columns and a mapping for the column names
   const columns = [
@@ -49,6 +50,25 @@ const ReportList = () => {
     sevirty: 'sevirty',
     createdAt: 'created At',
   };
+   
+   useEffect(() => {
+  setLoading(true);
+  const timer = setTimeout(() => {
+    setLoading(false);
+
+    if (location.pathname === "/report") {
+      MySwal.fire({
+        title: 'Notice',
+        text: 'Please select all filters (Round, Device, Project Type, Project Name)',
+        icon: 'warning',
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Continue'
+      });
+    }
+  }, 1000); 
+
+  return () => clearTimeout(timer);
+}, [location.pathname]);
 
    useEffect(()=>{
     const fetchProjectName = async()=>{
@@ -138,26 +158,33 @@ const ReportList = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await getReportList({
-        page,
-        search: searchQuery.trim(), 
-        round: selectedRound?.value,
-        devices:selectedDevice?.value,
-        projectType:selectedProjectType?.value,
-        projectName:selectedProjectName?.value,
-        limit: 10
-      });
-      const transformedData = response.data.map(item => ({
-        ...item,
-        projectType: Array.isArray(item.projectType) && item.projectType.length > 0
-          ? item.projectType[0]?.ProjectTypeName || 'N/A'
-          : item.projectType || 'N/A',
-          createdAt: item.createdAt ? dayjs(item.createdAt).format('DD-MM-YYYY') : 'N/A',
-      }));
-
-      setData(transformedData);
-      setTotalCount(response.total);
-      setTotalPages(response.totalPages);
+      if(selectedRound?.value && selectedDevice?.value && selectedProjectType?.value && selectedProjectName?.value){
+        const response = await getReportList({
+          page,
+          search: searchQuery.trim(), 
+          round: selectedRound?.value,
+          devices:selectedDevice?.value,
+          projectType:selectedProjectType?.value,
+          projectName:selectedProjectName?.value,
+          limit: 10
+        });
+        const transformedData = response.data.map(item => ({
+          ...item,
+          projectType: Array.isArray(item.projectType) && item.projectType.length > 0
+            ? item.projectType[0]?.ProjectTypeName || 'N/A'
+            : item.projectType || 'N/A',
+            createdAt: item.createdAt ? dayjs(item.createdAt).format('DD-MM-YYYY') : 'N/A',
+        }));
+  
+        setData(transformedData);
+        setTotalCount(response.total);
+        setTotalPages(response.totalPages);
+      }
+      else{
+        setData([]);
+        setTotalCount(0)
+        setTotalPages(1)
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -259,7 +286,14 @@ const ReportList = () => {
         onAddNewClick={handleAddNewClick}
         columns={columns}
         columnNames={columnNames}
-        data={data}
+        data={
+            selectedRound?.value &&
+            selectedDevice?.value &&
+            selectedProjectType?.value &&
+            selectedProjectName?.value
+              ? data
+              : []
+          }
         page={page}
         totalPages={totalPages}
         onPageChange={handlePageChange}
@@ -289,6 +323,7 @@ const ReportList = () => {
         setSelecteddir={handleProjectName}
         onDeleteClick={handleDelete}
         isDeletedFilter={true}
+        VulnabilityFilter={true}
       />
     </div>
   );
