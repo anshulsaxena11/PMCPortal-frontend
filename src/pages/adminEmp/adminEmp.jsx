@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { syncEmpData, empList, updateEmpStatus,centreList,srpiEmpTypeList,directoratesList } from '../../api/syncEmp/syncEmp'
 import { ToastContainer, toast } from 'react-toastify';
+import { FaCheck } from "react-icons/fa";
+import { IoClose } from "react-icons/io5";
+import { Table, Pagination, InputGroup, FormControl, Button, Spinner } from 'react-bootstrap';
 import 'react-toastify/dist/ReactToastify.css';
 import {postTaskManagerUpdate} from '../../api/TaskMember/taskMemberApi'
-import ListView from '../../components/listView/listView'
+import Select from 'react-select';
+import Swal from 'sweetalert2';
+
                                                                                 
 const AdminSyncEmploy = () =>{
     const [loader,setLoader] = useState(false)
@@ -37,7 +42,7 @@ const AdminSyncEmploy = () =>{
         'StatusNoida',
         'taskForceMember' 
       ];
-    
+
       const columnNames = {
         empid: 'Employee ID',
         ename: 'Employe Name',
@@ -53,14 +58,22 @@ const AdminSyncEmploy = () =>{
         try{
             const response = await syncEmpData()
             
-            if (response.statusCode === 200){
-                toast.success("Suceesfully Updated",{
-                    className: 'custom-toast custom-toast-success'
+            if (response.data.statusCode === 200){
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Successfully Updated',
+                  showConfirmButton: false,
+                  timer: 2000,
                 });
-                await fetchEmpList(); 
+              fetchEmpList();
+              fetchCentreData();
+              fetchDiretoratesData(); 
+              fetchTypeData();
             } else if(response.statusCode === 400 && response.message.includes('Unexpected API response')){
-                toast.error(response.message, {
-                    className: "custom-toast custom-toast-error",
+                Swal.fire({
+                  icon: 'error',
+                  title: 'Failed to get API Data',
+                  showConfirmButton: true,
                 });
             }       
         } catch(error){
@@ -74,9 +87,10 @@ const AdminSyncEmploy = () =>{
         setLoader(true);
         try{
           const response = await empList({page,limit:10,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
-          console.log(response)
           const transformedData = response.data.map(item => ({
               ...item,
+              rawStatusNoida: item.StatusNoida,
+              rawtaskForceMember: item.taskForceMember, 
               StatusNoida: item.StatusNoida ? (
                 <span className="text-success fw-bold">Active</span>
               ) : (
@@ -124,6 +138,9 @@ const AdminSyncEmploy = () =>{
 
     useEffect(() => {
         fetchEmpList();
+        fetchDiretoratesData();
+        fetchCentreData();
+        fetchTypeData();
     }, [page, searchQuery]); 
 
     const handlePageChange = (newPage) => {
@@ -137,14 +154,19 @@ const AdminSyncEmploy = () =>{
                     StatusNoida:true
                 }
           await updateEmpStatus(payload);
-          toast.success('Employee status changed to Active',{
-             className: 'custom-toast custom-toast-success'
+          Swal.fire({
+            icon: 'success',
+            title: 'VAPT Team Member Updated',
+            showConfirmButton: false,
+            timer: 2000,
           });
           fetchEmpList();
         } catch (err) {
-          toast.error('Failed to activate employee.',{
-            className: 'custom-toast custom-toast-error',
-          });
+           Swal.fire({
+              icon: 'error',
+              title: 'Failed to update VAPT Team Member',
+              showConfirmButton: true,
+            });
         }
       };
     
@@ -155,18 +177,23 @@ const AdminSyncEmploy = () =>{
                     StatusNoida:false
                 }
           await updateEmpStatus(payload);
-          toast.success('Employee status changed to Not Active',{
-            className: 'custom-toast custom-toast-success'
+          Swal.fire({
+            icon: 'success',
+            title: 'VAPT Team Member Updated',
+            showConfirmButton: false,
+            timer: 2000,
           });
           fetchEmpList();
         } catch (err) {
-          toast.error('Failed to deactivate employee.',{
-            className: 'custom-toast custom-toast-error',
+         Swal.fire({
+            icon: 'error',
+            title: 'Failed to update VAPT Team Member',
+            showConfirmButton: true,
           });
           
         }
       };
-      useEffect(() => {
+
         const fetchCentreData = async () => {
             setLoader(true);
             try {
@@ -182,10 +209,7 @@ const AdminSyncEmploy = () =>{
                 setLoader(false);
             }
         };
-        fetchCentreData();
-    }, []);
-
-    useEffect(() => {
+ 
       const fetchDiretoratesData = async () => {
           setLoader(true);
           try {
@@ -201,10 +225,7 @@ const AdminSyncEmploy = () =>{
               setLoader(false);
           }
       };
-      fetchDiretoratesData();
-  }, []);
 
-    useEffect(() => {
       const fetchTypeData = async () => {
           setLoader(true);
           try {
@@ -220,8 +241,8 @@ const AdminSyncEmploy = () =>{
               setLoader(false);
           }
       };
-      fetchTypeData();
-  }, []);
+
+
 
   const handleTeamMember = async (empid) =>{
     try{
@@ -229,59 +250,247 @@ const AdminSyncEmploy = () =>{
         id:empid._id,
       }
       await postTaskManagerUpdate(payload)
-       toast.success('Task Force Member has been updated',{
-          className: 'custom-toast custom-toast-success'
-      });
+      Swal.fire({
+            icon: 'success',
+            title: 'Task Force Member has been Updated',
+            showConfirmButton: false,
+            timer: 2000,
+          });
       fetchEmpList();
     }catch(error){
-       toast.error('Failed to Update Task Force Member.',{
-        className: 'custom-toast custom-toast-error',
-      }); 
+      Swal.fire({
+          icon: 'error',
+          title: 'Failed to update Task Force Member',
+          showConfirmButton: true,
+        }); 
     }
   }
    
     return(        
         <div className='admin-portal'>
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
-            <ListView
-                title="Employees"
-                buttonName="Fetch HRMS"
-                onAddNewClick={handleSync}
-                buttonClass={"btn btn-primary"}
-                columns={columns}
-                showIcon={false}
-                columnNames={columnNames}
-                data={data}
-                page={page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                searchQuery={searchQuery}
-                onSearchChange={handleSearchChange}
-                loading={loader}
-                showStatusIcon={true}
-                onCheckClick={handleActivate}
-                onCrossClick={handleDeactivate}
-                showFilters={true}
-                centreOptions={centreOptions}
-                selectedCentre={selectedCentre}
-                setSelectedCentre={handleCentreChange}
-                centreTittle="Centre"
-                statusOptions={statusOptions}
-                selectedStatus={selectedStatus}
-                setSelectedStatus={handleStausChange}
-                etpeTypeName="Type"
-                showFiltersStatus={true}
-                StatusName="Status"
-                etpeOptions={typeOptions}
-                selectedEtpe={selectedType}
-                setSelectedEtpe={handleTypeChange}
-                dirTittle="Directorates"
-                dirOptions={dirOptions}
-                selecteddir={selecteddir}
-                setSelecteddir={handleDirChange}
-                onCheckClickSecond={handleTeamMember}
-                statusMember={true}
-              />
+            <div className='container-fluid'>
+              <div className='row mb-3 align-items-end'>
+                <div className='col-sm-2 col-lg-2 col-md-2'>
+                   <h3 className="mb-0">Employees</h3>
+                </div>
+                <div className='col-sm-2 col-md-2 col-lg-2'>
+                  <Select
+                    options={dirOptions}
+                    value={selecteddir}
+                    onChange={handleDirChange}
+                    placeholder="Directorates"
+                    isClearable
+                  />
+                </div>
+                <div className='col-sm-2 col-md-2 col-lg-2'>
+                  <Select
+                    options={centreOptions}
+                    value={selectedCentre}
+                    onChange={handleCentreChange}
+                    placeholder="Centre"
+                    isClearable
+                  />
+                </div>
+                <div className='col-sm-2 col-md-2 col-lg-2'>
+                    <Select
+                      options={typeOptions}
+                      value={selectedType}
+                      onChange={handleTypeChange}
+                      placeholder="Type"
+                      isClearable
+                    />
+                </div>
+                <div className='col-sm-2 col-md-2 col-lg-2'>
+                  <Select
+                      options={statusOptions}
+                      value={selectedStatus}
+                      onChange={setSelectedStatus}
+                      placeholder="Status"
+                      isClearable
+                    />
+                </div>
+                 <div className='col-sm-2 col-md-2 col-lg-2'>
+                   <InputGroup>
+                    <FormControl
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={handleSearchChange}
+                    />
+                  </InputGroup>
+                 </div>
+              </div>
+            </div>
+            <hr></hr>
+            <div className='row pb-3'>
+              <div className='col-sm-10 col-md-10 col-lg-10'></div>
+               <div className="col-sm-2 col-md-2 col-lg-2 d-flex justify-content-end">
+                <Button variant="primary" className="btn btn-Primary" onClick={handleSync} disabled={loader}>
+                  {loader ? (
+                      <Spinner animation="border" size="sm" />
+                    ) : (
+                      <>
+                        Fetch HRMS
+                      </>
+                    )}
+                </Button>
+               </div>
+            </div>
+            <div style={{  overflowX: 'auto' }}>
+             <Table striped bordered hover responsive>
+                <thead>
+                  <tr>
+                    <th className="text-center">S.No</th>
+                    <th className="text-center">{columnNames.empid}</th>
+                    <th className="text-center">{columnNames.ename}</th>
+                    <th className="text-center">{columnNames.centre}</th>
+                    <th className="text-center">{columnNames.dir}</th>
+                    <th className="text-center">{columnNames.etpe}</th>
+                    <th className="text-center">{columnNames.StatusNoida}</th>
+                    <th className="text-center">Action</th>
+                    <th className="text-center">{columnNames.taskForceMember}</th>
+                    <th className="text-center">Member Status</th>
+                  </tr>
+                </thead>
+              <tbody>
+                {loader ? (
+                  <tr>
+                    <td colSpan={columns.length + 2} className="text-center">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : data.length === 0 ? (
+                  <tr>
+                    <td colSpan={columns.length + 2} className="text-center text-muted">
+                      No data found.
+                    </td>
+                  </tr>
+                ) : (
+                  data.map((item, index) => (
+                    <tr key={index}>
+                     <td className="text-center">{(page - 1) * 10 + index + 1}</td>
+                      {columns.map((col) => (
+                        <React.Fragment key={col}>
+                          <td className="text-center">
+                            {(() => {
+                              switch (col) {
+                                case 'empid':
+                                  return item.empid || '-';
+                                case 'ename':
+                                  return item.ename?.toUpperCase() || '-';
+                                case 'centre':
+                                  return item.centre || 'N/A';
+                                case 'dir':
+                                  return item.dir;
+                                case 'etpe':
+                                  return item.etpe || '-';
+                                case 'StatusNoida':
+                                  return item.StatusNoida;
+                                case 'taskForceMember':
+                                  return item.taskForceMember;
+                                default:
+                                  return item[col] || '-';
+                              }
+                            })()}
+                          </td>
+                          {col === 'StatusNoida' && (
+                            <td className="text-center">
+                              {item.rawStatusNoida  === false ? (
+                                <span className="fs-4 text-success fw-bold">
+                                  <FaCheck
+                                    style={{ cursor: 'pointer', transition: 'transform 0.2s ease' }}
+                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
+                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+                                    onClick={() => handleActivate(item)} 
+                                  />
+                                </span>
+                              ) : (
+                                <span className="fs-4 text-danger fw-bold">
+                                  <IoClose
+                                    style={{ cursor: 'pointer', transition: 'transform 0.2s ease' }}
+                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
+                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+                                    onClick={() => handleDeactivate(item)} 
+                                  />
+                                </span>
+                              )}
+                            </td>
+                          )}
+                          {col === 'taskForceMember' && (
+                            <td className="text-center">
+                              {item.rawtaskForceMember === "No" ? (
+                                <span className="fs-4 text-success fw-bold">
+                                  <FaCheck
+                                    style={{ cursor: 'pointer', transition: 'transform 0.2s ease' }}
+                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
+                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+                                    onClick={() => handleTeamMember(item)} 
+                                  />
+                                </span>
+                              ) : (
+                                <span className="fs-4 text-danger fw-bold">
+                                  <IoClose
+                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
+                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
+                                    onClick={() => handleTeamMember(item)} 
+                                  />
+                                </span>
+                              )}
+                            </td>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+             </Table>
+            </div>
+            <div className="d-flex justify-content-end mt-3">
+              <Pagination className="pagination-sm">
+                <Pagination.Prev
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1}
+                />
+            {(() => {
+              const items = [];
+              const maxPages = 10;
+              let start = Math.max(1, Math.min(page - Math.floor(maxPages / 2), totalPages - maxPages + 1));
+              let end = Math.min(totalPages, start + maxPages - 1);
+      
+              for (let i = start; i <= end; i++) {
+                items.push(
+                  <Pagination.Item
+                    key={i}
+                    active={i === page}
+                    onClick={() => handlePageChange(i)}
+                  >
+                    {i}
+                  </Pagination.Item>
+                );
+              }
+      
+              if (end < totalPages) {
+                items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
+                items.push(
+                  <Pagination.Item
+                    key={totalPages}
+                    active={page === totalPages}
+                    onClick={() => handlePageChange(totalPages)}
+                  >
+                    {totalPages}
+                  </Pagination.Item>
+                );
+              }
+      
+              return items;
+              })()}
+                <Pagination.Next
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages}
+                />
+              </Pagination>
+            </div>
         </div>
         
     )
