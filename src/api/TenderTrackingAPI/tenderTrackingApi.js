@@ -84,6 +84,8 @@ export const postTenderTrackingData = async (payload) => {
 /**
  * Fetch tender details with pagination and search.
  */
+
+
 export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",isDeleted = "false" }) => {
   try {
     const response = await axiosInstance.get("/user/Tender", {
@@ -101,6 +103,28 @@ export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",i
     };
   }
 };
+
+export const getAllTenderList = async ({ isDeleted = "false" } = {}) => {
+  try {
+    const response = await axiosInstance.get("/user/Alltender", {
+      params: { isDeleted: isDeleted.toString() },
+    });
+
+    // Optional: Check if data exists before returning
+    if (response?.data) {
+      return response.data;
+    } else {
+      throw new Error("No data returned from server.");
+    }
+  } catch (error) {
+    console.error("Error fetching tender details list:", error);
+    return {
+      message: "Failed to fetch data.",
+      error: error.message || error,
+    };
+  }
+};
+
 
 
 export const deleteTenderById = async (id) => {
