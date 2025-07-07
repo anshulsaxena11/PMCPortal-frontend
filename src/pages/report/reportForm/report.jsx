@@ -1200,7 +1200,7 @@ const handleDropOnIndex = (e, targetIndex) => {
             <TiArrowBack /> BACK
            </Button>
           </Form>
-            {selectedProjectNameAdd !== "Network Devices" && (
+            {selectedProjectNameAdd && selectedProjectNameAdd !== "Network Devices" && (
               <h4 className="fw-bold text-danger mb-3">
                currently under Development
               </h4>
