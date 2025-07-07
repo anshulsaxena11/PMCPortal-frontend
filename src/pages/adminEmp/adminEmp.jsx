@@ -73,28 +73,28 @@ const AdminSyncEmploy = () =>{
     const fetchEmpList = async() =>{
         setLoader(true);
         try{
-            const response = await empList({page,limit:10,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
-            console.log(response)
-            const transformedData = response.data.map(item => ({
-                ...item,
-                StatusNoida: item.StatusNoida ? (
-                  <span className="text-success fw-bold">Active</span>
-                ) : (
-                  <span className="text-danger fw-bold">Inactive</span>
-                ),
-                taskForceMember:item.taskForceMember ==='Yes' ? (
-                 <span className="text-success fw-bold">Yes</span>
-                ):(
-                  <span className="text-danger fw-bold">No</span>
-                )
-              }));
-            setData(transformedData)
-            setTotalCount(response.total);
-            setTotalPages(response.totalPages);
-        }catch(error){
-            console.error('Failed to fetch employee list:');
-        }
-        setLoader(false);
+          const response = await empList({page,limit:10,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
+          console.log(response)
+          const transformedData = response.data.map(item => ({
+              ...item,
+              StatusNoida: item.StatusNoida ? (
+                <span className="text-success fw-bold">Active</span>
+              ) : (
+                <span className="text-danger fw-bold">Inactive</span>
+              ),
+              taskForceMember:item.taskForceMember ==='Yes' ? (
+                <span className="text-success fw-bold">Yes</span>
+              ):(
+                <span className="text-danger fw-bold">No</span>
+              )
+            }));
+          setData(transformedData)
+          setTotalCount(response.total);
+          setTotalPages(response.totalPages);
+      }catch(error){
+        console.error('Failed to fetch employee list:');
+      }
+      setLoader(false);
     }
 
     const handleSearchChange = (e) => {
@@ -275,7 +275,6 @@ const AdminSyncEmploy = () =>{
                 etpeOptions={typeOptions}
                 selectedEtpe={selectedType}
                 setSelectedEtpe={handleTypeChange}
-                showStatusIcon={true}
                 dirTittle="Directorates"
                 dirOptions={dirOptions}
                 selecteddir={selecteddir}
