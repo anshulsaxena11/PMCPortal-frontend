@@ -71,12 +71,17 @@ const EditReportForm = () => {
 
     const [selectedRound, setSelectedRound] = useState(null);
     const [selectedSevirity, setSelectSevirity] = useState(null)
-    const { register, handleSubmit, setValue, reset, getValues } = useForm();
+    const { register, handleSubmit, setValue, reset, getValues, watch } = useForm();
     const [deviceVulnability,setDeviceVulnability] = useState()
     const [devicesData, setDevicesData] = useState();
     const [showModal, setShowModal] = useState(false);
     const [filePreview, setFilePreview] = useState('');
     const [previewFileType, setPreviewFileType] = useState('');
+    const ipAddress = watch("ipAddress");
+
+    useEffect(() => {
+      setValue("path", ipAddress); 
+    }, [ipAddress, setValue]); 
 
     const handleBackClick = () => {
         navigate(`/report`);
@@ -723,7 +728,7 @@ const handleDelete = async (id) => {
                             />
                     </Form.Group>
                     <Form.Group>
-                         <Form.Label className="fs-5 pt-3 fw-bolder">Path<span className="text-danger">*</span></Form.Label>
+                         <Form.Label className="fs-5 pt-3 fw-bolder">Location<span className="text-danger">*</span></Form.Label>
                          <Form.Control
                                 type="text" 
                                 as='textarea'
