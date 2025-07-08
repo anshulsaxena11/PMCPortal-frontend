@@ -1,34 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Paper, Typography, TextField
+  Box, Paper, Typography, TextField, Button
 } from '@mui/material';
 import WorkIcon from '@mui/icons-material/Work';
 import DescriptionIcon from '@mui/icons-material/Description';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import { DataGrid } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 
 import { getAllProjectDetails } from '../../api/ProjectDetailsAPI/projectDetailsApi';
 import { getAllReportList } from '../../api/reportApi/reportApi';
 import { getAllTenderList } from '../../api/TenderTrackingAPI/tenderTrackingApi';
 
 const tabData = [
-  {
-    label: 'Vulnerability',
-    icon: <DescriptionIcon />,
-    key: 'projectName',
-  },
-  {
-    label: 'Work Type',
-    icon: <WorkIcon />,
-    key: 'workType',
-  },
-  {
-    label: 'Tender Tracking',
-    icon: <RequestQuoteIcon  />,
-    key: 'tenderTracking',
-  },
- 
+  { label: 'Vulnerability', icon: <DescriptionIcon />, key: 'projectName' },
+  { label: 'Work Type', icon: <WorkIcon />, key: 'workType' },
+  { label: 'Tender Tracking', icon: <RequestQuoteIcon />, key: 'tenderTracking' },
 ];
 
 export default function TabCardWithGrids() {
@@ -37,16 +27,14 @@ export default function TabCardWithGrids() {
   const [projectNameRows, setProjectNameRows] = useState([]);
   const [workTypeRows, setWorkTypeRows] = useState([]);
   const [tenderRows, setTendereRows] = useState([]);
-  
 
   useEffect(() => {
     async function fetchData() {
       try {
         const reportData = await getAllReportList();
         const workTypeData = await getAllProjectDetails();
-        const TenderData = await getAllTenderList({isDeleted : "false" });
-        
-        
+        const TenderData = await getAllTenderList({ isDeleted: "false" });
+
         setProjectNameRows(reportData.data.map((r, i) => ({ id: i + 1, ...r })));
         setWorkTypeRows(workTypeData.data.map((r, i) => ({ id: i + 1, ...r })));
         setTendereRows(TenderData.data.map((r, i) => ({ id: i + 1, ...r })));
@@ -64,24 +52,19 @@ export default function TabCardWithGrids() {
     );
   };
 
-
   const projectNameCols = [
     {
-        field: 'projectNameDisplay',
-        headerName: 'Project Name',
-        flex: 1,
-        renderCell: (params) => {
-            return params.row?.projectName?.projectName || 'N/A';
-        }
+      field: 'projectNameDisplay',
+      headerName: 'Project Name',
+      flex: 1,
+      renderCell: (params) => params.row?.projectName?.projectName || 'N/A'
     },
     { field: 'projectType', headerName: 'Project Type', flex: 1 },
     {
-        field: 'round',
-        headerName: 'Round',
-        flex: 1,
-        renderCell: (params) => {
-            return `Round - ${params?.row?.round ?? 'N/A'}`;
-        }
+      field: 'round',
+      headerName: 'Round',
+      flex: 1,
+      renderCell: (params) => `Round - ${params?.row?.round ?? 'N/A'}`
     },
     { field: 'vulnerabilityName', headerName: 'Vulnerability Name', flex: 1 },
     { field: 'sevirty', headerName: 'Severity', flex: 1 },
@@ -91,45 +74,43 @@ export default function TabCardWithGrids() {
   const workTypeCols = [
     { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
     {
-    field: 'startDate',
-    headerName: 'Start Date',
-    flex: 1,
-    renderCell: (params) => {
+      field: 'startDate',
+      headerName: 'Start Date',
+      flex: 1,
+      renderCell: (params) => {
         const date = params?.row?.startDate;
         return date ? dayjs(date).format('DD-MM-YYYY') : 'N/A';
-    }
+      }
     },
     { field: 'directrate', headerName: 'Directorate', flex: 1 },
     {
-    field: 'projectValue',
-    headerName: 'Value (INR)',
-    flex: 1,
-    renderCell: (params) => {
+      field: 'projectValue',
+      headerName: 'Value (INR)',
+      flex: 1,
+      renderCell: (params) => {
         const val = params?.row?.projectValue;
         return val ? Number(val).toLocaleString('en-IN') : 'N/A';
-    }
+      }
     },
     { field: 'primaryPersonName', headerName: 'Person Name', flex: 1 },
   ];
 
-const tenderCols = [
+  const tenderCols = [
     { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
     { field: 'organizationName', headerName: 'Organization Name', flex: 1 },
     { field: 'state', headerName: 'State', flex: 1 },
     { field: 'taskForce', headerName: 'Task Force', flex: 1 },
     {
-    field: 'valueINR',
-    headerName: 'Value (INR)',
-    flex: 1,
-    renderCell: (params) => {
+      field: 'valueINR',
+      headerName: 'Value (INR)',
+      flex: 1,
+      renderCell: (params) => {
         const val = params?.row?.valueINR;
         return val ? Number(val).toLocaleString('en-IN') : 'N/A';
-    }
+      }
     },
     { field: 'status', headerName: 'Status', flex: 1 },
   ];
-  
-
 
   const getCurrentTabRows = () => {
     switch (tabData[activeTab].key) {
@@ -149,17 +130,126 @@ const tenderCols = [
     }
   };
 
-  return (
-    <Box sx={{ width: '100%' }}>
-      {/* Tab Cards */}
+  function CustomNoRowsOverlay() {
+    return (
       <Box
         sx={{
           display: 'flex',
-          gap: 2,
-          flexWrap: 'wrap',
-          mb: 2,
+          height: '100%',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
+        <Typography sx={{ color: 'red', fontWeight: 'bold' }}>
+          No data found
+        </Typography>
+      </Box>
+    );
+  }
+
+  // 📁 Export CSV
+ const handleDownloadCSV = () => {
+  const columns = getCurrentTabColumns();
+  const rawRows = searchFilter(getCurrentTabRows());
+
+  const headers = columns.map(col => `"${col.headerName}"`).join(',');
+
+  const data = rawRows.map(row => {
+    return columns.map(col => {
+      let value = '';
+
+      switch (col.field) {
+        case 'projectNameDisplay':
+          value = row.projectName?.projectName || 'N/A';
+          break;
+        case 'round':
+          value = row.round ? `Round - ${row.round}` : 'N/A';
+          break;
+        case 'projectValue':
+          value = row.projectValue ? Number(row.projectValue).toLocaleString('en-IN') : 'N/A';
+          break;
+        case 'startDate':
+          value = row.startDate ? dayjs(row.startDate).format('DD-MM-YYYY') : 'N/A';
+          break;
+        default:
+          value = row[col.field] ?? 'N/A';
+      }
+
+      return `"${value}"`;
+    }).join(',');
+  });
+
+  const csvContent = [headers, ...data].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', 'table_data.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+
+  // 📄 Export PDF
+
+const handleDownloadPDF = () => {
+  const doc = new jsPDF();
+
+  const columns = getCurrentTabColumns().map(col => ({
+    header: col.headerName,
+    dataKey: col.field,
+  }));
+
+  const rawRows = searchFilter(getCurrentTabRows());
+
+  const rows = rawRows.map(row => {
+    const formatted = {};
+
+    columns.forEach(col => {
+      switch (col.dataKey) {
+        case 'projectNameDisplay':
+          formatted[col.dataKey] = row.projectName?.projectName || 'N/A';
+          break;
+        case 'round':
+          formatted[col.dataKey] = row.round ? `Round - ${row.round}` : 'N/A';
+          break;
+        case 'projectValue':
+          formatted[col.dataKey] = row.projectValue
+            ? Number(row.projectValue).toLocaleString('en-IN')
+            : 'N/A';
+          break;
+        case 'startDate':
+          formatted[col.dataKey] = row.startDate
+            ? dayjs(row.startDate).format('DD-MM-YYYY')
+            : 'N/A';
+          break;
+        default:
+          formatted[col.dataKey] = row[col.dataKey] ?? 'N/A';
+      }
+    });
+
+    return formatted;
+  });
+
+  autoTable(doc, {
+    columns,
+    body: rows,
+    styles: { fontSize: 8 },
+    headStyles: { fillColor: [33, 150, 243] },
+  });
+
+  doc.save('table_data.pdf');
+};
+
+
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      {/* Tab Cards */}
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
         {tabData.map((tab, index) => (
           <Paper
             key={index}
@@ -199,8 +289,20 @@ const tenderCols = [
         fullWidth
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        sx={{ mb: 2 }}
+        sx={{
+          mb: 2,
+          backgroundColor: 'white',
+          '& .MuiInputBase-root': {
+            height: 40,
+          },
+        }}
       />
+
+      {/* Export Buttons */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Button variant="contained" onClick={handleDownloadCSV}>Download CSV</Button>
+        <Button variant="contained" color="secondary" onClick={handleDownloadPDF}>Download PDF</Button>
+      </Box>
 
       {/* Data Table */}
       <Box sx={{ height: 400 }}>
@@ -210,6 +312,9 @@ const tenderCols = [
           pageSize={5}
           rowsPerPageOptions={[5, 10]}
           pagination
+          slots={{
+            noRowsOverlay: CustomNoRowsOverlay,
+          }}
         />
       </Box>
     </Box>
