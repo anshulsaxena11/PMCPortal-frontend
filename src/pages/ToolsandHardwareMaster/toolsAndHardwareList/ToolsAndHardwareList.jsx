@@ -106,8 +106,7 @@ const ToolsAndHardwareList = () =>{
                 setSelectedStatus={handleStausChange}
                 selectedStatus={selectedStatus}
                 placeholder="Select Type"
-               
-            
+                showNoDataMessage={true}
             />
         </div>
     )

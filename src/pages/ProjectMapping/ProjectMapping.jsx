@@ -285,6 +285,7 @@ const ProjectMapping = () =>{
                 buttonNameTwo={isViewMode ? "List" : "View"}
                 onButtonViewClick={isViewMode ? handleSet : handleView}
                 isViewMode={isViewMode}
+                showNoDataMessage={true}
             />
         </div>
         

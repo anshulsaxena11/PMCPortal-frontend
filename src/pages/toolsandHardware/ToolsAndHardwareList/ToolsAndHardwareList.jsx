@@ -138,8 +138,7 @@ const ToolsAndHardware = () =>{
                 setSelectedStatus={handleStausChange}
                 selectedStatus={selectedDir}
                 placeholder="Select Directorates"
-               
-            
+                showNoDataMessage={true}
             />
         </div>
     )

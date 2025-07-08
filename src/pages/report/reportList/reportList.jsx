@@ -50,25 +50,6 @@ const ReportList = () => {
     sevirty: 'sevirty',
     createdAt: 'created At',
   };
-   
-   useEffect(() => {
-  setLoading(true);
-  const timer = setTimeout(() => {
-    setLoading(false);
-
-    if (location.pathname === "/report") {
-      MySwal.fire({
-        title: 'Notice',
-        text: 'Please select all filters (Round, Device, Project Type, Project Name)',
-        icon: 'warning',
-        confirmButtonColor: '#d33',
-        confirmButtonText: 'Continue'
-      });
-    }
-  }, 1000); 
-
-  return () => clearTimeout(timer);
-}, [location.pathname]);
 
    useEffect(()=>{
     const fetchProjectName = async()=>{
@@ -294,6 +275,12 @@ const ReportList = () => {
               ? data
               : []
           }
+        showNoDataMessage={
+          selectedRound?.value &&
+          selectedDevice?.value &&
+          selectedProjectType?.value &&
+          selectedProjectName?.value 
+        }
         page={page}
         totalPages={totalPages}
         onPageChange={handlePageChange}
@@ -325,6 +312,17 @@ const ReportList = () => {
         isDeletedFilter={true}
         VulnabilityFilter={true}
       />
+    <div className="d-flex justify-content-center align-items-center" style={{ height: '700px' }}>
+      {!(selectedRound?.value && selectedDevice?.value && selectedProjectType?.value && selectedProjectName?.value) && (
+        <div className="card text-center shadow border-danger" style={{ width: '50rem', height:'20rem' }}>
+          <div className="card-body d-flex justify-content-center align-items-center">
+            <h5 className="card-title text-danger fw-bold fs-4 m-0">
+              Please select all the data in filters to populate items.
+            </h5>
+          </div>
+        </div>
+        )}
+      </div>
     </div>
   );
 };

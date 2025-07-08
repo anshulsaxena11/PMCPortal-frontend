@@ -72,6 +72,7 @@ const ListView = ({
   onCheckClickSecond,
   statusMember=false,
   isDeletedFilter= false,
+  showNoDataMessage = false,
 }) => {
   return (
     <div>
@@ -200,6 +201,7 @@ const ListView = ({
         )}
         </div>
       </div>
+      {showNoDataMessage && (
       <div style={{  overflowX: 'auto' }}>
       <Table striped bordered hover responsive>
       {!hideHeader && (
@@ -226,7 +228,7 @@ const ListView = ({
             </tr>
                ) : data.length === 0 ? (
             <tr>
-              <td colSpan={columns.length + 2} className="text-center text-muted">
+              <td colSpan={columns.length + 2} className="text-center text-danger fw-bolder">
                 No data found.
               </td>
             </tr>
@@ -324,6 +326,9 @@ const ListView = ({
         </tbody>
       </Table>
       </div>
+      )}
+      {showNoDataMessage && (
+      <>
       {/* Pagination */}
       <div className="d-flex justify-content-end mt-3">
       {!hideHeader && (
@@ -371,7 +376,10 @@ const ListView = ({
           />
         </Pagination>
       )}
+      
       </div>
+      </>
+      )}
     </div>
   );
 };

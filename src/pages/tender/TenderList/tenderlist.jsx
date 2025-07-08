@@ -215,6 +215,7 @@ const TenderDetailsList = () => {
         onDeleteClick={handleDeleteClick}
         showEditView={true}
         isDeletedFilter={true}
+        showNoDataMessage={true}
       />
     </div>
   );
