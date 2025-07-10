@@ -20,19 +20,19 @@ export const postReport = async (payload) => {
 
     // Send request with multipart/form-data
     return await axiosInstance.post("/user/report", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        headers: { "Content-Type": "multipart/form-data" }, withCredentials: true,
     });
 };
 
-export const getReportList = async ({ page = 1, limit = 10, search = "", round="", devices="",projectType="",projectName="" }) => axiosInstance.get("/user/report", { params: { page, limit, search, round, devices, projectType, projectName } }).then(response => response.data);
+export const getReportList = async ({ page = 1, limit = 10, search = "", round="", devices="",projectType="",projectName="" }) => axiosInstance.get("/user/report", { params: { page, limit, search, round, devices, projectType, projectName }, withCredentials: true, }).then(response => response.data);
 export const getAllReportList = async () => 
   axiosInstance.get("/user/allreport", {
     params: {
       isDeleted: false
-    }
+    }, withCredentials: true,
   }).then(response => response.data);
 
-export const getReportById = async (id) => await axiosInstance.get(`/user/report/${id}`)
+export const getReportById = async (id) => await axiosInstance.get(`/user/report/${id}`,{ withCredentials: true,})
 export const updateReport = async (id, formData) => {
     const config = {
         headers: {
@@ -40,21 +40,21 @@ export const updateReport = async (id, formData) => {
         },
     };
     
-    return await axiosInstance.put(`/user/report/${id}`, formData, config);
+    return await axiosInstance.put(`/user/report/${id}`, formData, config, {withCredentials: true,});
 };
 
 export const getFullReport = async(projectName, projectType, round, devices) =>await axiosInstance.get('/user/fullreport',{
-    params:{projectName, projectType, round, devices}
+    params:{projectName, projectType, round, devices}, withCredentials: true,
 })
 
 export const editupdateReport = async (id) => {
     
-    return await axiosInstance.get(`/user/report/${id}`);
+    return await axiosInstance.get(`/user/report/${id}`,{ withCredentials: true,});
 };
 
 export const getVulListSpecific = async ({ projectName, projectType, round, devices, Name, ipAddress }) =>
   (await axiosInstance.get('/user/VulnerabilityListSpecific', {
-    params: { projectName, projectType, round, devices, Name, ipAddress }
+    params: { projectName, projectType, round, devices, Name, ipAddress }, withCredentials: true,
   })).data;
 
-  export const deleteReportBYId = async(id)=>await axiosInstance.put(`/user/reportDeleted/${id}`).then(response => response.data).catch(error => { throw error });
+  export const deleteReportBYId = async(id)=>await axiosInstance.put(`/user/reportDeleted/${id}`,{ withCredentials: true,}).then(response => response.data).catch(error => { throw error });

@@ -28,6 +28,7 @@ import TenderTracking from "../../pages/tender/TenderForm/tendertracking.jsx"
 import TenderList from "../../pages/tender/TenderList/tenderlist.jsx"
 import TenderTrackingEdit from "../../pages/tender/TenderEdit/tenderEdit.jsx"
 import TenderTrackingView from "../../pages/tender/TenderView/tenderView.jsx"
+import UserLoginForm from "../../pages/userAdmin/userLoginForm/UserLoginForm"
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -43,14 +44,13 @@ const ContentBody = ({ isSidebarExpanded }) => {
 
   return (
     <div className={`content-body ${isSidebarExpanded ? "expanded" : "collapsed"}`}>
-      {/* Loader Overlay (Doesn't affect layout) */}
+
       {loading && (
         <div className="vapt-loader-overlay">
           <VaptLoader />
         </div>
       )}
 
-      {/* Page Content Remains in Place */}
       <div className={`page-content ${loading ? "loading" : ""}`}>
         <Routes>          
           <Route path="/" element={<Dashboard/>}/>
@@ -81,6 +81,7 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/tender-list" element={<TenderList/>}/>
           <Route path="/tender-Edit/:id" element={<TenderTrackingEdit/>}/>
           <Route path="/tender-View/:id" element={<TenderTrackingView/>}/>
+          <Route path="/register" element ={<UserLoginForm/>}/>
         </Routes>
       </div>
     </div>

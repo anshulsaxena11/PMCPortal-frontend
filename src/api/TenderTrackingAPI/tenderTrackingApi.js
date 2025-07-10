@@ -9,7 +9,7 @@ export const postTenderTrackingData = async (payload) => {
   try {
     // 🔍 Step 1: Check if tender name is unique
     const checkResponse = await axiosInstance.get('/user/checkTenderName', {
-      params: { tenderName: payload.tenderName },
+      params: { tenderName: payload.tenderName }, withCredentials: true,
     });
 
     if (checkResponse.data.exists) {
@@ -30,7 +30,7 @@ export const postTenderTrackingData = async (payload) => {
 
     // 🚀 Step 3: Post the data
     const response = await axiosInstance.post('/user/TenderTrackingDetails', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': 'multipart/form-data' }, withCredentials: true,
     });
 
     return response.data;
@@ -89,7 +89,7 @@ export const postTenderTrackingData = async (payload) => {
 export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",isDeleted = "false" }) => {
   try {
     const response = await axiosInstance.get("/user/Tender", {
-      params: { page, limit, search, isDeleted:isDeleted.toString() },
+      params: { page, limit, search, isDeleted:isDeleted.toString() }, withCredentials: true,
     });
     console.log(response);
     return response.data;
@@ -107,7 +107,7 @@ export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",i
 export const getAllTenderList = async ({ isDeleted = "false" } = {}) => {
   try {
     const response = await axiosInstance.get("/user/Alltender", {
-      params: { isDeleted: isDeleted.toString() },
+      params: { isDeleted: isDeleted.toString() }, withCredentials: true,
     });
 
     // Optional: Check if data exists before returning
@@ -131,18 +131,18 @@ export const deleteTenderById = async (id) => {
     return await axiosInstance.put(`/user/soft-delete/${id}`,{},{
         headers: {
             "Content-Type": "application/json"
-        }
+        }, withCredentials: true,
     });
 }
-export const getEmpList = async()=> axiosInstance.get('/user/EmpListTF')
+export const getEmpList = async()=> axiosInstance.get('/user/EmpListTF',{ withCredentials: true,})
 
-export const getTrackingById = async(id) => axiosInstance.get(`/user/tenderTracking/${id}`).then(response => response.data).catch(error => { throw error });
+export const getTrackingById = async(id) => axiosInstance.get(`/user/tenderTracking/${id}`,{ withCredentials: true,}).then(response => response.data).catch(error => { throw error });
 
  export const updateTenderById = async (id, Payload, file) => {
     return await axiosInstance.put(`/user/tenderTracking/${id}`, Payload, {
         headers: {
             "Content-Type": "multipart/form-data"
-        }
+        }, withCredentials: true,
     });
 };
 export const updatetendermessage = async (id, message, messageStatus = 'Lost') => {
@@ -152,7 +152,7 @@ export const updatetendermessage = async (id, message, messageStatus = 'Lost') =
     {
       headers: {
         "Content-Type": "application/json"
-      }
+      }, withCredentials: true,
     }
   );
 };
