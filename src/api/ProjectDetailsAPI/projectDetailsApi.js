@@ -14,7 +14,7 @@ export const postPerseonlData = async (payload) => {
 
   try {
     const response = await axiosInstance.post('/user/perseonalDetails', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { 'Content-Type': 'multipart/form-data' }, withCredentials: true,
     });
     return response.data;
   } catch (error) {
@@ -29,16 +29,17 @@ export const postPerseonlData = async (payload) => {
     }
   }
 };
-  export const getAllProjectDetails = async (id) => await axiosInstance.get(`/user/AllprojectDetails/`).then(response => response.data).catch(error => { throw error });
-  export const getProjectNameList = async () => await axiosInstance.get('/user/projectName').then(response => response.data).catch(error => { console.error('Error fetching device list:', error); throw error; });
-  export const getProjectTypeList = async (id) => await axiosInstance.get(`/user/project/${id}`).then(response => response.data).catch(error => { throw error });
-  export const getProjectDetailsList = async ({ page = 1, limit = 10, search = "" }) => axiosInstance.get("/user/projectDetails", { params: { page, limit, search } }).then(response => response.data);
-  export const getProjectDetailsById = async (id) => await axiosInstance.get(`/user/projectDetails/${id}`).then(response => response.data).catch(error => { throw error });
+  export const getAllProjectDetails = async (id) => await axiosInstance.get(`/user/AllprojectDetails/`,{withCredentials: true }).then(response => response.data).catch(error => { throw error });
+  export const getProjectNameList = async () => await axiosInstance.get('/user/projectName',{withCredentials: true }).then(response => response.data).catch(error => { console.error('Error fetching device list:', error); throw error; });
+  export const getProjectTypeList = async (id) => await axiosInstance.get(`/user/project/${id}`,{withCredentials: true }).then(response => response.data).catch(error => { throw error });
+  export const getProjectDetailsList = async ({ page = 1, limit = 10, search = "" }) => axiosInstance.get("/user/projectDetails", { params: { page, limit, search }, withCredentials: true }).then(response => response.data);
+  export const getProjectDetailsById = async (id) => await axiosInstance.get(`/user/projectDetails/${id}`,{withCredentials: true }).then(response => response.data).catch(error => { throw error });
   export const editProjectDetails = async (id, Payload, file) => {
     return await axiosInstance.put(`/user/projectDetails/${id}`, Payload, {
         headers: {
             "Content-Type": "multipart/form-data"
-        }
+        },
+        withCredentials: true 
     });
 };
 

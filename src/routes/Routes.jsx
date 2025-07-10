@@ -13,10 +13,13 @@ import PieChart from "../pages/charts/piechartscomponent"
 import Dashboard from "../pages/dashboard/dashboard"
 import TenderTracking from "../pages/tender/TenderForm/tendertracking"
 import TenderList from "../pages/tender/TenderList/tenderlist";
+import UserLoginForm from "../pages/userAdmin/userLoginForm/UserLoginForm"
+import LoginPanel from "../pages/login/loginPannel/LoginPanel"
 
 const AppRoutes = () => {
   return (
     <Routes>
+       <Route path="/login" element={<LoginPanel/>}/>
       <Route path="/" element={<Dashboard/>}/>
       <Route path="/ProjectDetailsList" element={<ProjectDetailsList />} />
       <Route path="/reportList" element={<ReportList />} />
@@ -30,7 +33,7 @@ const AppRoutes = () => {
       <Route path="/PieChart" element={<PieChart/>}/>
       <Route path="/tender-tracking" element={<TenderTracking/>}/>
       <Route path="/tender-list" element={<TenderList />} />
-      
+      <Route path="/register" element ={<UserLoginForm/>}/>
 
     </Routes>
   );
