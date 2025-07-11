@@ -130,7 +130,7 @@ const Sidebar = ({ onToggle }) => {
                 <ListItem
                   button
                   onClick={() => navigate(item.path)}
-                  sx={{ px: 2 }}
+                  sx={{ px: 2,cursor: !isExpanded ? 'default' : 'pointer', '&:hover': {backgroundColor: !isExpanded ? 'transparent' : 'rgba(255, 255, 255, 0.08)',} }}
                 >
                   <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isExpanded ? 2 : "auto", justifyContent: "center" }}>
                     {item.icon}

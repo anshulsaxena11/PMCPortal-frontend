@@ -35,7 +35,7 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
   if (!fileType) return null;
 
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
+    <Modal show={show} onHide={onHide} size="lg" centered style={{ zIndex: 2000 }}>
       <Modal.Header closeButton className="custom-modal-header" style={{ backgroundColor: '#2c3e50' }}>
         <Modal.Title style={{ color: '#fff' }}>Preview</Modal.Title>
       </Modal.Header>
