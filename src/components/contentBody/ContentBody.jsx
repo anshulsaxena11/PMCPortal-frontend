@@ -37,10 +37,10 @@ const ContentBody = ({ isSidebarExpanded }) => {
 
   useEffect(() => {
     setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 1000); // Simulated loading time
+    const timer = setTimeout(() => setLoading(false), 1000); 
 
     return () => clearTimeout(timer);
-  }, [location.pathname]); // Trigger loader on route change
+  }, [location.pathname]); 
 
   return (
     <div className={`content-body ${isSidebarExpanded ? "expanded" : "collapsed"}`}>

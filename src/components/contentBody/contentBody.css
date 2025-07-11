@@ -1,13 +1,14 @@
 .content-body {
   transition: margin-left 0.3s ease-in-out, margin-top 0.3s ease-in-out;
   padding: 20px;
+  margin-top:-45px;
   background-color: #f7f4f0; 
   height: 100vh; 
   overflow-y: auto; 
 }
 
 .content-body.expanded {
-  margin-left: 250px; 
+  margin-left: 240px; 
 }
 
 .content-body.collapsed {
