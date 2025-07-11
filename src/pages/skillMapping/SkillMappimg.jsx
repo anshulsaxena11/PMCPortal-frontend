@@ -290,7 +290,13 @@ const SkillMapping = () => {
                                 Loading...
                             </td>
                         </tr>
-                    ) : (
+                    ) : data.length === 0 ?(
+                        <tr>
+                             <td colSpan={columns.length + 2} className="text-center text-danger fw-bolder">
+                                No data found.
+                            </td>
+                        </tr>
+                    ): (
                         data.map((item, index) => (
                             <tr key={item.empid || index}>
                                 <td>{(page - 1) * 10 + index + 1}</td>
@@ -300,7 +306,7 @@ const SkillMapping = () => {
                                         projectTypes.map((pt) => pt._id).includes(col) ? (
                                            <Select
                                                 options={selectNumericOption}
-                                               value={
+                                                value={
                                                     (() => {
                                                         const rowData = rows[index] || item;
                                                         const ratingValue = rowData[col] || (() => {
@@ -314,10 +320,15 @@ const SkillMapping = () => {
                                                     handleTableInput(selectedOption, col, index, item)
                                                 }
                                                 isClearable
+                                                menuPortalTarget={document.body}
                                                 styles={{
                                                     container: (provided) => ({
                                                         ...provided,
                                                         width: 124,
+                                                    }),
+                                                    menuPortal: (base) => ({
+                                                    ...base,
+                                                    zIndex: 9999, 
                                                     }),
                                                 }}
                                             />
