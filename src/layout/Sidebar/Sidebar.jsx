@@ -16,6 +16,7 @@ import { TbReportAnalytics } from "react-icons/tb";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { useLocation } from "react-router-dom";
 
 import {
   FaSitemap,
@@ -41,6 +42,7 @@ const Sidebar = ({ onToggle }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
@@ -78,9 +80,15 @@ const Sidebar = ({ onToggle }) => {
     { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register" },
-
+    //subadmin
     { role: "SubAdmin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
+    { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
+    { role: "SubAdmin", label: "Vulnerability", icon: <BiSolidReport />, path: "/report" },
+    { role: "SubAdmin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "SubAdmin", label: "Tools/Hardware Master", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
+    { role: "SubAdmin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
+    { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
+    { role: "SubAdmin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
   ];
 
   return (
@@ -130,7 +138,18 @@ const Sidebar = ({ onToggle }) => {
                 <ListItem
                   button
                   onClick={() => navigate(item.path)}
-                  sx={{ px: 2,cursor: !isExpanded ? 'default' : 'pointer', '&:hover': {backgroundColor: !isExpanded ? 'transparent' : 'rgba(255, 255, 255, 0.08)',} }}
+                  selected={location.pathname === item.path} // ✅ Highlight if active
+                  sx={{
+                    px: 2,
+                    cursor: !isExpanded ? 'default' : 'pointer',
+                    backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.12)' : 'inherit', // ✅ Background for active
+                    borderLeft: location.pathname === item.path ? '4px solid #1abc9c' : '4px solid transparent', // ✅ Left accent
+                    '&:hover': {
+                      backgroundColor: !isExpanded
+                        ? 'transparent'
+                        : 'rgba(255, 255, 255, 0.2)',
+                    },
+                  }}
                 >
                   <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isExpanded ? 2 : "auto", justifyContent: "center" }}>
                     {item.icon}
