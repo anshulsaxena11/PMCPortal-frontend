@@ -85,7 +85,6 @@ const Sidebar = ({ onToggle }) => {
     { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
     { role: "SubAdmin", label: "Vulnerability", icon: <BiSolidReport />, path: "/report" },
     { role: "SubAdmin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
-    { role: "SubAdmin", label: "Tools/Hardware Master", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
     { role: "SubAdmin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "SubAdmin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },

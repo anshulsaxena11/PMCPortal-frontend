@@ -75,7 +75,7 @@ const TenderTrackingView = ({ ID }) => {
     <div className="container-fluid">
       <div className="row">
         <div className="col-sm-10 col-md-10 col-lg-10">
-          <h1 className="fw-bolder">Tender Tracking Edit</h1>
+          <h1 className="fw-bolder">Tender Tracking View</h1>
         </div>
         <div className="col-sm-2 col-md-2 col-lg-2">
           <Button variant="danger" className="btn btn-success" onClick={handleBackClick}>
