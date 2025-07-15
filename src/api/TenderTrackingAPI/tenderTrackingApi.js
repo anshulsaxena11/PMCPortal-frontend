@@ -104,10 +104,10 @@ export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",i
   }
 };
 
-export const getAllTenderList = async ({ isDeleted = "false" } = {}) => {
+export const getAllTenderList = async ({ isDeleted = false} = {}) => {
   try {
     const response = await axiosInstance.get("/user/Alltender", {
-      params: { isDeleted: isDeleted.toString() }, withCredentials: true,
+      params: { isDeleted: isDeleted },
     });
 
     // Optional: Check if data exists before returning

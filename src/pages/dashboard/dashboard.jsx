@@ -33,7 +33,7 @@ export default function TabCardWithGrids() {
       try {
         const reportData = await getAllReportList();
         const workTypeData = await getAllProjectDetails();
-        const TenderData = await getAllTenderList({ isDeleted: "false" });
+        const TenderData = await getAllTenderList({ isDeleted: false });
 
         setProjectNameRows(reportData.data.map((r, i) => ({ id: i + 1, ...r })));
         setWorkTypeRows(workTypeData.data.map((r, i) => ({ id: i + 1, ...r })));
@@ -186,7 +186,7 @@ export default function TabCardWithGrids() {
 
   const link = document.createElement('a');
   link.href = url;
-  link.setAttribute('download', 'table_data.csv');
+  link.setAttribute('download', `${tabData[activeTab].label.replace(/\s+/g, '_')}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -241,7 +241,7 @@ const handleDownloadPDF = () => {
     headStyles: { fillColor: [33, 150, 243] },
   });
 
-  doc.save('table_data.pdf');
+ doc.save(`${tabData[activeTab].label.replace(/\s+/g, '_')}.pdf`);
 };
 
 
