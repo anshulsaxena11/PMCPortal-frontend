@@ -4,3 +4,4 @@ export const postRegister = async (payload) => axiosInstance.post('/admin/regist
 export const postLogin = async (payload) => axiosInstance.post('/admin/login', payload).catch(err => {throw err});
 export const validateToken = async() => axiosInstance.get('/admin/validate',{ withCredentials: true })
 export const logoutUser = async() => axiosInstance.post('/admin/logout',{ withCredentials: true })
+export const postForgetPassword = async (payload) => axiosInstance.post('/admin/forget-Password', payload).catch(err => {throw err});

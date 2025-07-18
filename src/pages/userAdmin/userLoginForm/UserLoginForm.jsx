@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from "react-hook-form";
 import { Button, Spinner, InputGroup  } from 'react-bootstrap';
 import { IoIosSave } from "react-icons/io";
@@ -6,6 +6,7 @@ import Form from 'react-bootstrap/Form';
 import { TiArrowBack } from "react-icons/ti";
 import Select from 'react-select';
 import {postRegister} from "../../../api/loginApi/loginApi"
+import {empList} from '../../../api/syncEmp/syncEmp'
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import userRegistrationValidation from '../../../validation/userRegistrationValidation';
@@ -20,6 +21,8 @@ const UserLoginForm = () => {
 
     const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [option, setOption] = useState([])
+    const [selectedEmp, setSelectedEmp] = useState(null);
     const MySwal = withReactContent(Swal); 
 
     const roles = [
@@ -28,12 +31,34 @@ const UserLoginForm = () => {
         { value: 'User', label: 'User' }
     ];
 
+    useEffect(() => {
+        const fetchEmpList = async() =>{
+            setLoading(true);
+            try{
+                const response = await empList()
+                const fetchList = response?.data
+                if(fetchList && Array.isArray(fetchList) ){
+                    const option = fetchList.map((emp)=>({
+                        label: `${emp.empid} - ${emp.ename}`,
+                        value:emp._id,
+                        raw:emp
+                    }))
+                    setOption(option)
+                }
+            }catch(error){
+                console.error('Failed to fetch employee list:');
+            }
+             setLoading(false);
+        }
+        fetchEmpList()
+    }, []); 
+
     const handleFormSubmit = async(data) => {
         const payload = {
-            username: data.username,
-            password: data.password,
+            empId:selectedEmp._id,
             role: data.role.value
         };
+        console.log(payload)
         setLoading(true);
         try{
             const response = await postRegister(payload)
@@ -71,6 +96,17 @@ const UserLoginForm = () => {
         handleSubmit(handleFormSubmit)();
     };
 
+   const handleFilter = (option, inputValue) => {
+        const { empid = "", ename = "" } = option.data.raw || {};
+        const search = inputValue.toLowerCase();
+        return empid.toLowerCase().includes(search) || ename.toLowerCase().includes(search);
+    };
+
+    const handleChange = (selectedOption, fieldOnChange) => {
+        setSelectedEmp(selectedOption?.raw || null);
+        fieldOnChange(selectedOption);
+    }
+
     const handleBackClick = ()=>{
         // navigate(`/report`) 
     }
@@ -93,62 +129,116 @@ const UserLoginForm = () => {
                 <div className="container-fluid">
                     <Form onSubmit={handleSubmit}>
                         <div className='row'>
-                            <div className='col-sm-4 col-md-4 col-lg-4'>
+                            <div className='col-sm col-md col-lg'>
                                 <Form.Group className="mb-3">
-                                <Form.Label className="fs-5 fw-bolder">User Name<span className="text-danger">*</span></Form.Label>
-                                <Form.Control type="email" {...register('username')} placeholder="Enter username" />
-                                {errors.username && <p className="text-danger">{errors.username.message}</p>}
-                                </Form.Group>
-                            </div>
-                            <div className='col-sm-4 col-md-4 col-lg-4'>
-                                <Form.Group className="mb-3">
-                                <Form.Label className="fs-5 fw-bolder">Password<span className="text-danger">*</span></Form.Label>
-                                <InputGroup>
-                                    <Form.Control
-                                        type={showPassword ? 'text' : 'password'}
-                                        placeholder="Enter password"
-                                        {...register('password')}
+                                    <Form.Label className="fs-5 fw-bolder">STPI Employee ID<span className="text-danger">*</span></Form.Label>
+                                    <Controller
+                                        name="empId"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                {...field}
+                                                options={option}
+                                                isLoading={loading}
+                                                value={field.value}
+                                                placeholder="Search By EmpId or Name"
+                                                filterOption={handleFilter}
+                                                onChange={(selected) => handleChange(selected, field.onChange)}
+                                                isClearable
+                                            />
+                                        )}
                                     />
-                                    <InputGroup.Text onClick={() => setShowPassword(!showPassword)} style={{ cursor: 'pointer' }}>
-                                        {showPassword ? <BsEyeSlash /> : <BsEye />}
-                                    </InputGroup.Text>
-                                </InputGroup>
-                                {errors.password && <p className="text-danger">{errors.password.message}</p>}
+                                    {/* <Form.Control type="email" {...register('username')} placeholder="Enter username" /> */}
+                                    {errors.empId && <p className="text-danger">{errors.empId.message}</p>}
                                 </Form.Group>
                             </div>
-                             <div className='col-sm-4 col-md-4 col-lg-4'>
-                                <Form.Group></Form.Group>
-                                <Form.Label className="fs-5 fw-bolder">Role<span className="text-danger">*</span></Form.Label>
-                                <Controller
-                                    name="role"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <Select
-                                        {...field}
-                                        options={roles}
-                                        placeholder="Select role"
-                                        isClearable
-                                        />
-                                    )}
-                                />
-                                 {errors.role && <p className="text-danger">{errors.role.message}</p>}
-                             </div>
                         </div>
+                        {selectedEmp && (
+                            <div className='row pt-3'>
+                                <div className='col-sm-6 col-md-6 col-lg-6'>
+                                     <Form.Group className='pb-3'>
+                                        <Form.Label className="fs-5 fw-bolder">Directorates</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={selectedEmp?.dir || ""}
+                                            readOnly   
+                                            disabled 
+                                        />
+                                    </Form.Group>
+                                    <Form.Group className='pb-3'>
+                                        <Form.Label className="fs-5 fw-bolder">Employee Designation</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={selectedEmp?.edesg || ""}
+                                            readOnly   
+                                            disabled 
+                                        />
+                                    </Form.Group>
+                                    <Form.Group>
+                                        <Form.Label className="fs-5 fw-bolder">Email</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={selectedEmp?.email || ""}
+                                            readOnly   
+                                            disabled 
+                                        />
+                                    </Form.Group>
+                                </div>
+                                <div className='col-sm-6 col-md-6 col-lg-6'>
+                                    <Form.Group >
+                                        <Form.Label className="fs-5 fw-bolder">Centre</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={selectedEmp?.centre || ""}
+                                            readOnly   
+                                            disabled 
+                                        />
+                                    </Form.Group>
+                                    <Form.Group className='py-3'>
+                                        <Form.Label className="fs-5 fw-bolder">Employee Type</Form.Label>
+                                        <Form.Control
+                                            type="text"
+                                            value={selectedEmp?.etpe || ""}
+                                            readOnly   
+                                            disabled 
+                                        />
+                                    </Form.Group>
+                                    <Form.Group>
+                                        <Form.Label className="fs-5 fw-bolder">Role<span className="text-danger">*</span></Form.Label>
+                                        <Controller
+                                            name="role"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select
+                                                    {...field}
+                                                    options={roles}
+                                                    placeholder="Select role"
+                                                    isClearable
+                                                />
+                                            )}
+                                        />
+                                        {errors.role && <p className="text-danger">{errors.role.message}</p>}
+                                    </Form.Group>
+                                </div>
+                            </div>   
+                        )}
                     </Form>
-                    <div className='pt-3'>
-                        <Button variant="primary" onClick={handleButtonClick} type="submit" disabled={loading}>
-                            {loading ? (
-                            <Spinner animation="border" size="sm" />
-                            ) : (
-                            <>
-                                <IoIosSave /> SAVE
-                            </>
-                            )}
-                        </Button>
+                    {selectedEmp && (
+                        <div className='pt-3'>
+                            <Button variant="primary" onClick={handleButtonClick} type="submit" disabled={loading}>
+                                {loading ? (
+                                    <Spinner animation="border" size="sm" />
+                                ) : (
+                                <>
+                                    <IoIosSave /> Create User
+                                </>
+                                )}
+                            </Button>
                         {/* <Button variant="danger" className='btn btn-success mx-4' onClick={handleBackClick}>
                             <TiArrowBack /> BACK
                         </Button> */}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
