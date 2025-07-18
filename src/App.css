@@ -1,3 +1,4 @@
-/* .App {
-  display: flex;
-} */
+#nprogress .bar {
+  background: #edea0c !important;
+  z-index: 1300 !important;
+}

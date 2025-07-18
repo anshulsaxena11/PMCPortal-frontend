@@ -86,7 +86,7 @@ const AdminSyncEmploy = () =>{
     const fetchEmpList = async() =>{
         setLoader(true);
         try{
-          const response = await empList({page,limit:10,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
+          const response = await empList({page:1,limit:10,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
           const transformedData = response.data.map(item => ({
               ...item,
               rawStatusNoida: item.StatusNoida,
