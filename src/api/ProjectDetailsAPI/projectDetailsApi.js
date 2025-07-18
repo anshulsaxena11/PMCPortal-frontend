@@ -29,10 +29,18 @@ export const postPerseonlData = async (payload) => {
     }
   }
 };
+
+export const deleteProjectsById = async (id) => {
+    return await axiosInstance.put(`/user/projects-soft-delete/${id}`,{
+        headers: {
+            "Content-Type": "application/json"
+        }, withCredentials: true,
+    });
+}
   export const getAllProjectDetails = async (id) => await axiosInstance.get(`/user/AllprojectDetails/`,{withCredentials: true }).then(response => response.data).catch(error => { throw error });
   export const getProjectNameList = async () => await axiosInstance.get('/user/projectName',{withCredentials: true }).then(response => response.data).catch(error => { console.error('Error fetching device list:', error); throw error; });
   export const getProjectTypeList = async (id) => await axiosInstance.get(`/user/project/${id}`,{withCredentials: true }).then(response => response.data).catch(error => { throw error });
-  export const getProjectDetailsList = async ({ page = 1, limit = 10, search = "" }) => axiosInstance.get("/user/projectDetails", { params: { page, limit, search }, withCredentials: true }).then(response => response.data);
+  export const getProjectDetailsList = async ({ page = 1, limit = 10, search = "", isDeleted = false}) => axiosInstance.get("/user/projectDetails", { params: { page, limit, search, isDeleted }, withCredentials: true }).then(response => response.data);
   export const getProjectDetailsById = async (id) => await axiosInstance.get(`/user/projectDetails/${id}`,{withCredentials: true }).then(response => response.data).catch(error => { throw error });
   export const editProjectDetails = async (id, Payload, file) => {
     return await axiosInstance.put(`/user/projectDetails/${id}`, Payload, {

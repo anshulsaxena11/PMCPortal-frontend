@@ -1,8 +1,9 @@
 // pages/ProjectListPage.js
 import React, { useState, useEffect } from 'react';
-import { getProjectDetailsList } from '../../../api/ProjectDetailsAPI/projectDetailsApi';
+import {deleteProjectsById, getProjectDetailsList } from '../../../api/ProjectDetailsAPI/projectDetailsApi';
 import ListView from '../../../components/listView/listView';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 
 const ProjectDetailsList = () => {
   const [data, setData] = useState([]);
@@ -80,6 +81,44 @@ const ProjectDetailsList = () => {
     const id =data._id
     navigate(`/projectDetailsEdit/${id}`); 
   }
+  const handleDeleteClick = async (data) => {
+      const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "This action cannot be undone.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel',
+      });
+       if (!result.isConfirmed) return;
+
+try {
+
+  const response = await deleteProjectsById(data._id);
+    
+    if (response.data.message) {
+       Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: response.message,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        
+      }
+    fetchData();
+  } catch (error) {
+    console.error("Delete error:", error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: error?.message || 'Something went wrong!',
+    });
+  }
+
+      };
 
   return (
     <div>
@@ -98,7 +137,9 @@ const ProjectDetailsList = () => {
         loading={loading}
         onViewClick={handleViewClick}
         onEditClick={handleEditClick}
+        onDeleteClick={handleDeleteClick}
         showEditView={true}
+        isDeletedFilter={true}
         showNoDataMessage={true}
       />
     </div>
