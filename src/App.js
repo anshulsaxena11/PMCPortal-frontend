@@ -63,7 +63,7 @@ function AppWrapper() {
     }
   };
 
-  useIdleTimer(handleIdle, 1 * 60 * 1000); 
+  useIdleTimer(handleIdle, 5 * 60 * 1000); 
 
   return (
     <Routes>

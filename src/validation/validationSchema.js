@@ -32,14 +32,20 @@ const validationSchema = yup.object({
   PrimaryEmail: yup.string().email("Invalid email format").required("Primary Email is required"),
   projectManager: yup.string().required("Project Manager Name is required"),
   // noOfauditor:yup.number().positive().required("auditor Value is required"),
-  SecondaryEmail: yup.string().email("Invalid email format"),
+  SecondaryEmail: yup.string().transform((value) => (value === "" || value === undefined || value === null ? "N/A" : value)).test("email-or-na", "Invalid email format", (value) => {
+    if (value === "N/A") return true; 
+    return yup.string().email().isValidSync(value); 
+  }),
   selectedProjectTypes: yup.array()
   .min(1, 'You must select at least one project type')
   .required('Project type is required'),
   workOrder:yup
   .mixed()
-  .required('A file is required')
- 
+  .required('A file is required').test('fileSize', 'File size must be less than or equal to 5MB', (value) => {
+      return value && value instanceof File && value.size <= 5 * 1024 * 1024;
+    }).test('fileType', 'Unsupported file format', (value) => {
+      return value && ['application/pdf', 'image/jpeg', 'image/jpg'].includes(value.type);
+    })
 });
 
 export default validationSchema;

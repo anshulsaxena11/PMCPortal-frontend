@@ -32,6 +32,9 @@ const HomePage = () => {
       selectedProjectTypes: [],
       startDate: null,
       endDate: null,
+      SecondaryEmail:"",
+      SecondaryPhoneNo:"",
+      SecondaryFullName:""
     },
   });
 
@@ -335,6 +338,11 @@ const HomePage = () => {
       const selectedString = selected?.label;
       setValue('typeOfWork',selectedString)
   }
+  const formatINRCurrency = (value) => {
+    if (!value) return "";
+    const number = Number(value.toString().replace(/,/g, ""));
+    return number.toLocaleString("en-IN");
+  };
 
   return (
     <div className="home-page">
@@ -566,7 +574,28 @@ const HomePage = () => {
                   <Controller
                     name="ProjectValue"
                     control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder="Project Value in &#8377;"/>}
+                    render={({ field: { onChange, onBlur, value, ref } }) => (
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        className="form-control"
+                        placeholder="Project Value in ₹"
+                        value={formatINRCurrency(value)}
+                        onChange={(e) => {
+                          const rawValue = e.target.value.replace(/,/g, "");
+                          if (!isNaN(rawValue)) {
+                            onChange(rawValue);
+                          }
+                        }}
+                        onBlur={onBlur}
+                        ref={ref}
+                        onKeyDown={(e) => {
+                          if (["e", "E", "+", "-", "."].includes(e.key)) {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                    )}
                   />
                   {errors.ProjectValue && <p className="text-danger">{errors.ProjectValue.message}</p>}
                 </Form.Group>
@@ -648,14 +677,13 @@ const HomePage = () => {
                 <Controller
                   name="workOrder"
                   control={control}
-                  render={({ field }) => (
+                  render={({  field: { onChange, onBlur, name, ref } }) => (
                     <Form.Control
-                      {...field}
                       type="file"
                       ref={fileInputRef}
                       onChange={(e) => {
                         handleFileChange(e);
-                        field.onChange(e); 
+                        onChange(e.target.files[0]); 
                       }}
                       required
                       accept=".pdf,.jpeg,.jpg"
@@ -732,7 +760,7 @@ const HomePage = () => {
                   <Controller
                     name="PrimaryPhoneNo"
                     control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Primary Person Mobile Number"/>}
+                    render={({ field }) => <input {...field} type="number" className="form-control" placeholder="Enter Primary Person Mobile Number" onKeyDown={(e) => {if (["e", "E", "+", "-", "."].includes(e.key)) {e.preventDefault();}}}/>}
                   />
                   {errors.PrimaryPhoneNo && <p className="text-danger">{errors.PrimaryPhoneNo.message}</p>}
                 </Form.Group>
@@ -741,7 +769,7 @@ const HomePage = () => {
                   <Controller
                     name="SecondaryPhoneNo"
                     control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder ="Enter Secondary Person Mobile Number" />}
+                    render={({ field }) => <input {...field} className="form-control" type="number" placeholder ="Enter Secondary Person Mobile Number" onKeyDown={(e) => {if (["e", "E", "+", "-", "."].includes(e.key)) {e.preventDefault();}}} />}
                   />
                   {errors.SecondaryPhoneNo && <p className="text-danger">{errors.SecondaryPhoneNo.message}</p>}
                 </Form.Group>
