@@ -15,11 +15,13 @@ import TenderTracking from "../pages/tender/TenderForm/tendertracking"
 import TenderList from "../pages/tender/TenderList/tenderlist";
 import UserLoginForm from "../pages/userAdmin/userLoginForm/UserLoginForm"
 import LoginPanel from "../pages/login/loginPannel/LoginPanel"
+import ForgotPassword from "../pages/login/forgotPasswordPannel/ForgotPanel"
 
 const AppRoutes = () => {
   return (
     <Routes>
-       <Route path="/login" element={<LoginPanel/>}/>
+      <Route path="/login" element={<LoginPanel/>}/>
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/" element={<Dashboard/>}/>
       <Route path="/ProjectDetailsList" element={<ProjectDetailsList />} />
       <Route path="/reportList" element={<ReportList />} />
