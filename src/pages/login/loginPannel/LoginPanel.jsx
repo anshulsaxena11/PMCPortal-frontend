@@ -7,6 +7,7 @@ import Swal from 'sweetalert2'
 import { postLogin } from "../../../api/loginApi/loginApi"
 import loginValidationSchema from '../../../validation/loginValidation';
 import { useNavigate } from 'react-router-dom';
+import NProgress from 'nprogress';
 
 
 const LoginPanel = () =>{
@@ -42,6 +43,12 @@ const LoginPanel = () =>{
             Swal.fire('Error', error?.response?.data?.message || 'Login failed', 'error');
         }
     }
+
+    const handleForgotPasswordClick = () => {
+        NProgress.start();              
+        navigate('/forgot-password');   
+    };
+
     return( 
         <Box
             sx={{
@@ -90,6 +97,14 @@ const LoginPanel = () =>{
                     <Button fullWidth variant="contained" color="primary" type="submit"  sx={{ mt: 3, py: 1.5, fontWeight: 600 }}>
                         Login
                     </Button>
+                    <Typography
+                        variant="body2"
+                        align="right"
+                        sx={{ mt: 3, mb: 1, cursor: 'pointer', color: '#1976d2', '&:hover': { textDecoration: 'underline' } }}
+                        onClick={handleForgotPasswordClick}
+                    >
+                        Forgot Password?
+                    </Typography>
                 </form>
             </Paper>
         </Container>

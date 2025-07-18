@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {BrowserRouter as Router,Routes,Route,useNavigate,} from "react-router-dom";
+import {BrowserRouter as Router,Routes,Route,useNavigate,useLocation} from "react-router-dom";
 import Sidebar from "./layout/Sidebar/Sidebar";
 import ContentBody from "./components/contentBody/ContentBody";
 import LoginPanel from "./pages/login/loginPannel/LoginPanel.jsx";
@@ -8,15 +8,29 @@ import GuestRoute from "./components/GuestRoutes/GetRoutes.jsx";
 import Swal from "sweetalert2";
 import { logoutUser } from "./api/loginApi/loginApi.js";
 import useIdleTimer from "./hooks/LogoutTimer.js"; 
+import ForgotPassword from "./pages/login/forgotPasswordPannel/ForgotPanel"
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 import "./App.css";
 
 function AppWrapper() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
+  NProgress.configure({ showSpinner: false });
 
   const handleSidebarToggle = (isExpanded) => {
     setIsSidebarExpanded(isExpanded);
   };
+
+   useEffect(() => {
+    NProgress.start();
+    const timer = setTimeout(() => {
+      NProgress.done();
+    }, 1000); 
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
 
   const handleIdle = async () => {
     const result = await Swal.fire({
@@ -49,7 +63,7 @@ function AppWrapper() {
     }
   };
 
-  useIdleTimer(handleIdle, 5 * 60 * 1000); 
+  useIdleTimer(handleIdle, 1 * 60 * 1000); 
 
   return (
     <Routes>
@@ -58,6 +72,14 @@ function AppWrapper() {
         element={
           <GuestRoute>
             <LoginPanel />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <GuestRoute>
+            <ForgotPassword />
           </GuestRoute>
         }
       />
