@@ -1,9 +1,9 @@
 .content-body {
   transition: margin-left 0.3s ease-in-out, margin-top 0.3s ease-in-out;
-  padding: 20px;
-  margin-top:-45px;
+  padding: 30px;
+  margin-top:20px;
   background-color: #f7f4f0; 
-  height: 100vh; 
+  height: 88vh; 
   overflow-y: auto; 
 }
 
