@@ -1,4 +1,9 @@
 #nprogress .bar {
-  background: #edea0c !important;
-  z-index: 1300 !important;
+  background: rgb(213, 209, 22);
+  height: 3px;
+  position: fixed;
+  top: 64px; 
+  left: 0;
+  width: 100%;
+  z-index: 1300;
 }
