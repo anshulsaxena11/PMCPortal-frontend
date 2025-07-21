@@ -11,6 +11,7 @@ import {
   Toolbar,
   Tooltip,
   Typography,
+  Avatar
 } from "@mui/material";
 import { TbReportAnalytics } from "react-icons/tb";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -41,12 +42,15 @@ const miniDrawerWidth = 70;
 const Sidebar = ({ onToggle }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  const [userName, setUserName] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
+    const name = localStorage.getItem("userName");
     setUserRole(role);
+    setUserName(name);
   }, []);
 
   const toggleDrawer = () => {
@@ -91,7 +95,7 @@ const Sidebar = ({ onToggle }) => {
   ];
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", transition: "all 0.3s ease-in-out" }}>
       <Box
         sx={{
           width: "100%",
@@ -100,17 +104,38 @@ const Sidebar = ({ onToggle }) => {
           color: "#fff",
           display: "flex",
           alignItems: "center",
+          justifyContent: "space-between",
           px: 2,
           position: "fixed",
           zIndex: 1201,
         }}
       >
-        <IconButton onClick={toggleDrawer} sx={{ color: "white", mr: 2 }}>
-          <MenuIcon />
-        </IconButton>
-        <Typography variant="h6">STPI</Typography>
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <IconButton onClick={toggleDrawer} sx={{ color: "white", mr: 2 }}>
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6">STPI</Typography>
+        </Box>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+          <Avatar
+            alt="Profile"
+            src={"/images/default_image_profile.jpg"}
+            sx={{
+              width: 40,
+              height: 40,
+              border: "2px solid #1abc9c",
+            }}
+          />
+          <Box textAlign="left"sx={{ pr: 2 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "white" }}>
+              {userName}
+            </Typography>
+            <Typography variant="caption" sx={{ color: "#bdc3c7" }}>
+              {userRole}
+            </Typography>
+          </Box>
+        </Box>
       </Box>
-
       <Drawer
         variant="permanent"
         sx={{
@@ -121,14 +146,63 @@ const Sidebar = ({ onToggle }) => {
             boxSizing: "border-box",
             bgcolor: "#2c3e50",
             color: "#fff",
-            top: "7opx",
             height: "max",
             overflowY: "auto",
             transition: "width 0.3s ease-in-out",
+            '&::-webkit-scrollbar': {
+              width: '8px',
+            },
+            '&::-webkit-scrollbar-thumb': {
+              background: 'linear-gradient(to bottom, #35a28dff, #2ca58dff)', 
+              borderRadius: '10px',
+            },
+            '&::-webkit-scrollbar-thumb:hover': {
+              background: 'linear-gradient(to bottom, #3f766bff, #394a46ff)', 
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: '#1a252f', 
+            },
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#3a8c7cff #1a252f', 
           },
         }}
       >
-        <Toolbar />
+      <Toolbar />
+      {userName && userRole && (
+        <Box
+          sx={{
+            textAlign: 'center',
+            px: isExpanded ? 2 : 0,  
+            py: isExpanded ? 2 : 1, 
+            borderBottom: '1px solid #34495e',
+          }}
+        >
+        <Box
+          component="img"
+          src={"/images/default_image_profile.jpg"}
+          alt="Profile"
+          sx={{
+            width: isExpanded ? 64 : 40,     
+            height: isExpanded ? 64 : 40,
+            borderRadius: '50%',
+            objectFit: 'cover',
+            margin: '0 auto 10px',
+            border: '2px solid #1abc9c',
+            transition: "all 0.3s ease-in-out",
+          }}
+        />
+        {isExpanded && (
+          <>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#ecf0f1' }}>
+              {userName}
+            </Typography>
+            <Typography variant="body2" sx={{ color: '#bdc3c7' }}>
+              {userRole}
+            </Typography>
+           </>
+        )}
+      </Box>
+    )}
         <List>
           {menuItems
             .filter((item) => item.role === userRole)
@@ -137,7 +211,7 @@ const Sidebar = ({ onToggle }) => {
                 <ListItem
                   button
                   onClick={() => navigate(item.path)}
-                  selected={location.pathname === item.path} // ✅ Highlight if active
+                  selected={location.pathname === item.path} 
                   sx={{
                     px: 2,
                     cursor: !isExpanded ? 'default' : 'pointer',
@@ -168,18 +242,6 @@ const Sidebar = ({ onToggle }) => {
           </Tooltip>
         </List>
       </Drawer>
-
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          mt: "64px",
-          ml: isExpanded ? `${drawerWidth}px` : `${miniDrawerWidth}px`,
-          p: 3,
-          transition: "margin 0.3s ease-in-out",
-        }}
-      >
-      </Box>
     </Box>
   );
 };

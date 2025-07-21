@@ -39,43 +39,77 @@ const ForgotPassword = () => {
         minHeight: '100vh',
         background: 'linear-gradient(to right, #283E51, #485563)',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
+        flexDirection: 'column',
       }}
     >
-      <Container maxWidth="sm">
-        <Paper elevation={6} sx={{ p: 4, borderRadius: 3 }}>
-          <Typography variant="h5" align="center" sx={{ fontWeight: 'bold', mb: 3 }}>
-            Forgot Password
-          </Typography>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <TextField
-              fullWidth
-              label="username"
-              variant="outlined"
-              margin="normal"
-              {...register('username')}
-              error={!!errors.username}
-              helperText={errors.username?.message}
-              autoComplete="username"
-            />
-            <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-              Reset Password
-            </Button>
+      <Box
+        sx={{
+          height: 64,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          px: 4,
+          backgroundColor: '#2c3e50',
+          color: '#ecf0f1',
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+          PMC Portal
+        </Typography>
+        <Typography variant="subtitle1">STPI</Typography>
+      </Box>
+      <Box
+        sx={{
+          flexGrow: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+        }}
+      >
+        <Container maxWidth="sm">
+          <Paper elevation={6} sx={{ p: 4, borderRadius: 3 }}>
             <Typography
-                variant="body2"
-                align="right"
-                sx={{ mt: 3, mb: 1, cursor: 'pointer', color: '#1976d2', '&:hover': { textDecoration: 'underline' } }}
-                onClick={handleLoginClick}
+              variant="h5"
+              align="center"
+              sx={{ fontWeight: 'bold', mb: 3 }}
             >
-                Sign In?
+               Forgot Password
             </Typography>
-          </form>
-        </Paper>
-      </Container>
-    </Box>
-  );
-};
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <TextField
+                fullWidth
+                label="Username"
+                variant="outlined"
+                margin="normal"
+                {...register('username')}
+                error={!!errors.username}
+                helperText={errors.username?.message}
+                autoComplete="username"
+              />
+                <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
+                  Reset Password
+                </Button>
+                <Typography
+                  variant="body2"
+                  align="right"
+                  sx={{
+                    mt: 3,
+                    mb: 1,
+                    cursor: 'pointer',
+                    color: '#1976d2',
+                    '&:hover': { textDecoration: 'underline' },
+                  }}
+                  onClick={handleLoginClick}
+                >
+                  Sign In?
+                </Typography>
+              </form>
+            </Paper>
+          </Container>
+        </Box>
+      </Box>
+    );
+  };
 
 export default ForgotPassword;

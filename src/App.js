@@ -3,11 +3,13 @@ import {BrowserRouter as Router,Routes,Route,useNavigate,useLocation} from "reac
 import Sidebar from "./layout/Sidebar/Sidebar";
 import ContentBody from "./components/contentBody/ContentBody";
 import LoginPanel from "./pages/login/loginPannel/LoginPanel.jsx";
+import { Box } from '@mui/material';
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import GuestRoute from "./components/GuestRoutes/GetRoutes.jsx";
 import IdleTimerWrapper from "./components/IdleTimerWrapper/IdleTimerWrapper.jsx"; 
 import ForgotPassword from "./pages/login/forgotPasswordPannel/ForgotPanel"
 import NProgress from 'nprogress';
+import Footer from "./layout/footer/footer .jsx"
 import 'nprogress/nprogress.css';
 import "./App.css";
 
@@ -53,10 +55,13 @@ function AppWrapper() {
         element={
           <ProtectedRoute>
              <IdleTimerWrapper />
-            <div className="App">
-              <Sidebar onToggle={handleSidebarToggle} />
-              <ContentBody isSidebarExpanded={isSidebarExpanded} />
-            </div>
+              <Box sx={{ display: 'flex', flexDirection: 'column', }}>
+                <Box>
+                  <Sidebar onToggle={handleSidebarToggle} />
+                  <ContentBody isSidebarExpanded={isSidebarExpanded} />
+                </Box>
+                <Footer isSidebarExpanded={isSidebarExpanded}/>
+              </Box>
           </ProtectedRoute>
         }
       />

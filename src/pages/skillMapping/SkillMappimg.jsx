@@ -280,7 +280,7 @@ const SkillMapping = () => {
                         {columns.map((col, index) => (
                             <th key={index}>{columnNames[col]}</th>
                         ))}
-                        <th>Action</th>
+                        <th style={{  overflow: 'visible', position: 'relative',}}>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -325,6 +325,7 @@ const SkillMapping = () => {
                                                     container: (provided) => ({
                                                         ...provided,
                                                         width: 124,
+                                                        zIndex: 10,
                                                     }),
                                                     menuPortal: (base) => ({
                                                     ...base,
@@ -338,12 +339,13 @@ const SkillMapping = () => {
                                         )}
                                     </td>
                                 ))}
-                                <td>
+                                <td style={{  overflow: 'visible', position: 'relative', }}>
                                     <Button
                                         variant="primary"
                                         className="btn-btn-primary"
                                         onClick={() => handleButtonSkill(emp, skillIndex)}
                                         disabled={loader}
+                                       
                                     >
                                         Submit
                                     </Button>
@@ -353,7 +355,7 @@ const SkillMapping = () => {
                     )}
                 </tbody>
             </Table>
-            <Pagination className="pagination-sm">
+            <Pagination className="pagination-sm pt-5">
                 <Pagination.Prev
                     onClick={() => handlePageChange(page - 1)}
                     disabled={page === 1}
