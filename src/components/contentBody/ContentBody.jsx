@@ -28,7 +28,8 @@ import TenderTracking from "../../pages/tender/TenderForm/tendertracking.jsx"
 import TenderList from "../../pages/tender/TenderList/tenderlist.jsx"
 import TenderTrackingEdit from "../../pages/tender/TenderEdit/tenderEdit.jsx"
 import TenderTrackingView from "../../pages/tender/TenderView/tenderView.jsx"
-import UserLoginForm from "../../pages/userAdmin/userLoginForm/UserLoginForm"
+import UserLoginList from "../../pages/userAdmin/userAdminList/userAdminList.jsx"
+import UserLoginForm from "../../pages/userAdmin/userLoginForm/UserLoginForm.jsx"
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -81,7 +82,8 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/tender-list" element={<TenderList/>}/>
           <Route path="/tender-Edit/:id" element={<TenderTrackingEdit/>}/>
           <Route path="/tender-View/:id" element={<TenderTrackingView/>}/>
-          <Route path="/register" element ={<UserLoginForm/>}/>
+          <Route path="/register" element ={<UserLoginForm/>}/> 
+          <Route path="/register-list" element ={<UserLoginList/>}/>
         </Routes>
       </div>
     </div>

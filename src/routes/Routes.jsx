@@ -14,6 +14,7 @@ import Dashboard from "../pages/dashboard/dashboard"
 import TenderTracking from "../pages/tender/TenderForm/tendertracking"
 import TenderList from "../pages/tender/TenderList/tenderlist";
 import UserLoginForm from "../pages/userAdmin/userLoginForm/UserLoginForm"
+import UserLoginList from "../pages/userAdmin/userAdminList/userAdminList"
 import LoginPanel from "../pages/login/loginPannel/LoginPanel"
 import ForgotPassword from "../pages/login/forgotPasswordPannel/ForgotPanel"
 
@@ -35,7 +36,7 @@ const AppRoutes = () => {
       <Route path="/PieChart" element={<PieChart/>}/>
       <Route path="/tender-tracking" element={<TenderTracking/>}/>
       <Route path="/tender-list" element={<TenderList />} />
-      <Route path="/register" element ={<UserLoginForm/>}/>
+      <Route path="/register-list" element ={<UserLoginList/>}/>
 
     </Routes>
   );
