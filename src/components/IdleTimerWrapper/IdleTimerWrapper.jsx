@@ -39,7 +39,7 @@ const IdleTimerWrapper = () => {
     }
   };
 
-  useIdleTimer(handleIdle, 2* 60 * 1000, 1 * 60 * 1000); 
+  useIdleTimer(handleIdle, 5* 60 * 1000, 1 * 60 * 1000); 
 
 
   return null;

@@ -325,7 +325,6 @@ const SkillMapping = () => {
                                                     container: (provided) => ({
                                                         ...provided,
                                                         width: 124,
-                                                        zIndex: 10,
                                                     }),
                                                     menuPortal: (base) => ({
                                                     ...base,
