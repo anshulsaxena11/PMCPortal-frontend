@@ -83,7 +83,7 @@ const Sidebar = ({ onToggle }) => {
     { role: "Admin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
-    { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register" },
+    { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
     //subadmin
     { role: "SubAdmin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from "react-hook-form";
 import { Button, Spinner, InputGroup  } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { IoIosSave } from "react-icons/io";
 import Form from 'react-bootstrap/Form';
 import { TiArrowBack } from "react-icons/ti";
@@ -23,7 +24,8 @@ const UserLoginForm = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [option, setOption] = useState([])
     const [selectedEmp, setSelectedEmp] = useState(null);
-    const MySwal = withReactContent(Swal); 
+    const MySwal = withReactContent(Swal);
+    const navigate = useNavigate(); 
 
     const roles = [
         { value: 'Admin', label: 'Admin' },
@@ -108,7 +110,7 @@ const UserLoginForm = () => {
     }
 
     const handleBackClick = ()=>{
-        // navigate(`/report`) 
+        navigate(`/register-list`) 
     }
 
 
@@ -120,9 +122,9 @@ const UserLoginForm = () => {
                         <h1>User Registration</h1>
                     </div>
                     <div className='col-sm-2 col-md-2 ol-lg-2'>
-                        {/* <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
+                        <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
                             <TiArrowBack />BACK
-                        </Button> */}
+                        </Button>
                     </div>
                 </div>
                 <hr></hr>
@@ -234,9 +236,6 @@ const UserLoginForm = () => {
                                 </>
                                 )}
                             </Button>
-                        {/* <Button variant="danger" className='btn btn-success mx-4' onClick={handleBackClick}>
-                            <TiArrowBack /> BACK
-                        </Button> */}
                         </div>
                     )}
                 </div>

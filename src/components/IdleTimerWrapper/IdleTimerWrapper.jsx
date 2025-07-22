@@ -7,6 +7,7 @@ const IdleTimerWrapper = () => {
   const navigate = useNavigate();
 
   const handleIdle = async () => {
+   
     const result = await Swal.fire({
       title: "You’ve been idle!",
       text: "You will be logged out in 10 seconds. Do you want to stay logged in?",
@@ -38,7 +39,8 @@ const IdleTimerWrapper = () => {
     }
   };
 
-  useIdleTimer(handleIdle, 5 * 60 * 1000); 
+  useIdleTimer(handleIdle, 2* 60 * 1000, 1 * 60 * 1000); 
+
 
   return null;
 };

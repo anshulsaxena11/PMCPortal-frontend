@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { validateToken } from '../../api/loginApi/loginApi';
+import Swal from 'sweetalert2';
 
 const ProtectedRoute = ({ children }) => {
   const [authChecked, setAuthChecked] = useState(false);
@@ -8,32 +9,37 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   useEffect(() => {
-    const localAuth = localStorage.getItem('isAuthenticated') === 'true';
-
-    if (localAuth) {
-      setIsAuthenticated(true);
-      setAuthChecked(true);
-    } else {
-      const verify = async () => {
-        try {
-          const response = await validateToken();
-          if (response?.status === 200) {
-            localStorage.setItem('isAuthenticated', 'true');
-            setIsAuthenticated(true);
-          } else {
-            setIsAuthenticated(false);
-          }
-        } catch {
+    const verify = async () => {
+      try {
+        const response = await validateToken();
+        if (response?.status === 200) {
+          localStorage.setItem('isAuthenticated', 'true');
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem('isAuthenticated');
           setIsAuthenticated(false);
-        } finally {
-          setAuthChecked(true);
         }
-      };
-      verify();
-    }
-  }, []);
+      } catch (error) {
+        localStorage.removeItem('isAuthenticated');
+        setIsAuthenticated(false);
+       if (error?.response?.status === 401) {
+          Swal.fire({
+            icon: 'info',
+            title: 'Session Expired',
+            text: 'Your session has expired. Please login again.',
+            showConfirmButton: false,
+            timer: 2000,
+          });
+        }
+      } finally {
+        setAuthChecked(true);
+      }
+    };
 
-  if (!authChecked) return null;
+    verify(); // Always validate with server
+  }, [location.pathname]);
+
+  if (!authChecked) return null; // You can show a loader instead
 
   return isAuthenticated
     ? children
