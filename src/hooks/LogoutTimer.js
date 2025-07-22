@@ -1,45 +1,47 @@
 import { useEffect, useRef } from "react";
-import { validateToken } from "../api/loginApi/loginApi"; // Ensure this returns 401 if session expired
+import { validateToken } from "../api/loginApi/loginApi"; // Should return 401 if session expired
 
-const useIdleTimer = (onIdle, timeout = 1* 60 * 1000) => {
+const useIdleTimer = (onIdle, idleTimeout, sessionInterval) => {
   const idleTimeoutRef = useRef(null);
   const sessionCheckRef = useRef(null);
   const hasLoggedOutRef = useRef(false);
 
   useEffect(() => {
-    const logoutIfNeeded = () => {
+    const logoutIfNeeded = (reason) => {
       if (!hasLoggedOutRef.current) {
         hasLoggedOutRef.current = true;
-        onIdle();
+        onIdle(reason); 
       }
     };
 
     const resetIdleTimer = () => {
       if (hasLoggedOutRef.current) return;
       clearTimeout(idleTimeoutRef.current);
-      idleTimeoutRef.current = setTimeout(logoutIfNeeded, timeout);
+      idleTimeoutRef.current = setTimeout(() => logoutIfNeeded("idle"), idleTimeout);
     };
 
     const checkSession = async () => {
       try {
-        await validateToken(); // This should return 401 or error if session is invalid
+        const result = await validateToken();
+        console.log("Session still valid:", result);
       } catch (err) {
-        logoutIfNeeded(); // Triggers if session is expired
+        console.warn("Session expired or invalid:", err);
+        logoutIfNeeded("sessionExpired");
       }
     };
 
     const events = ["mousemove", "keydown", "mousedown", "scroll", "touchstart"];
     events.forEach((event) => window.addEventListener(event, resetIdleTimer));
 
-    resetIdleTimer();
-    sessionCheckRef.current = setInterval(checkSession, 60000); // every 1 min
+    resetIdleTimer(); 
+    sessionCheckRef.current = setInterval(checkSession, sessionInterval); 
 
     return () => {
       clearTimeout(idleTimeoutRef.current);
       clearInterval(sessionCheckRef.current);
       events.forEach((event) => window.removeEventListener(event, resetIdleTimer));
     };
-  }, [onIdle, timeout]);
+  }, [onIdle, idleTimeout, sessionInterval]);
 };
 
 export default useIdleTimer;
