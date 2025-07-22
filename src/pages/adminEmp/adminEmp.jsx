@@ -72,12 +72,12 @@ const AdminSyncEmploy = () =>{
             } else if(response.statusCode === 400 && response.message.includes('Unexpected API response')){
                 Swal.fire({
                   icon: 'error',
-                  title: 'Failed to get API Data',
+                  title: 'Unable to fetch Data',
                   showConfirmButton: true,
                 });
             }       
         } catch(error){
-            toast.error('Failed to get Api Data.', {
+            toast.error('Unable to fetch Data.', {
                 className: 'custom-toast custom-toast-error',
             });
         }
