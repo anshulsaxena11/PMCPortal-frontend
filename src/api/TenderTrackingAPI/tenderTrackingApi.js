@@ -1,13 +1,8 @@
 import axiosInstance from "../axiosconfig";
 
-/**
- * Submit tender tracking data with support for file uploads.
- * Automatically converts payload to FormData.
- */
-
 export const postTenderTrackingData = async (payload) => {
   try {
-    // 🔍 Step 1: Check if tender name is unique
+
     const checkResponse = await axiosInstance.get('/user/checkTenderName', {
       params: { tenderName: payload.tenderName }, withCredentials: true,
     });
@@ -19,7 +14,6 @@ export const postTenderTrackingData = async (payload) => {
       };
     }
 
-    // 📦 Step 2: Build FormData
     const formData = new FormData();
     Object.keys(payload).forEach((key) => {
       if (key !== 'tenderDocument') {
@@ -27,8 +21,6 @@ export const postTenderTrackingData = async (payload) => {
       }
     });
     formData.append('file', payload.tenderDocument);
-
-    // 🚀 Step 3: Post the data
     const response = await axiosInstance.post('/user/TenderTrackingDetails', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }, withCredentials: true,
     });
