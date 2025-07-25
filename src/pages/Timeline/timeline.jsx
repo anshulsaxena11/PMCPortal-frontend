@@ -363,13 +363,13 @@ const Timelines = () => {
                         <div className='row pt-3'>
                             <div className="col-md-3">
                                 <Form.Group>
-                                    <Form.Label>Amount Build</Form.Label>
+                                    <Form.Label>Invoice Raise (GST)</Form.Label>
                                     <Form.Control type="text"  {...register("amountBuild")} />
                                 </Form.Group>
                             </div>
                             <div className="col-md-3">
                                 <Form.Group>
-                                    <Form.Label>Amount Recived</Form.Label>
+                                    <Form.Label>Amount Recived (GST)</Form.Label>
                                     <Form.Control type="text"  {...register("amountRecived")} />
                                 </Form.Group>
                             </div>

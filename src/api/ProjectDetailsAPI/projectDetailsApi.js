@@ -46,14 +46,8 @@ export const getProjectDetailsList = async ({ page = 1, limit = 10, search = "",
     withCredentials: true,
   }).then(response => response.data);
   export const getProjectDetailsById = async (id) => await axiosInstance.get(`/user/projectDetails/${id}`,{withCredentials: true }).then(response => response.data).catch(error => { throw error });
-  export const editProjectDetails = async (id, Payload, file) => {
-    return await axiosInstance.put(`/user/projectDetails/${id}`, Payload, {
-        headers: {
-            "Content-Type": "multipart/form-data"
-        },
-        withCredentials: true 
-    });
-};
+  export const editProjectDetails = async (id, Payload, file) => await axiosInstance.put(`/user/projectDetails/${id}`, Payload, {headers: {"Content-Type": "multipart/form-data"},withCredentials: true }).catch(err => err.response || { status: 500, data: { message: err.message } });;
+
 
 
 

@@ -74,6 +74,7 @@ const Sidebar = ({ onToggle }) => {
   const menuItems = [
     { role: "Admin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
+    { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Vulnerability", icon: <BiSolidReport />, path: "/report" },
     // { role: "Admin", label: "Generate File", icon: <TbReportAnalytics />, path: "/ReportPdfGenerator" },
     { role: "Admin", label: "VAPT Team Members", icon: <BsMicrosoftTeams />, path: "/admin-Emp" },
@@ -81,7 +82,6 @@ const Sidebar = ({ onToggle }) => {
     { role: "Admin", label: "Skill Mapping", icon: <GiSkills />, path: "/skills-Mapping" },
     { role: "Admin", label: "Tools/Hardware Master", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
     { role: "Admin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
-    { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
     //subadmin

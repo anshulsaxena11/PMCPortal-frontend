@@ -27,47 +27,53 @@ const ProjectDetailView = () => {
   }, [id]);
 
   const fields = [
+    'workOrderNo',
     'orderType', 
-    'projectName',
     'type', 
     'orginisationName', 
+    'projectName',
     'startDate',
     'endDate',
     'projectValue',
     'projectManager', 
     'typeOfWork',
     'projectType', 
+    'directrate',
+    'serviceLocation',
     'primaryPersonName', 
     'primaryPersonPhoneNo',
     'primaryPersonEmail',
+    'primaryRoleAndDesignation',
     'secondaryPersonName',
     'secondaryPrsonPhoneNo',
     'secondaryPersonEmail',
-    'directrate',
-    'serviceLocation',
+    'secondaryRoleAndDesignation',
     'workOrderUrl', 
   ];
 
 
   const labels = {
+    workOrderNo: 'Work Order Number',
     orderType: 'Order Type',
-    projectName: 'Project Name',
     type: 'Type',
     orginisationName: 'Organisation Name',
+    projectName: 'Project Name',
     startDate: 'Start Date',
     endDate: 'End Date',
-    projectValue: 'Project Value',
+    projectValue: 'Project Value (GST)',
     projectManager: 'Project Manager',
     typeOfWork: 'Type Of Work',
     projectType: 'Scope of Work',
+    directrate:"Directorate",
+    serviceLocation:"Service Location",
     primaryPersonName: 'Primary Person Name',
     primaryPersonPhoneNo: 'Primary Person Phone Number',
     primaryPersonEmail: 'Primary Person Email',
+    primaryRoleAndDesignation: 'Primary Role/Designation',
     secondaryPersonName: 'Secondary Person Name',
     secondaryPrsonPhoneNo: 'Secondary Person Phone Number',
     secondaryPersonEmail: 'Secondary Person E-mail',
-    directrate: 'Directorates',
-    serviceLocation: 'Service Location',
+    secondaryRoleAndDesignation: 'Secondary Person Role/Designation',
     workOrder: 'Work Order', 
   };
   const formattedStartDate = project.startDate ? dayjs(project.startDate).format('DD/MM/YYYY') : '';
@@ -79,11 +85,12 @@ const ProjectDetailView = () => {
 
   return (
     <DetailView 
-      title={`Project Details for ${project?.workOrderNo}`} 
+      title={`Project Details`} 
       data={{ 
         ...project, 
         startDate: formattedStartDate, 
-        endDate: formattedEndDate,     
+        endDate: formattedEndDate, 
+        projectValue: project.projectValue ? `${new Intl.NumberFormat('en-IN').format(project.projectValue)}₹`: '',     
       }} 
       loading={loading} 
       fields={fields} 

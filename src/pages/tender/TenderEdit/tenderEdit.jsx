@@ -4,6 +4,7 @@ import { Form, Button, Spinner} from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Controller } from "react-hook-form";
 import { useNavigate } from 'react-router-dom';
 import PreviewModal from '../../../components/previewfile/preview';  
 import Select from "react-select";
@@ -16,7 +17,7 @@ import withReactContent from 'sweetalert2-react-content';
 import Swal from 'sweetalert2'
 
 const TenderTrackingEdit =({ID}) =>{
-    const { register, handleSubmit, setValue, reset, getValues } = useForm();
+    const { register, handleSubmit, setValue, reset, getValues, control, formState: { errors }, } = useForm();
     const [loading, setLoading] = useState(false); 
     const [stateOption,setStateOption] =useState([])
     const [selectedStateOption, setSelectedStateOption] = useState([])
@@ -32,7 +33,12 @@ const TenderTrackingEdit =({ID}) =>{
     const [oneTimeTaskForce,setOneTimeTaskForce]=useState(true)
     const [oneTimeFull,setOneTimeFull]=useState(true)
     const [showModal, setShowModal] = useState(false);
-   const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
+    const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
+    const [valueINR, setValueINR] = useState("");
+    const [taskForceError, setTaskForceError] = useState("");
+    const [fileError, setFileError] = useState("");
+    const [statusError, setStatusError] = useState("");
+    const [stateError, setStateError] = useState("");
     const MySwal = withReactContent(Swal);
     const StatusOption =[
         {value:"Upload",label:"Upload"},
@@ -96,11 +102,11 @@ const TenderTrackingEdit =({ID}) =>{
             }
         }catch(error){
             console.error("Error fetching State:");
-			Swal.fire({
-			  icon: 'error',
-			  title: 'Oops...',
-			  text: 'Error fetching State!',
-			});
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Error fetching State!',
+      });
         } finally{
             setLoading(false);
         }
@@ -112,7 +118,8 @@ const TenderTrackingEdit =({ID}) =>{
         try {
             const response = await getTrackingById(trackingId);
             const fetchedData = response.data;
-
+            console.log(fetchedData)
+            setValueINR(new Intl.NumberFormat("en-IN").format(fetchedData.valueINR || ''));
             if (fetchedData) {
                 const formattedLastDate = fetchedData.lastDate
                     ? fetchedData.lastDate.split("T")[0]
@@ -156,11 +163,11 @@ const TenderTrackingEdit =({ID}) =>{
             }
         } catch (error) {
             console.error("Error fetching project details:", error);
-			Swal.fire({
-			  icon: 'error',
-			  title: 'Oops...',
-			  text: 'Error fetching project details',
-			});
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Error fetching project details',
+      });
         } finally {
             setLoading(false);
         }
@@ -173,6 +180,21 @@ const TenderTrackingEdit =({ID}) =>{
     const onSubmit = async (formData) => {
   setLoading(true);
   try {
+    if (!selectedStateOption || Object.keys(selectedStateOption).length === 0) {
+      setStateError("State is required");
+      setLoading(false);
+      return;
+    }
+    if (!selectedEmpList || Object.keys(selectedEmpList).length === 0) {
+      setTaskForceError("Task Force Member is required");
+      setLoading(false);
+      return;
+    }
+    if (!slectedStatus || Object.keys(slectedStatus).length === 0) {
+      setStatusError("Status is required");
+      setLoading(false);
+      return;
+    }
     const formDataToSubmit = new FormData();
     const tenderName = formData.tenderName || getValues("tenderName");
     const organizationName = formData.organizationName || getValues("organizationName");
@@ -270,7 +292,7 @@ const TenderTrackingEdit =({ID}) =>{
       text: error?.message || 'Something went wrong!',
     });
     console.error("Submission error:", error);
-	Swal.fire({
+  Swal.fire({
       icon: 'error',
       title: 'Oops...',
       text: 'Submission error',
@@ -284,11 +306,18 @@ const TenderTrackingEdit =({ID}) =>{
         setSelectedStateOption(selected)
         const selectedValues = selected?.label
         setValue("state", selectedValues || '');
+        setStateError(""); 
     }
 
      const handleFileChange = (e) => {
       const selectedFile = e.target.files[0];
       if (!selectedFile) return;
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setFileError("File size should not exceed 5MB");
+        setFile(null);
+        return;
+      }
+      setFileError(""); 
       setFile(selectedFile);
 
       const blobURL = URL.createObjectURL(selectedFile);
@@ -327,12 +356,14 @@ const TenderTrackingEdit =({ID}) =>{
       setSelectedEmpList(selected)
       const selectedValues = selected?.label
       setValue("taskForce", selectedValues);
+      setTaskForceError("");
     }
 
     const handleStatusChange = (selected) =>{
         setSelectedStatus(selected)
         const selectedValues = selected?.label
         setValue("status", selectedValues);
+        setStatusError("");
     }
 
     return(
@@ -354,17 +385,25 @@ const TenderTrackingEdit =({ID}) =>{
                     <div className="col-sm-6 col-md-6 col-lg-6">
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Tender Name<span className="text-danger">*</span></Form.Label>
-                             <Form.Control
-                                type="text" 
-                                {...register("tenderName")} 
+                            <Form.Control
+                              type="text"
+                              {...register("tenderName", { required: "Tender Name is required" })}
+                              isInvalid={!!errors.tenderName}
                             />
+                            <Form.Control.Feedback type="invalid">
+                              {errors.tenderName?.message}
+                            </Form.Control.Feedback>
                         </Form.Group>
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Organization Name<span className="text-danger">*</span></Form.Label>
                              <Form.Control
                                 type="text" 
-                                {...register("organizationName")} 
+                                {...register("organizationName", { required: "organizationName Name is required" })} 
+                                isInvalid={!!errors.organizationName}
                             />
+                             <Form.Control.Feedback type="invalid">
+                                {errors.organizationName?.message}
+                              </Form.Control.Feedback>
                         </Form.Group>
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">State<span className="text-danger">*</span></Form.Label>
@@ -375,27 +414,75 @@ const TenderTrackingEdit =({ID}) =>{
                                 isDisabled={loading}
                                 placeholder="Select State"
                                 onChange={handleState}
+                                className={stateError ? "is-invalid" : ""}
                             />
+                              {stateError && (
+                                <div className="invalid-feedback d-block">{stateError}</div>
+                              )}
                         </Form.Group>
                         <Form.Group className="pt-5 ">
                             <Form.Label className="fs-5 fw-bolder">Task Force Member<span className="text-danger">*</span></Form.Label>
                              <Select
                                 options={empListOption}
                                 value={selectedEmpList}
-                                placeholder="Select Tak Force Member"
+                                placeholder="Select Task Force Member"
                                 onChange ={handleTaskForcwMemberChange}
                                 isClearable
                                 isDisabled={loading}
+                                className={taskForceError ? "is-invalid" : ""}
                             />
+                             {taskForceError && (
+                                <div className="invalid-feedback d-block">{taskForceError}</div>
+                              )}
                         </Form.Group>
                     </div>
                     <div className="col-sm-6 col-md-6 col-lg-6">
                         <Form.Group className="pt-4">
-                             <Form.Label className="fs-5 fw-bolder">Value (INR)<span className="text-danger">*</span></Form.Label>
-                             <Form.Control
-                                type="text" 
-                                {...register("valueINR")} 
-                            />
+                          <Form.Label className="fs-5 fw-bolder">
+                            Value (INR)<span className="text-danger">*</span>
+                          </Form.Label>
+                          <Controller
+                            name="valueINR"
+                            control={control}
+                            rules={{
+                              validate: (val) => {
+                                const raw = String(val).replace(/,/g, "");
+                                if (raw === "") return "Value in INR is required";
+                                if (!/^\d+$/.test(raw)) return "Only numeric values are allowed";
+                                return true;
+                              },
+                            }}
+                            render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => {
+                              const numericValue = Number(value);
+                              const displayValue =
+                                value === "0" ? "0" : 
+                                value ? new Intl.NumberFormat("en-IN").format(numericValue) : ""; // else format or blank
+
+                              return (
+                                <>
+                                  <Form.Control
+                                    type="text"
+                                    value={displayValue}
+                                    isInvalid={!!error}
+                                    onChange={(e) => {
+                                      const raw = e.target.value.replace(/,/g, "").replace(/\D/g, "");
+                                      onChange(raw);
+                                      setValueINR(new Intl.NumberFormat("en-IN").format(raw));
+                                    }}
+                                    onBlur={onBlur}
+                                    onKeyDown={(e) => {
+                                      if (["e", "E", "+", "-"].includes(e.key)) {
+                                        e.preventDefault();
+                                      }
+                                    }}
+                                  />
+                                  <Form.Control.Feedback type="invalid">
+                                    {error?.message}
+                                  </Form.Control.Feedback>
+                                </>
+                              );
+                            }}
+                          />
                         </Form.Group>
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Status<span className="text-danger">*</span></Form.Label>
@@ -406,7 +493,11 @@ const TenderTrackingEdit =({ID}) =>{
                                 onChange ={handleStatusChange}
                                 isClearable
                                 isDisabled={loading}
+                                className={statusError ? "is-invalid" : ""}
                             />
+                            {statusError && (
+                              <div className="invalid-feedback d-block">{statusError}</div>
+                            )}
                         </Form.Group>
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Tender Document Upload (PDF, DOC, Image)<span className="text-danger">*</span></Form.Label>
@@ -414,7 +505,9 @@ const TenderTrackingEdit =({ID}) =>{
                             type="file" 
                             accept=".jpg,.png,.pdf,.doc,.docx" 
                             onChange={handleFileChange}
+                            className={fileError ? "is-invalid" : ""}
                         />
+                         {fileError && <div className="invalid-feedback d-block">{fileError}</div>}
                          {(uploadedPreviewUrl || fileUrl) && (
                           <div className="mt-2" style={{ cursor: "pointer" }}>
                             <h6
@@ -436,18 +529,23 @@ const TenderTrackingEdit =({ID}) =>{
                             fileType={previewFileType}
                         />
 
-                        </Form.Group>                         <Form.Group className="pt-3">
+                        </Form.Group>                         
+                        <Form.Group className="pt-3">
                              <Form.Label className="fs-5 fw-bolder">Last Date<span className="text-danger">*</span></Form.Label>
                              <Form.Control
                                 type="date" 
-								min={new Date().toISOString().split("T")[0]}
-                                {...register("lastDate")} 
+                                min={new Date().toISOString().split("T")[0]}
+                                {...register("lastDate", {required: "Last Date is required",})} 
+                                isInvalid={!!errors.lastDate}
                             />
+                              <Form.Control.Feedback type="invalid">
+                                {errors.lastDate?.message}
+                              </Form.Control.Feedback>
                         </Form.Group>
                     </div>
                 </div>
                 <div className="d-flex align-items-center gap-3 ">
-                <Button type="submit" className=" my-5 ml-4" variant="primary" onClick={onSubmit} disabled={loading}>
+               <Button type="submit" className="my-5 ml-4" variant="primary" disabled={loading}>
                     {loading ? (
                         <Spinner animation="border" size="sm" />
                         ) : (

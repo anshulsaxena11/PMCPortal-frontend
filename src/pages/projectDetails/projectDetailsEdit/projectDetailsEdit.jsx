@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Form, Button, Spinner} from "react-bootstrap";
+import { Form } from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { editProjectDetails } from "../../../api/ProjectDetailsAPI/projectDetailsApi";
 import { getProjectTypeList } from "../../../api/projectTypeListApi/projectTypeListApi";
@@ -9,15 +9,21 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import {getTypeOfWork} from '../../../api/typeOfWorkAPi/typeOfWorkApi'
 import { useNavigate } from 'react-router-dom';
+import { Controller } from "react-hook-form";
 import PreviewModal from '../../../components/previewfile/preview';  
 import Select from "react-select";
 import { TiArrowBack } from "react-icons/ti";
 import { PiImagesSquareBold } from "react-icons/pi";
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
+import EditIcon from '@mui/icons-material/Edit';
 import './projectDetailsEdit'
 
 const ProjectDetailsEdit = ({ ID, onClose }) => {
-    const { register, handleSubmit, setValue, reset, getValues } = useForm();
+    const { register, handleSubmit, setValue, reset, getValues, control,formState: { errors }, } = useForm();
     const [file, setFile] = useState(null);
+    const [valueINR, setValueINR] = useState("");
     const [projectTypes, setProjectTypes] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [selectedTypeOfWorkOptions, setSelectedTypeOfWorkOptions] = useState([]);
@@ -25,6 +31,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
     const [filePreviewUrl, setFilePreviewUrl] = useState("");
     const [showModal, setShowModal] = useState(false);
     const [error, setError] = useState("");
+    const [fileError, setFileError] = useState("");
     const [directrateList, setDirectrateList] = useState([]);
     const [previewFileType, setPreviewFileType] = useState('');
     const [selectedDirectorate, setSelectedDirectorate] = useState(null);
@@ -170,7 +177,6 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         setLoading(true); 
         try {
             const formDataToSubmit = new FormData();
-
             const workOrderNo = formData.workOrderNo || getValues("workOrderNo")
             const type = typeValue || getValues("type")
             const orginisationName = formData.orginisationName || getValues("orginisationName")
@@ -190,6 +196,8 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             const primaryPersonEmail = formData.primaryPersonEmail || getValues("primaryPersonEmail")
             const secondaryPersonEmail = formData.secondaryPersonEmail || getValues("secondaryPersonEmail")
             const typeOfWork = formData.typeOfWork || getValues('typeOfWork')
+            const primaryRoleAndDesignation = formData.primaryRoleAndDesignation || getValues('primaryRoleAndDesignation')
+            const secondaryRoleAndDesignation = formData.secondaryRoleAndDesignation || getValues('secondaryRoleAndDesignation')
             let projectTypeIds = [];
             if (Array.isArray(projectType) && projectType.every(item => item._id)) {
                 projectTypeIds = projectType.map(item => item._id);
@@ -216,14 +224,25 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             formDataToSubmit.append("primaryPersonEmail",primaryPersonEmail)
             formDataToSubmit.append("secondaryPersonEmail",secondaryPersonEmail)
             formDataToSubmit.append("typeOfWork",typeOfWork)
-
+            formDataToSubmit.append("primaryRoleAndDesignation",primaryRoleAndDesignation)
+            formDataToSubmit.append("secondaryRoleAndDesignation",secondaryRoleAndDesignation)
             if (file && file instanceof Blob) {
                 formDataToSubmit.append("workOrder", file, file.name);
             } 
-           await editProjectDetails(projectId, formDataToSubmit);
-           toast.success('Form Updated successfully!', {
-                className: 'custom-toast custom-toast-success',
+           const response = await editProjectDetails(projectId, formDataToSubmit);
+           if (response?.data?.statusCode  === 400){
+            toast.error('Work Order Number Already Exist!', {
+                className: 'custom-toast custom-toast-error',
             });
+           } else if (response?.data?.statusCode  === 401){
+                toast.error('Project Name Already Exist!', {
+                className: 'custom-toast custom-toast-error',
+            });
+           }else{
+               toast.success('Form Updated successfully!', {
+                    className: 'custom-toast custom-toast-success',
+                });
+           }
         } catch (error) {
             console.error("Update failed:", error);
             toast.error('Failed to submit the form.',error, {
@@ -242,7 +261,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
       const handleProjectTypeChange = (selected) => {
         setSelectedOptions(selected);
         const selectedValues = selected.map((option) => option.value);
-        setValue("projectType", selectedValues); // Update form state with selected values
+        setValue("projectType", selectedValues); 
     }
 
     const handleDirectoreteChange =(selected) => {
@@ -253,8 +272,17 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
 
   const handleFileChange = (e) => {
       const selectedFile = e.target.files[0];
+      const maxSize = 10 * 1024 * 1024;
       if (!selectedFile) return;
+        if (selectedFile.size > maxSize) {
+            setFileError(true);
+            setFile(null);
+            e.target.value = null;
+            return;
+        }
+      
       setFile(selectedFile);
+      setFileError(false);
 
       const blobURL = URL.createObjectURL(selectedFile);
       setUploadedPreviewUrl(blobURL);       
@@ -297,15 +325,36 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         <div className="container-fluid">
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
             <div className="row">
-                <div className="col-sm-10 col-md-10 col-lg-10">
-                    <h1 className="fw-bolder">Update Project Details</h1>
+                <Box
+                    display="flex"
+                    justifyContent="center"
+                    alignItems="center"
+                    position="relative"
+                    mb={3}
+                >
+                    <Box position="absolute" left={0}>
+                    <Tooltip title="Back">
+                        <IconButton
+                        onClick={handleBackClick}
+                        sx={{
+                            backgroundColor: 'error.main',
+                            color: 'white',
+                            '&:hover': {
+                            backgroundColor: 'error.dark',
+                            },
+                            width: 48,
+                            height: 48,
+                        }}
+                        >
+                        <ArrowBackIcon  size={24} />
+                        </IconButton>
+                    </Tooltip>
+                    </Box>
+                    <Typography variant="h4" fontWeight="bold">
+                    Project Details
+                    </Typography>
+                </Box>
                 </div>
-                <div className="col-sm-2 col-md-2 col-lg-2">
-                    <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
-                        <TiArrowBack />BACK
-                    </Button>
-                </div>
-            </div>
             <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
             <form onSubmit={handleSubmit(onSubmit)} className="edit-project-form">
                 <div className="row pt-4" >
@@ -313,9 +362,13 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                         <Form.Group>
                             <Form.Label className="fs-5 fw-bolder">Work Order Number<span className="text-danger">*</span></Form.Label>
                             <Form.Control
-                                type="text" 
-                                {...register("workOrderNo")} 
+                                type="text"
+                                {...register("workOrderNo", { required: "Work Order Number is required" })}
+                                isInvalid={!!errors.workOrderNo}
                             />
+                            {errors.workOrderNo && (
+                                <div className="text-danger">{errors.workOrderNo.message}</div>
+                            )}
                         </Form.Group>
                     </div>
                     <div className="col-sm-4 col-md-4 col-lg-4">
@@ -387,8 +440,12 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             <Form.Label className="fs-5 fw-bolder">Organisation Name<span className="text-danger">*</span></Form.Label>
                             <Form.Control 
                                 type="text" 
-                                {...register("orginisationName")} 
+                                {...register("orginisationName",{ required: "orginisationName is required" })}
+                                isInvalid={!!errors.orginisationName} 
                             />
+                             {errors.orginisationName && (
+                                <div className="text-danger">{errors.orginisationName.message}</div>
+                            )}
                         </Form.Group>
                         <div className="row pt-3">
                             <div className="col-sm-6 col-md-6 col-lg-6">
@@ -396,18 +453,38 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                                      <Form.Label className="fs-5 fw-bolder">Start Date<span className="text-danger">*</span></Form.Label>
                                      <Form.Control 
                                         type="date"
-                                        {...register("startDate")}                      
+                                        {...register("startDate",{required: "Start Date is required"})} 
+                                        isInvalid={!!errors.startDate}                     
                                     />
+                                    {errors.startDate && (
+                                        <div className="text-danger">{errors.startDate.message}</div>
+                                    )}
                                  </Form.Group>
                             </div>
                             <div className="col-sm-6 col-md-6 col-lg-6">
                                 <Form.Group controlId="endDate">
-                                <Form.Label className="fs-5 fw-bolder">End Date<span className="text-danger">*</span></Form.Label>
-                                <Form.Control 
-                                    type="date"
-                                    {...register("endDate")} 
+                                <Form.Label className="fs-5 fw-bolder">
+                                End Date<span className="text-danger">*</span>
+                                </Form.Label>
+                                <Form.Control
+                                type="date"
+                                {...register("endDate", {
+                                    required: "End Date is required",
+                                    validate: (value) => {
+                                    const startDate = getValues("startDate");
+                                    if (!startDate) return true; 
+                                    return (
+                                        new Date(value) >= new Date(startDate) ||
+                                        "End Date must be after Start Date"
+                                    );
+                                    },
+                                })}
+                                isInvalid={!!errors.endDate}
                                 />
-                                 </Form.Group>
+                                {errors.endDate && (
+                                    <div className="text-danger">{errors.endDate.message}</div>
+                                )}
+                            </Form.Group>
                             </div>
                         </div>
                          <Form.Group>
@@ -419,20 +496,95 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             value={selectedOptions} 
                             onChange={handleProjectTypeChange} 
                         />
+                         <input
+                            type="hidden"
+                            {...register("projectType", {
+                            validate: value =>
+                                value && value.length > 0 ? true : "Please select at least one project type"
+                            })}
+                        />
+                        {errors.projectType && (
+                            <div className="text-danger">{errors.projectType.message}</div>
+                        )}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder pt-3">Project value in Numeric<span className="text-danger">*</span></Form.Label>
-                            <Form.Control 
-                                type="number" 
-                                {...register("projectValue")} 
-                            />
+                            <Form.Label className="fs-5 fw-bolder pt-3">
+                                Project Value (GST) <span className="text-danger">*</span>
+                            </Form.Label>
+                           <div className="position-relative">
+                                <Controller
+                                name="projectValue"
+                                control={control}
+                                rules={{
+                                    required: "Project Value is required",
+                                    validate: (val) => {
+                                    const raw = String(val).replace(/,/g, "");
+                                    if (raw === "") return "Value in INR is required";
+                                    if (!/^\d+$/.test(raw)) return "Only numeric values are allowed";
+                                    return true;
+                                    },
+                                }}
+                                render={({ field: { onChange, onBlur, value, ref }, fieldState: { error } }) => {
+                                    const formattedValue = value ? `${new Intl.NumberFormat("en-IN").format(Number(value))}₹` : "";
+                                    return (
+                                    <>
+                                        <Form.Control
+                                        type="text"
+                                        inputMode="numeric"
+                                        className="form-control"
+                                        value={formattedValue}
+                                        isInvalid={!!error}
+                                        ref={ref}
+                                        placeholder="Project Value in ₹"
+                                        onChange={(e) => {
+                                            const raw = e.target.value.replace(/[^0-9]/g, "");
+                                            onChange(raw);
+                                        }}
+                                        onKeyDown={(e) => {
+                                            const input = e.target;
+                                            const pos = input.selectionStart;
+                                            const length = input.value.length;
+                                            if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                            e.preventDefault();
+                                            }
+                                            if ((e.key === "ArrowRight" || e.key === "End") && pos >= length - 1) {
+                                            e.preventDefault();
+                                            input.setSelectionRange(length - 1, length - 1);
+                                            }
+                                            if (e.key === "Backspace" && pos >= length - 1) {
+                                            e.preventDefault();
+                                            const raw = value?.toString().slice(0, -1) || "";
+                                            onChange(raw);
+                                            }
+                                        }}
+                                        onClick={(e) => {
+                                            const input = e.target;
+                                            const length = input.value.length;
+                                            if (input.selectionStart >= length - 1) {
+                                            input.setSelectionRange(length - 1, length - 1);
+                                            }
+                                        }}
+                                        />
+                                        <Form.Control.Feedback type="invalid">
+                                        {error?.message}
+                                        </Form.Control.Feedback>
+                                    </>
+                                    );
+                                }}
+                                />
+                            </div>
+
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder pt-3">Service Location<span className="text-danger">*</span></Form.Label>
+                            <Form.Label className="fs-5 fw-bolder pt-5">Service Location<span className="text-danger">*</span></Form.Label>
                             <Form.Control 
                                 type="text" 
-                                {...register("serviceLocation")} 
+                                {...register("serviceLocation",{required: "Service Location is required"})} 
+                                isInvalid={!!errors.serviceLocation}
                             />
+                            {errors.serviceLocation && (
+                                <div className="text-danger">{errors.serviceLocation.message}</div>
+                            )}
                         </Form.Group>
                     </div>
                     <div className="col-sm-6 col-md-6 col-lg-6">
@@ -440,8 +592,12 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                           <Form.Label className="fs-5 fw-bolder">Project Name<span className="text-danger">*</span></Form.Label>
                           <Form.Control 
                                 type="text" 
-                                {...register("projectName")} 
+                                {...register("projectName",{required: "Project Name is required"})} 
+                                isInvalid={!!errors.projectName}
                             />
+                            {errors.projectName && (
+                                <div className="text-danger">{errors.projectName.message}</div>
+                            )}
                         </Form.Group>
                         <Form.Group>
                          <Form.Label className="fs-5 fw-bolder pt-3">Type Of Work<span className="text-danger">*</span></Form.Label>
@@ -449,7 +605,8 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             name="TypeOfWork"
                             options={typeOfWorkOption}
                             value={selectedTypeOfWorkOptions} 
-                            onChange={handleTypeOfWorkChange} 
+                            onChange={handleTypeOfWorkChange}
+                            isDisabled={loading} 
                         />
                         </Form.Group>
                         <Form.Group>
@@ -467,8 +624,14 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             <Form.Control 
                             type="file" 
                             accept=".jpg,.png,.pdf" 
-                             onChange={handleFileChange} 
+                            onChange={handleFileChange} 
+                            className={fileError ? "is-invalid" : ""}
                         />
+                         {fileError && (
+                            <div className="invalid-feedback">
+                                File must be less than or equal to 10 MB.
+                            </div>
+                            )}
                          </Form.Group>
                           <div className="col-sm-7 col-md-7 col-lg-7">
                                 <div className="col-md-6 ">
@@ -491,19 +654,34 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             onHide={() => setShowModal(false)} 
                             preview={filePreviewUrl} 
                             fileType={previewFileType} 
-                        />                    
-			</div>
+                        />  
+                        <Form.Group>
+                            <Form.Label className="fs-5 fw-bolder pt-2">Project Manager<span className="text-danger">*</span></Form.Label>
+                            <Form.Control 
+                                type="text" 
+                                {...register("projectManager",{required:"Project Manager in required"})} 
+                                isInvalid={!!errors.projectManager}
+                            />
+                            {errors.projectManager && (
+                                <div className="text-danger">{errors.projectManager.message}</div>
+                            )}
+                        </Form.Group>                  
+			        </div>
                 </div>
                 <h1 className="pt-5 fw-bolder">Contact Details Of Client</h1>
                 <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
                 <div className="row">
-                    <div className="col-sm-4 col-md-4 col-lg-4">
+                    <div className="col-sm-3 col-md-3 col-lg-3">
                     <Form.Group>
                             <Form.Label className="fs-5 fw-bolder pt-3">Primary Person Full Name<span className="text-danger">*</span></Form.Label>
                             <Form.Control 
                                 type="text" 
-                                {...register("primaryPersonName")} 
+                                {...register("primaryPersonName",{required:"Name of Primary Person Required"})} 
+                                isInvalid={!!errors.primaryPersonName}
                             />
+                            {errors.primaryPersonName && (
+                                <div className="text-danger">{errors.primaryPersonName.message}</div>
+                            )}
                         </Form.Group>
                         <Form.Group>
                             <Form.Label className="fs-5 fw-bolder pt-3">Secondary Person Full Name</Form.Label>
@@ -512,57 +690,167 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                                 {...register("secondaryPersonName")} 
                             />
                         </Form.Group>
-                        <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder pt-3">Project Manager<span className="text-danger">*</span></Form.Label>
-                            <Form.Control 
-                                type="text" 
-                                {...register("projectManager")} 
-                            />
-                        </Form.Group>
                     </div>
-                    <div className="col-sm-4 col-md-4 col-lg-4">
-                    <Form.Group>
-                           <Form.Label className="fs-5 fw-bolder pt-3">Primary Mobile Number<span className="text-danger">*</span></Form.Label>
-                            <Form.Control 
-                                type="number" 
-                                {...register("primaryPersonPhoneNo")} 
+                    <div className="col-sm-3 col-md-3 col-lg-3">
+                        <Form.Group>
+                            <Form.Label className="fs-5 fw-bolder pt-3">
+                                Primary Mobile Number <span className="text-danger">*</span>
+                            </Form.Label>
+                            <Form.Control
+                                type="text"
+                                maxLength={10}
+                                {...register("primaryPersonPhoneNo", {
+                                required: "Mobile number is required",
+                                pattern: {
+                                    value: /^[0-9]{10}$/,
+                                    message: "Mobile number must be exactly 10 digits",
+                                },
+                                })}
+                                onKeyDown={(e) => {
+                                if (
+                                    ["e", "E", "+", "-", ".", ","].includes(e.key) ||
+                                    (e.key.length === 1 && !/[0-9]/.test(e.key))
+                                ) {
+                                    e.preventDefault();
+                                }
+                                }}
+                                className={errors.primaryPersonPhoneNo ? "is-invalid" : ""}
                             />
-                        </Form.Group>
+                            {errors.primaryPersonPhoneNo && (
+                                <div className="invalid-feedback">
+                                    {errors.primaryPersonPhoneNo.message}
+                                </div>
+                            )}
+                            </Form.Group>
                         <Form.Group>
                         <Form.Label className="fs-5 fw-bolder pt-3">Secondary Mobile Number</Form.Label>
                             <Form.Control 
-                                type="number" 
-                                {...register("secondaryPrsonPhoneNo")} 
+                                type="text"
+                                maxLength={10} 
+                                {...register("secondaryPrsonPhoneNo",{pattern: {
+                                    value: /^[0-9]{10}$/,
+                                    message: "Mobile number must be exactly 10 digits",
+                                }})}
+                                 onKeyDown={(e) => {
+                                if (
+                                    ["e", "E", "+", "-", ".", ","].includes(e.key) ||
+                                    (e.key.length === 1 && !/[0-9]/.test(e.key))
+                                ) {
+                                    e.preventDefault();
+                                }
+                                }}
+                                className={errors.secondaryPrsonPhoneNo ? "is-invalid" : ""} 
                             />
+                            {errors.secondaryPrsonPhoneNo && (
+                                <div className="invalid-feedback">
+                                    {errors.secondaryPrsonPhoneNo.message}
+                                </div>
+                            )}
                         </Form.Group>
                     </div>
-                    <div className="col-sm-4 col-md-4 col-lg-4">
+                    <div className="col-sm-3 col-md-3 col-lg-3">
                     <Form.Group>
-                         <Form.Label className="fs-5 fw-bolder pt-3">Primary E-Mail<span className="text-danger">*</span></Form.Label>
-                            <Form.Control 
-                                type="email" 
-                                {...register("primaryPersonEmail")} 
-                            />
-                        </Form.Group>
-                        <Form.Group>
+                        <Form.Label className="fs-5 fw-bolder pt-3">
+                            Primary E-Mail <span className="text-danger">*</span>
+                        </Form.Label>
+                        <Form.Control 
+                            type="email" 
+                            {...register("primaryPersonEmail", {
+                            required: "Primary E-Mail is required",
+                            pattern: {
+                                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                message: "Enter a valid email address",
+                            },
+                            })} 
+                            className={errors.primaryPersonEmail ? "is-invalid" : ""} 
+                        />
+                        {errors.primaryPersonEmail && (
+                            <div className="invalid-feedback">
+                            {errors.primaryPersonEmail.message}
+                            </div>
+                        )}
+                    </Form.Group>
+                    <Form.Group>
                         <Form.Label className="fs-5 fw-bolder pt-3">Secondary E-Mail</Form.Label>
-                            <Form.Control 
-                                type="email" 
-                                {...register("secondaryPersonEmail")} 
-                            />
+                        <Form.Control 
+                            type="email" 
+                            {...register("secondaryPersonEmail",{pattern: {
+                                validate: (value) => {
+                                if (!value) return true;
+                                if (value.toLowerCase() === "n/a") return true;
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                return emailRegex.test(value) || "Enter a valid email address or N/A";
+                                }
+                            }})} 
+                            className={errors.secondaryPersonEmail ? "is-invalid" : ""} 
+                        />
+                        {errors.secondaryPersonEmail && (
+                            <div className="invalid-feedback">
+                                {errors.secondaryPersonEmail.message}
+                            </div>
+                        )}
                         </Form.Group>
+                    </div>
+                    <div className="col-sm-3 col-md-3 col-lg-3">
+                    <Form.Group>
+                        <Form.Label className="fs-5 fw-bolder pt-3">Primary Role/Designation</Form.Label>
+                        <Form.Control 
+                            type="text" 
+                            {...register("primaryRoleAndDesignation")} 
+                        />
+                    </Form.Group>
+                    <Form.Group>
+                        <Form.Label className="fs-5 fw-bolder pt-3">Secondary Role/Designation</Form.Label>
+                        <Form.Control 
+                            type="text" 
+                            {...register("secondaryRoleAndDesignation")} 
+                        />
+                    </Form.Group>
                     </div>
                 </div>
-                    <Button type="submit" className="mt-4 ml-4" variant="primary" onClick={onSubmit} disabled={loading}>
-                       {loading ? (
-                            <Spinner animation="border" size="sm" />
-                            ) : (
-                            'Save'
-                            )}
+                <Box
+                    sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        mt: 4, 
+                    }}
+                    >
+                    <Button
+                        variant="contained"
+                        color="error"
+                        onClick={handleBackClick}
+                        startIcon={<TiArrowBack />}
+                        sx={{
+                        paddingX: 3,
+                        paddingY: 1,
+                        fontWeight: 'bold',
+                        borderRadius: 3,
+                        fontSize: '1rem',
+                        letterSpacing: '0.5px',
+                        boxShadow: 3,
+                        }}
+                    >
+                        BACK
                     </Button>
-                    <Button variant="danger" className='mt-4 mx-4' onClick={handleBackClick}>
-                        <TiArrowBack />BACK
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={handleSubmit(onSubmit)}
+                        disabled={loading}
+                        startIcon={!loading && <EditIcon  />}
+                        sx={{
+                        paddingX: 3,
+                        paddingY: 1,
+                        fontWeight: 'bold',
+                        borderRadius: 3,
+                        fontSize: '1rem',
+                        letterSpacing: '0.5px',
+                        boxShadow: 3,
+                        }}
+                    >
+                        {loading ? <CircularProgress size={24} color="inherit" /> : 'Update'}
                     </Button>
+                    </Box>
             </form>
         </div>
     );
