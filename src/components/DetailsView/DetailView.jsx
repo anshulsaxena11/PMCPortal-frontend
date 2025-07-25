@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Row, Col, Button, Table } from 'react-bootstrap';
+import { Row, Col, Table } from 'react-bootstrap';
 import { PiImagesSquareBold } from 'react-icons/pi'; 
 import { FcDocument } from 'react-icons/fc'; 
 import { TiArrowBack } from "react-icons/ti";
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import PreviewModal from '../previewfile/preview';  
 
 const DetailView = ({ title, data, loading, fields, labels, buttonName, onBackClick, uploadedFile, fileType }) => {
@@ -38,14 +40,35 @@ const DetailView = ({ title, data, loading, fields, labels, buttonName, onBackCl
   return (
     <div>
       <div className='row'>
-        <div className='col-sm-10 col-md-10 col-lg-10'>
-          <h1>{title}</h1>
-        </div>
-        <div className='col-sm-2 col-lg-2 col-md-2 pt-2'>
-          <Button variant="danger" className='btn btn-success ' onClick={onBackClick}>
-            <TiArrowBack />{buttonName}
-          </Button>
-        </div>
+         <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            position="relative"
+            mb={3}
+        >
+            <Box position="absolute" left={0}>
+            <Tooltip title="Back">
+                <IconButton
+                onClick={onBackClick}
+                sx={{
+                    backgroundColor: 'error.main',
+                    color: 'white',
+                    '&:hover': {
+                    backgroundColor: 'error.dark',
+                    },
+                    width: 48,
+                    height: 48,
+                }}
+                >
+                <ArrowBackIcon  size={24} />
+                </IconButton>
+            </Tooltip>
+            </Box>
+            <Typography variant="h4" fontWeight="bold">
+            {title}
+            </Typography>
+        </Box>
       </div>
       <hr />
       <Row className="mb-4">
@@ -164,10 +187,31 @@ const DetailView = ({ title, data, loading, fields, labels, buttonName, onBackCl
           );
         })}
       </Row>
-
-      <Button variant="danger" className='btn btn-success ' onClick={onBackClick}>
-       <TiArrowBack /> {buttonName}
-      </Button>
+      <Box
+        sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            mt: 4, 
+        }}
+        >
+        <Button
+            variant="contained"
+            color="error"
+            onClick={onBackClick}
+            startIcon={<TiArrowBack />}
+            sx={{
+            paddingX: 3,
+            paddingY: 1,
+            fontWeight: 'bold',
+            borderRadius: 3,
+            fontSize: '1rem',
+            letterSpacing: '0.5px',
+            boxShadow: 3,
+            }}
+        >
+            BACK
+        </Button>
+      </Box>
 
       {/* Modal for preview */}
       <PreviewModal 

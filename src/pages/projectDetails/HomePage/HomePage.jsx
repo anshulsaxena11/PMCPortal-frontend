@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import Form from "react-bootstrap/Form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import validationSchema from '../../../validation/validationSchema'
-import { Button, Spinner } from 'react-bootstrap'; 
 import "bootstrap/dist/css/bootstrap.min.css";
 import {getTypeOfWork} from '../../../api/typeOfWorkAPi/typeOfWorkApi'
 import DatePicker from "react-datepicker";
@@ -22,6 +21,9 @@ import { useNavigate } from 'react-router-dom';
 import Select from "react-select";
 import { TiArrowBack } from "react-icons/ti";
 import { IoIosSave } from "react-icons/io";
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import "./homePage.css";
 
 
@@ -34,7 +36,8 @@ const HomePage = () => {
       endDate: null,
       SecondaryEmail:"",
       SecondaryPhoneNo:"",
-      SecondaryFullName:""
+      SecondaryFullName:"",
+      secondaryRoleAndDesignation:""
     },
   });
 
@@ -155,7 +158,8 @@ const HomePage = () => {
       directrate: data.DirectrateName,
       typeOfWork: data.typeOfWork,
       serviceLocation: data.ServiceLoction,
-      // noOfauditor:data.noOfauditor,
+      secondaryRoleAndDesignation: data.secondaryRoleAndDesignation,
+      primaryRoleAndDesignation:data.primaryRoleAndDesignation,
       projectManager:data.projectManager,
       projectType: data.selectedProjectTypes.map(type => type.value),
       workOrder: uploadedFile,
@@ -186,6 +190,8 @@ const HomePage = () => {
           projectManager: '',
           typeOfWork:null,
           selectedProjectTypes: [],
+          primaryRoleAndDesignation:'',
+          secondaryRoleAndDesignation:'',
           uploadedFile:null,
         });
         if (fileInputRef.current) {
@@ -378,14 +384,35 @@ const HomePage = () => {
       />
       </Popup>
       <div className="row">
-        <div className="col-sm-10 col-md-10 col-lg-10">
-          <h1 className="fw-bolder">Project List</h1>
-        </div>
-        <div className="col-sm-2 col-md-2 col-lg-2">
-          <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
-            <TiArrowBack />BACK
-          </Button>
-        </div>
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        position="relative"
+        mb={3}
+      >
+        <Box position="absolute" left={0}>
+          <Tooltip title="Back">
+            <IconButton
+              onClick={handleBackClick}
+              sx={{
+                backgroundColor: 'error.main',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'error.dark',
+                },
+                width: 48,
+                height: 48,
+              }}
+            >
+              <ArrowBackIcon  size={24} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+        <Typography variant="h4" fontWeight="bold">
+          Project Details
+        </Typography>
+      </Box>
       </div>
       <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
       <div className="container-fluid">
@@ -580,9 +607,9 @@ const HomePage = () => {
                         inputMode="numeric"
                         className="form-control"
                         placeholder="Project Value in ₹"
-                        value={formatINRCurrency(value)}
+                        value={value ? `${formatINRCurrency(value)}₹` : ""}
                         onChange={(e) => {
-                          const rawValue = e.target.value.replace(/,/g, "");
+                          const rawValue = e.target.value.replace(/[^0-9]/g, "");
                           if (!isNaN(rawValue)) {
                             onChange(rawValue);
                           }
@@ -590,8 +617,26 @@ const HomePage = () => {
                         onBlur={onBlur}
                         ref={ref}
                         onKeyDown={(e) => {
+                          const input = e.target;
+                          const pos = input.selectionStart;
+                          const length = input.value.length;
                           if (["e", "E", "+", "-", "."].includes(e.key)) {
                             e.preventDefault();
+                          }
+                          if ((e.key === "ArrowRight" || e.key === "End") && pos >= length - 1) {
+                            e.preventDefault();
+                          }
+                          if (e.key === "Backspace" && pos >= length - 1) {
+                            e.preventDefault();
+                            const raw = value?.toString().slice(0, -1) || "";
+                            onChange(raw);
+                          }
+                        }}
+                        onClick={(e) => {
+                          const input = e.target;
+                          const length = input.value.length;
+                          if (input.selectionStart >= length - 1) {
+                            input.setSelectionRange(length - 1, length - 1);
                           }
                         }}
                       />
@@ -608,6 +653,15 @@ const HomePage = () => {
                   />
                   {errors.ServiceLoction && <p className="text-danger">{errors.ServiceLoction.message}</p>}
                 </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label className="fs-5 fw-bolder">Project Manager<span className="text-danger">*</span></Form.Label>
+                  <Controller
+                    name="projectManager"
+                    control={control}
+                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Manager Name" />}
+                  />
+                  {errors.projectManager && <p className="text-danger">{errors.projectManager.message}</p>}
+                </Form.Group>
               </div>
               <div className="col-sm-6 col-md-6 col-lg-6"> 
                 <Form.Group className="mb-3" controlId="PriojectName">
@@ -619,8 +673,6 @@ const HomePage = () => {
                   />
                   {errors.ProjectName && <p className="text-danger">{errors.ProjectName.message}</p>}
                 </Form.Group>
-                {/* <div className="row"> */}
-                  {/* <div className="col-sm-10 col-md-10 col-lg-10"> */}
                   <Form.Group className="mb-3">
                     <Form.Label className="fs-5 fw-bolder">Type Of Work<span className="text-danger">*</span></Form.Label>
                      <Controller
@@ -640,60 +692,47 @@ const HomePage = () => {
                       />
                        {errors.typeOfWork && <p className="text-danger">{errors.typeOfWork.message}</p>}
                     </Form.Group>
-                  
-                  {/* </div> */}
-                  {/* <div className="col-sm-2 col-md-2 col-lg-2">
-                    <Button variant="success" className="button-middle" onClick={handleShow}><IoMdAdd className="fs-3" /></Button>
-                  </div> */}
-                {/* </div> */}
-                <Form.Group className="mb-3" controlId="directrate">
-                  {/* <div className="row">
-                    <div className='col-sm-10 col-md-10 col-lg-10'> */}
-                      <Form.Label className="fs-5 fw-bolder">Directorates<span className="text-danger">*</span></Form.Label>
+                    <Form.Group className="mb-3" controlId="directrate">
+                          <Form.Label className="fs-5 fw-bolder">Directorates<span className="text-danger">*</span></Form.Label>
+                          <Controller
+                            name="DirectrateName"
+                            control={control}
+                            render={({ field }) => (
+                              <Select
+                              {...field}
+                              options={directrateOptions} 
+                              value={directrateOptions.find(option => option.label === field.value) || null}
+                              isClearable
+                              isDisabled={loading}
+                              placeholder="Select Directorate"
+                              onChange={(selectedOption) => field.onChange(selectedOption ? selectedOption.label : "")}
+                            />
+                            )}
+                          />
+                          {errors.DirectrateName && <p className="text-danger">{errors.DirectrateName.message}</p>}
+                    </Form.Group>
+                    <Form.Group className="mt-3">
+                      <Form.Label className="fs-5 fw-bolder">Work Order<span className="text-danger">*</span></Form.Label>
                       <Controller
-                        name="DirectrateName"
+                        name="workOrder"
                         control={control}
-                        render={({ field }) => (
-                          <Select
-                          {...field}
-                          options={directrateOptions} 
-                          value={directrateOptions.find(option => option.label === field.value) || null}
-                          isClearable
-                          isDisabled={loading}
-                          placeholder="Select Directorate"
-                          onChange={(selectedOption) => field.onChange(selectedOption ? selectedOption.label : "")}
-                        />
+                        render={({  field: { onChange, onBlur, name, ref } }) => (
+                          <Form.Control
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={(e) => {
+                              handleFileChange(e);
+                              onChange(e.target.files[0]); 
+                            }}
+                            required
+                            accept=".pdf,.jpeg,.jpg"
+                          />
                         )}
                       />
-                      {errors.DirectrateName && <p className="text-danger">{errors.DirectrateName.message}</p>}
-                    {/* </div> */}
-                  {/* <div className="col-sm-2 col-md-2 col-lg-2">
-                    <Button variant="success" className="button-middle" onClick={handledirectrateshow}><IoMdAdd className="fs-3" /></Button>
-                  </div>
-                  </div> */}
-                </Form.Group>
-                <Form.Group className="mt-3">
-                <Form.Label className="fs-5 fw-bolder">Work Order<span className="text-danger">*</span></Form.Label>
-                <Controller
-                  name="workOrder"
-                  control={control}
-                  render={({  field: { onChange, onBlur, name, ref } }) => (
-                    <Form.Control
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={(e) => {
-                        handleFileChange(e);
-                        onChange(e.target.files[0]); 
-                      }}
-                      required
-                      accept=".pdf,.jpeg,.jpg"
-                    />
-                  )}
-                />
-                {errors.workOrder && (
-                  <p className="text-danger">{errors.workOrder.message}</p>
-                )}
-                </Form.Group>
+                      {errors.workOrder && (
+                        <p className="text-danger">{errors.workOrder.message}</p>
+                      )}
+                    </Form.Group>
                 {preview && (
                   <div
                   onClick={handlePreviewClick}
@@ -725,7 +764,7 @@ const HomePage = () => {
             <h1 className="pt-5 fw-bolder">Contact Details Of Client</h1>
             <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
             <div className="row">
-              <div className="col-sm-4 col-md-4 col-lg-4">
+              <div className="col-sm-3 col-md-3 col-lg-3">
                 <Form.Group className="mb-3" controlId="fullName">
                   <Form.Label className="fs-5 fw-bolder">Primary Person Full Name<span className="text-danger">*</span></Form.Label>
                   <Controller
@@ -744,17 +783,8 @@ const HomePage = () => {
                   />
                   {errors.SecondaryFullName && <p className="text-danger">{errors.SecondaryFullName.message}</p>}
                 </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fs-5 fw-bolder">Project Manager<span className="text-danger">*</span></Form.Label>
-                  <Controller
-                    name="projectManager"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Manager Name" />}
-                  />
-                  {errors.projectManager && <p className="text-danger">{errors.projectManager.message}</p>}
-                </Form.Group>
               </div>
-              <div className="col-sm-4 col-md-4 col-lg-4">
+              <div className="col-sm-3 col-md-3 col-lg-3">
                 <Form.Group className="mb-3" controlId="primaryPhoneNo">
                   <Form.Label className="fs-5 fw-bolder">Primary Mobile Number<span className="text-danger">*</span></Form.Label>
                   <Controller
@@ -773,17 +803,8 @@ const HomePage = () => {
                   />
                   {errors.SecondaryPhoneNo && <p className="text-danger">{errors.SecondaryPhoneNo.message}</p>}
                 </Form.Group>
-                {/* <Form.Group className="mb-3">
-                  <Form.Label className="fs-5 fw-bolder">Number Of Auditor<span className="text-danger">*</span></Form.Label>
-                  <Controller
-                    name="noOfauditor"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" Placeholder = "Enter Number of Auditor"/>}
-                  />
-                  {errors.noOfauditor && <p className="text-danger">{errors.noOfauditor.message}</p>}
-                </Form.Group> */}
               </div>
-              <div className="col-sm-4 col-lg-4 col-md-4">
+              <div className="col-sm-3 col-lg-3 col-md-3">
                 <Form.Group className="mb-3" controlId="primaryemail">
                   <Form.Label className="fs-5 fw-bolder">Primary E-Mail<span className="text-danger">*</span></Form.Label>
                   <Controller
@@ -803,19 +824,74 @@ const HomePage = () => {
                   {errors.SecondaryEmail && <p className="text-danger">{errors.SecondaryEmail.message}</p>}
                 </Form.Group>
               </div>
+              <div className="col-sm-3 col-md-3 col-lg-3">
+                <Form.Group className="mb-3">
+                  <Form.Label className="fs-5 fw-bolder">Primary Role/Designation</Form.Label>
+                  <Controller
+                    name="primaryRoleAndDesignation"
+                    control={control}
+                    render={({ field }) => <input {...field} className="form-control" placeholder = "Enter Primary Person Role/Deignation"/>}
+                  />
+                  {errors.primaryRoleAndDesignation && <p className="text-danger">{errors.primaryRoleAndDesignation.message}</p>}
+                </Form.Group>
+                 <Form.Group className="mb-3">
+                  <Form.Label className="fs-5 fw-bolder">Secondary Role/Designation</Form.Label>
+                  <Controller
+                    name="secondaryRoleAndDesignation"
+                    control={control}
+                    render={({ field }) => <input {...field} className="form-control" placeholder = "Enter Secondary Person Role/Deignation"/>}
+                  />
+                  {errors.secondaryRoleAndDesignation && <p className="text-danger">{errors.secondaryRoleAndDesignation.message}</p>}
+                </Form.Group>
+              </div>
             </div>  
-            <Button variant="primary" type="submit" onClick={handleButtonClick} disabled={loading}>
-            {loading ? (
-                <Spinner animation="border" size="sm" />
-              ) : (
-               <>
-                <IoIosSave /> SAVE
-              </>
-              )}
-            </Button>
-             <Button variant="danger" className='btn btn-success mx-4' onClick={handleBackClick}>
-              <TiArrowBack /> BACK
-              </Button>
+            <div className="py-3">
+             <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  mt: 4, 
+                }}
+              >
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleBackClick}
+                  startIcon={<TiArrowBack />}
+                  sx={{
+                    paddingX: 3,
+                    paddingY: 1,
+                    fontWeight: 'bold',
+                    borderRadius: 3,
+                    fontSize: '1rem',
+                    letterSpacing: '0.5px',
+                    boxShadow: 3,
+                  }}
+                >
+                  BACK
+                </Button>
+
+                {/* SAVE Button on the right */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleButtonClick}
+                  disabled={loading}
+                  startIcon={!loading && <IoIosSave />}
+                  sx={{
+                    paddingX: 3,
+                    paddingY: 1,
+                    fontWeight: 'bold',
+                    borderRadius: 3,
+                    fontSize: '1rem',
+                    letterSpacing: '0.5px',
+                    boxShadow: 3,
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+                </Button>
+              </Box>
+            </div>
           </Form>
         </div>
       </div>
