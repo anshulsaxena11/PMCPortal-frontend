@@ -203,14 +203,19 @@ const TenderTracking = () => {
         fetchEmpList();
     }, []);
 
-    const handleTaskForcwMemberChange = (selected)=>{
-      setSelectedEmpList(selected)
-      setFormData((prev) => ({
-      ...prev,
-        taskForce: selected?.label || "", 
-      }));
+  const handleTaskForcwMemberChange = (selected) => {
+  setSelectedEmpList(selected);
 
-    }
+  setFormData((prev) => ({
+    ...prev,
+    taskForce: selected
+      ? {
+          id: selected.value ,
+          name: selected.label,
+        }
+      : "", 
+  }));
+};
 const handleFileChange = (e) => {
   const file = e.target.files[0];
   setUploadedFile(file);
