@@ -29,42 +29,40 @@ export default function TabCardWithGrids() {
   const [workTypeRows, setWorkTypeRows] = useState([]);
   const [tenderRows, setTendereRows] = useState([])
 
-const groupByFinancialYear = (projects) => {
-  const fyMap = {};
+function groupByFinancialYear(data) {
+  const yearMap = {};
 
-  projects.forEach((project) => {
-    const { startDate, phases } = project;
-    if (!startDate || !Array.isArray(phases)) return;
+  data.forEach((project) => {
+    const { startDate, endDate, phases = [] } = project;
 
-    const date = new Date(startDate);
-    const year = date.getFullYear();
-    const month = date.getMonth() + 1;
+    const startYear = new Date(startDate).getFullYear();
+    const endYear = new Date(endDate).getFullYear();
+    const fyLabel = `FY-${startYear}-${endYear}`;
 
-    const fy =
-      month >= 4 ? `FY-${year}-${year + 1}` : `FY-${year - 1}-${year}`;
+    let totalAmount = 0;
+    let receivedAmount = 0;
 
     phases.forEach((phase) => {
-      const amountBuild = parseFloat(phase.amountBuild || 0);
-      const amountRecived = parseFloat(phase.amountRecived || 0);
-
-      if (!fyMap[fy]) {
-        fyMap[fy] = {
-          financialYear: fy,
-          Total: 0,
-          Received: 0,
-        };
-      }
-
-      fyMap[fy].Total += amountBuild;
-      fyMap[fy].Received += amountRecived;
+      totalAmount += parseFloat(phase.amountBuild || "0");
+      receivedAmount += parseFloat(phase.amountRecived || "0");
     });
+
+    if (!yearMap[fyLabel]) {
+      yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, Received: 0 };
+    }
+
+    yearMap[fyLabel].Total += totalAmount;
+    yearMap[fyLabel].Received += receivedAmount;
   });
 
-  // Sort by FY label (alphabetical sort works with FY-YYYY-YYYY format)
-  return Object.values(fyMap).sort((a, b) =>
-    a.financialYear.localeCompare(b.financialYear)
-  );
-};
+  // Convert to Cr and round to 2 decimal places AFTER grouping
+  return Object.values(yearMap).map((item) => ({
+    financialYear: item.financialYear,
+    Total: +(item.Total / 10000000).toFixed(2),
+    Received: +(item.Received / 10000000).toFixed(2),
+  }));
+}
+
 
 
   const [chartData, setChartData] = useState([]);
@@ -363,25 +361,68 @@ const handleDownloadPDF = () => {
       />
 {/* Bar Chart Section */}
 <Box sx={{ width: "100%", height: 350, mb: 4 }}>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Project Value Overview (Cr INR)
-      </Typography>
-      <ResponsiveContainer width="50%" height="100%">
-        <BarChart
-          data={chartData}
-          margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="financialYear" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          <Bar dataKey="Total" fill="#1976d2" name="Total (Cr)">
-            <LabelList dataKey="Total" position="top" />
-          </Bar>
-          <Bar dataKey="Received" fill="#66bb6a" name="Received (Cr)">
-            <LabelList dataKey="Received" position="top" />
-          </Bar>
+  <Typography variant="h6" sx={{ mb: 2 }}>
+    Project Value Overview (Cr INR)
+  </Typography>
+  <ResponsiveContainer width="50%" height="100%">
+    <BarChart
+      data={chartData}
+      margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="financialYear" />
+      <YAxis />
+      <Tooltip />
+      <Legend />
+      
+      {/* Total Bar (amountBuild) */}
+      <Bar dataKey="Total" fill="#1976d2" name="Total (Cr)">
+        <LabelList
+          dataKey="Total"
+          position="top"
+          content={({ x, y, value }) => (
+             <text
+        x={x}
+        y={y - 10}
+        fill="#1976d2"
+        fontSize={13}
+        fontWeight="bold"
+        textAnchor="middle"
+        dominantBaseline="middle"
+        stroke="#fff"
+        strokeWidth={2}
+        paintOrder="stroke"
+      >
+            
+              {value} Cr
+            </text>
+          )}
+        />
+      </Bar>
+
+      {/* Received Bar (amountRecived) */}
+      <Bar dataKey="Received" fill="#66bb6a" name="Received (Cr)">
+        <LabelList
+          dataKey="Received"
+          position="top"
+          content={({ x, y, value }) => (
+            <text
+        x={x}
+        y={y - 10}
+        fill="#388e3c"  // darker green for better visibility
+        fontSize={13}
+        fontWeight="bold"
+        textAnchor="middle"
+        stroke="#fff"
+        strokeWidth={2}
+        paintOrder="stroke"
+      >
+              {value} Cr
+            </text>
+          )}
+        />
+      </Bar>
+
         </BarChart>
       </ResponsiveContainer>
     </Box>
