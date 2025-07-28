@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { DataGrid } from '@mui/x-data-grid';
+import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+
 import {
   Box,
   Button,
@@ -19,7 +21,7 @@ import {
 const ProjectDetailsList = () => {
   const [data, setData] = useState([]);
   const [page, setPage] = useState(0); // MUI starts pages from 0
-  const [pageSize, setPageSize] = useState(15);
+  const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -103,11 +105,7 @@ const ProjectDetailsList = () => {
     { field: 'workOrderNo', headerName: 'Work Order No', flex: 1 },
     { field: 'orderType', headerName: 'Order Type', flex: 1 },
     { field: 'type', headerName: 'Type', flex: 1 },
-    {
-      field: 'orginisationName',
-      headerName: 'Organisation Name',
-      flex: 1.5
-    },
+    { field: 'orginisationName', headerName: 'Organisation Name', flex: 1.5},
     { field: 'projectName', headerName: 'Project Name', flex: 1.5 },
     { field: 'projectManager', headerName: 'Project Manager', flex: 1.2 },
     {
@@ -118,16 +116,16 @@ const ProjectDetailsList = () => {
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
           <IconButton
-            onClick={() => navigate(`/projectDetails/${params.row.id}`)}
+            onClick={() => navigate(`/projectDetails/${params.row.id}`)} size="small"
           >
             <Visibility />
           </IconButton>
           <IconButton
-            onClick={() => navigate(`/projectDetailsEdit/${params.row.id}`)}
+            onClick={() => navigate(`/projectDetailsEdit/${params.row.id}`)} size="small"
           >
             <Edit />
           </IconButton>
-          <IconButton onClick={() => handleDelete(params.row.id)}>
+          <IconButton onClick={() => handleDelete(params.row.id)} size="small">
             <Delete color="error" />
           </IconButton>
         </Stack>
@@ -136,7 +134,7 @@ const ProjectDetailsList = () => {
   ];
 
   return (
-    <Box p={2}>
+    <Box sx={{ p: 0 }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Project Details</Typography>
         <Button variant="contained" onClick={() => navigate('/projectDetails')}>
@@ -151,26 +149,23 @@ const ProjectDetailsList = () => {
         onChange={(e) => setSearchQuery(e.target.value)}
         variant="outlined"
         margin="normal"
+         size="small"
       />
 
-      <DataGrid
-  autoHeight
+      <CustomDataGrid
+  key={pageSize}
   rows={data}
   columns={columns}
-  page={page}
-  pageSize={pageSize}
-  rowCount={totalCount}
-  pagination
-  paginationMode="server"
-  onPageChange={(newPage) => setPage(newPage)}
-  onPageSizeChange={(newPageSize) => {
-    setPageSize(newPageSize);
-    setPage(0); // Reset to page 1
-  }}
-  rowsPerPageOptions={[10, 15, 25, 50]} // ✅ Added 15 here
   loading={loading}
-  disableRowSelectionOnClick
+  paginationModel={{ page, pageSize }}
+  onPaginationModelChange={({ page, pageSize }) => {
+    setPage(page);
+    setPageSize(pageSize);
+  }}
+  rowCount={totalCount}
+  paginationMode="server"
 />
+
 
 
     </Box>

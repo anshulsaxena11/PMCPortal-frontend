@@ -9,14 +9,16 @@ import { DataGrid } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList
+} from 'recharts';
 
-
-import { getAllProjectDetails } from '../../api/ProjectDetailsAPI/projectDetailsApi';
+import { getAllProjectDetails,getAllprojectData } from '../../api/ProjectDetailsAPI/projectDetailsApi';
 import { getAllReportList } from '../../api/reportApi/reportApi';
 import { getAllTenderList } from '../../api/TenderTrackingAPI/tenderTrackingApi';
 
 const tabData = [
-  { label: 'Vulnerability', icon: <DescriptionIcon />, key: 'projectName' },
+  //{ label: 'Vulnerability', icon: <DescriptionIcon />, key: 'projectName' },
   { label: 'Work Type', icon: <WorkIcon />, key: 'workType' },
   { label: 'Tender Tracking', icon: <RequestQuoteIcon />, key: 'tenderTracking' },
 ];
@@ -24,9 +26,70 @@ const tabData = [
 export default function TabCardWithGrids() {
   const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState('');
-  const [projectNameRows, setProjectNameRows] = useState([]);
   const [workTypeRows, setWorkTypeRows] = useState([]);
-  const [tenderRows, setTendereRows] = useState([]);
+  const [tenderRows, setTendereRows] = useState([])
+
+const groupByFinancialYear = (projects) => {
+  const fyMap = {};
+
+  projects.forEach((project) => {
+    const { startDate, phases } = project;
+    if (!startDate || !Array.isArray(phases)) return;
+
+    const date = new Date(startDate);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+
+    const fy =
+      month >= 4 ? `FY-${year}-${year + 1}` : `FY-${year - 1}-${year}`;
+
+    phases.forEach((phase) => {
+      const amountBuild = parseFloat(phase.amountBuild || 0);
+      const amountRecived = parseFloat(phase.amountRecived || 0);
+
+      if (!fyMap[fy]) {
+        fyMap[fy] = {
+          financialYear: fy,
+          Total: 0,
+          Received: 0,
+        };
+      }
+
+      fyMap[fy].Total += amountBuild;
+      fyMap[fy].Received += amountRecived;
+    });
+  });
+
+  // Sort by FY label (alphabetical sort works with FY-YYYY-YYYY format)
+  return Object.values(fyMap).sort((a, b) =>
+    a.financialYear.localeCompare(b.financialYear)
+  );
+};
+
+
+  const [chartData, setChartData] = useState([]);
+
+  useEffect(() => {
+    const fetchProjectData = async () => {
+      try {
+        const res = await getAllprojectData();
+        console.log("API Raw Response:", res?.data);
+
+        const projects = Array.isArray(res?.data)
+          ? res.data
+          : res?.data?.data || [];
+
+        const fyData = groupByFinancialYear(projects);
+        setChartData(fyData);
+      } catch (err) {
+        console.error("Error fetching project data:", err);
+      }
+    };
+
+    fetchProjectData();
+  }, []);
+
+
 
   useEffect(() => {
     async function fetchData() {
@@ -35,7 +98,7 @@ export default function TabCardWithGrids() {
         const workTypeData = await getAllProjectDetails();
         const TenderData = await getAllTenderList({ isDeleted: false });
 
-        setProjectNameRows(reportData.data.map((r, i) => ({ id: i + 1, ...r })));
+        /*setProjectNameRows(reportData.data.map((r, i) => ({ id: i + 1, ...r }))); */
         setWorkTypeRows(workTypeData.data.map((r, i) => ({ id: i + 1, ...r })));
         setTendereRows(TenderData.data.map((r, i) => ({ id: i + 1, ...r })));
       } catch (error) {
@@ -52,7 +115,7 @@ export default function TabCardWithGrids() {
     );
   };
 
-  const projectNameCols = [
+  /*const projectNameCols = [
     {
       field: 'projectNameDisplay',
       headerName: 'Project Name',
@@ -69,7 +132,7 @@ export default function TabCardWithGrids() {
     { field: 'vulnerabilityName', headerName: 'Vulnerability Name', flex: 1 },
     { field: 'sevirty', headerName: 'Severity', flex: 1 },
     { field: 'devices', headerName: 'Devices', flex: 1 }
-  ];
+  ]; */
 
   const workTypeCols = [
     { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
@@ -115,7 +178,7 @@ export default function TabCardWithGrids() {
   const getCurrentTabRows = () => {
     switch (tabData[activeTab].key) {
       case 'workType': return workTypeRows;
-      case 'projectName': return projectNameRows;
+      /*case 'projectName': return projectNameRows;*/
       case 'tenderTracking': return tenderRows;
       default: return [];
     }
@@ -124,7 +187,7 @@ export default function TabCardWithGrids() {
   const getCurrentTabColumns = () => {
     switch (tabData[activeTab].key) {
       case 'workType': return workTypeCols;
-      case 'projectName': return projectNameCols;
+      /*case 'projectName': return projectNameCols;*/
       case 'tenderTracking': return tenderCols;
       default: return [];
     }
@@ -159,9 +222,9 @@ export default function TabCardWithGrids() {
       let value = '';
 
       switch (col.field) {
-        case 'projectNameDisplay':
+        /*case 'projectNameDisplay':
           value = row.projectName?.projectName || 'N/A';
-          break;
+          break;*/
         case 'round':
           value = row.round ? `Round - ${row.round}` : 'N/A';
           break;
@@ -247,6 +310,7 @@ const handleDownloadPDF = () => {
 
 
   return (
+    
     <Box sx={{ width: '100%' }}>
       {/* Tab Cards */}
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
@@ -297,7 +361,30 @@ const handleDownloadPDF = () => {
           },
         }}
       />
-
+{/* Bar Chart Section */}
+<Box sx={{ width: "100%", height: 350, mb: 4 }}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        Project Value Overview (Cr INR)
+      </Typography>
+      <ResponsiveContainer width="50%" height="100%">
+        <BarChart
+          data={chartData}
+          margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="financialYear" />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          <Bar dataKey="Total" fill="#1976d2" name="Total (Cr)">
+            <LabelList dataKey="Total" position="top" />
+          </Bar>
+          <Bar dataKey="Received" fill="#66bb6a" name="Received (Cr)">
+            <LabelList dataKey="Received" position="top" />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </Box>
       {/* Export Buttons */}
       <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
         <Button variant="contained" onClick={handleDownloadCSV}>Download CSV</Button>
