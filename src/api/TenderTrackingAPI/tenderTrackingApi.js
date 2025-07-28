@@ -4,8 +4,12 @@ export const postTenderTrackingData = async (payload) => {
   const formData = new FormData();
 
   Object.keys(payload).forEach((key) => {
-    if (key !== 'tenderDocument') {
-      formData.append(key, payload[key]);
+     if (key !== 'tenderDocument') {
+      if (key === 'taskForce' && typeof payload[key] === 'object') {
+        formData.append(key, JSON.stringify(payload[key]));
+      } else {
+        formData.append(key, payload[key]);
+      }
     }
   });
 
