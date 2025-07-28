@@ -30,6 +30,7 @@ import TenderTrackingEdit from "../../pages/tender/TenderEdit/tenderEdit.jsx"
 import TenderTrackingView from "../../pages/tender/TenderView/tenderView.jsx"
 import UserLoginList from "../../pages/userAdmin/userAdminList/userAdminList.jsx"
 import UserLoginForm from "../../pages/userAdmin/userLoginForm/UserLoginForm.jsx"
+import UserAdminView from "../../pages/userAdmin/userAdminView/userAdminView.js"
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -65,10 +66,10 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/newReport" element={<Report />} />
           <Route path="/newReportView/:id" element={<ReportView />} />
           <Route path="/editReport/:id" element={<EditReportForm />} />
-          <Route path ="/ReportPdfGenerator" element={<ReportPdfGenerator/>}/>
-          <Route path ="/admin-Emp" element={<AdminSyncEmploy/>}/>
-          <Route path ="/user-Emp" element={<ProjectMapping/>}/>
-          <Route path ="/skills-Mapping" element={<SkillMapping/>}/>
+          <Route path="/ReportPdfGenerator" element={<ReportPdfGenerator/>}/>
+          <Route path="/admin-Emp" element={<AdminSyncEmploy/>}/>
+          <Route path="/user-Emp" element={<ProjectMapping/>}/>
+          <Route path="/skills-Mapping" element={<SkillMapping/>}/>
           <Route path="/Tools-Hardware" element={<ToolsAndHardware/>}/>
           <Route path="/Tools-Hardware-list" element={<ToolsAndHardwarelist/>}/>
           <Route path="/Tools-Hardware-Edit/:id" element={<ToolsAndHardwareEdit/>}/>         
@@ -84,6 +85,7 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/tender-View/:id" element={<TenderTrackingView/>}/>
           <Route path="/register" element ={<UserLoginForm/>}/> 
           <Route path="/register-list" element ={<UserLoginList/>}/>
+          <Route path="/register-view/:id" element = {<UserAdminView/>}/>
         </Routes>
       </div>
     </div>

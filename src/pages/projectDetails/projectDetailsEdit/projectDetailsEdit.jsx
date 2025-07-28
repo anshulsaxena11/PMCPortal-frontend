@@ -292,7 +292,6 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
 
     const getFileTypeFromUrl = (url) => {
         const extension = url?.split('.').pop()?.toLowerCase();
-
         if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
             return 'image/';
         } else if (extension === 'pdf') {
@@ -319,7 +318,6 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         const selectedValue = value
         console.log(selectedValue)
         setTypeValue(selectedValue)
-
     } 
     return (
         <div className="container-fluid">
@@ -776,7 +774,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             type="email" 
                             {...register("secondaryPersonEmail",{pattern: {
                                 validate: (value) => {
-                                if (!value) return true;
+                                if (!value) return true; // allow empty
                                 if (value.toLowerCase() === "n/a") return true;
                                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                                 return emailRegex.test(value) || "Enter a valid email address or N/A";

@@ -2,7 +2,7 @@ import React, { useState,useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import Form from "react-bootstrap/Form";
-import { Button, Spinner } from 'react-bootstrap'; 
+import { Spinner } from 'react-bootstrap'; 
 import { TiArrowBack } from "react-icons/ti";
 import { postTenderTrackingData, getEmpList } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
 import { getStateList } from '../../../api/stateApi/stateApi';
@@ -10,7 +10,11 @@ import PreviewModal from '../../../components/previewfile/preview';
 import { PiImagesSquareBold } from "react-icons/pi";
 import { FcDocument } from "react-icons/fc";
 import { IoIosSave } from "react-icons/io";
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import Select from 'react-select';
+import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import './tendertracking.css'
 
 
 const TenderTracking = () => {
@@ -239,19 +243,39 @@ const handleFileChange = (e) => {
     <div className="container mt-4">
       <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
       <div className="row">
-        <div className="=col-sm-10 col-md-10 col-lg-10"> 
-          <h1 className="fw-bolder">Tender Tracking Form</h1>
-        </div>
-        <div className="col-sm-2 col-md-2 col-lg-2">
-          <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
-            <TiArrowBack />BACK
-          </Button>
-        </div>
+         <Box
+            display="flex"
+            justifyContent="center"
+            alignItems="center"
+            position="relative"
+            mb={3}
+          >
+            <Box position="absolute" left={0}>
+            <Tooltip title="Back">
+                <IconButton
+                onClick={handleBackClick}
+                sx={{
+                    backgroundColor: 'error.main',
+                    color: 'white',
+                    '&:hover': {
+                    backgroundColor: 'error.dark',
+                    },
+                    width: 48,
+                    height: 48,
+                }}
+                >
+                <ArrowBackIcon  size={24} />
+                </IconButton>
+            </Tooltip>
+            </Box>
+            <Typography variant="h4" fontWeight="bold">
+            Tender Tracking
+            </Typography>
+        </Box>
       </div>
       <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
       <Form onSubmit={handleSubmit}>
         <div className="row">
-          {/* Left Column */}
           <div className="col-md-6 col-sm-6 col-lg-6">
             <Form.Group className="mb-3" >
               <Form.Label className="fs-5 fw-bolder">Tender Name<span className="text-danger">*</span></Form.Label>
@@ -296,24 +320,22 @@ const handleFileChange = (e) => {
               <Select
                 options={empListOption}
                 value={selectedEmpList}
-                placeholder="Select Tak Force Member"
+                placeholder="Select Task Force Member"
                 onChange ={handleTaskForcwMemberChange}
               />
               {renderError("taskForce")}
             </Form.Group>
           </div>
-
-          {/* Right Column */}
           <div className="col-md-6">
             <Form.Group className="mb-3" >
               <Form.Label className="fs-5 fw-bolder">Value (INR)<span className="text-danger">*</span></Form.Label>
               <input
                 type="text"
                 name="valueINR"
-                className="form-control"
+                className="form-control pe-4 inr-input"
                 value={formData.valueINR}
                 onChange={handleChange}
-                placeholder="e.g. 2,22,000"
+                placeholder="Please Enter Value in ₹ "
               />
               {renderError("valueINR")}
             </Form.Group>
@@ -363,7 +385,7 @@ const handleFileChange = (e) => {
               <Form.Label className="fs-5 fw-bolder">Last Day of Bidding<span className="text-danger">*</span></Form.Label>
               <input
                 type="date"
-				min={new Date().toISOString().split("T")[0]}
+				        min={new Date().toISOString().split("T")[0]}
                 name="lastDate"
                 className="form-control"
                 value={formData.lastDate}
@@ -373,18 +395,49 @@ const handleFileChange = (e) => {
             </Form.Group>
           </div>
         </div>
-        <Button type="submit" variant="primary" disabled={loading}>
-         {loading ? (
-            <Spinner animation="border" size="sm" />
-          ) : (
-          <>
-            <IoIosSave /> SAVE
-          </>
-          )}
-        </Button>
-         <Button variant="danger" className='btn btn-success mx-4' onClick={handleBackClick}>
-            <TiArrowBack />BACK
-          </Button>
+         <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              mt: 4, 
+            }}
+          >
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleBackClick}
+              startIcon={<TiArrowBack />}
+              sx={{
+                paddingX: 3,
+                paddingY: 1,
+                fontWeight: 'bold',
+                borderRadius: 3,
+                fontSize: '1rem',
+                letterSpacing: '0.5px',
+                boxShadow: 3,
+              }}
+            >
+              BACK
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={loading}
+              startIcon={!loading && <IoIosSave />}
+              sx={{
+                paddingX: 3,
+                paddingY: 1,
+                fontWeight: 'bold',
+                borderRadius: 3,
+                fontSize: '1rem',
+                letterSpacing: '0.5px',
+                boxShadow: 3,
+              }}
+            >
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+            </Button>
+          </Box>
       </Form>
     </div>
   );

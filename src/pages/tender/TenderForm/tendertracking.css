@@ -1,0 +1,10 @@
+.inr-input::after {
+  content: '₹';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #495057;
+  pointer-events: none;
+  font-size: 1rem;
+}
