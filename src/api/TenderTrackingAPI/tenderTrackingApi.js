@@ -1,35 +1,24 @@
 import axiosInstance from "../axiosconfig";
 
 export const postTenderTrackingData = async (payload) => {
-  try {
+  const formData = new FormData();
 
-    const checkResponse = await axiosInstance.get('/user/checkTenderName', {
-      params: { tenderName: payload.tenderName }, withCredentials: true,
-    });
-
-    if (checkResponse.data.exists) {
-      return {
-        statusCode: 400,
-        message: 'Tender name already exists. Please use a unique name.',
-      };
+  Object.keys(payload).forEach((key) => {
+    if (key !== 'tenderDocument') {
+      formData.append(key, payload[key]);
     }
+  });
 
-    const formData = new FormData();
-    Object.keys(payload).forEach((key) => {
-      if (key !== 'tenderDocument') {
-        formData.append(key, payload[key]);
-      }
-    });
-    formData.append('file', payload.tenderDocument);
-    const response = await axiosInstance.post('/user/TenderTrackingDetails', formData, {
+
+  formData.append('tenderDocument', payload.tenderDocument);
+
+  try {
+    const response = await axiosInstance.post('/user/checkTenderName', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }, withCredentials: true,
     });
-
     return response.data;
-
   } catch (error) {
     console.error('Error in submitting personal data:', error);
-
     if (error.response) {
       return error.response.data;
     } else {
@@ -40,43 +29,6 @@ export const postTenderTrackingData = async (payload) => {
     }
   }
 };
-
-
-// export const postTenderTrackingData = async (payload) => {
-//   const formData = new FormData();
-
-//   for (const key in payload) {
-//     if (Object.prototype.hasOwnProperty.call(payload, key)) {
-//       const value = payload[key];
-
-//       if (value instanceof File || value instanceof Blob) {
-//         formData.append(key, value);
-//       } else if (value !== undefined && value !== null) {
-//         formData.append(key, value);
-//       }
-//     }
-//   }
-
-//   try {
-//     const response = await axiosInstance.post("/user/TenderTrackingDetails", formData, {
-//       headers: {
-//         "Content-Type": "multipart/form-data",
-//       },
-//     });
-//     return response.data;
-//   } catch (error) {
-//     console.error("Error in submitting tender tracking data:", error);
-//     return error?.response?.data || {
-//       statusCode: 500,
-//       message: "An error occurred while submitting the data.",
-//     };
-//   }
-// };
-
-/**
- * Fetch tender details with pagination and search.
- */
-
 
 export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",isDeleted = "false" }) => {
   try {

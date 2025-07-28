@@ -90,6 +90,10 @@ const UserAdminList = () => {
         navigate("/register");
     };
 
+    const handleViewClick = (data) => {
+      navigate(`/register-view/${data._id}`);
+    };
+
   return (
     <div>
       <h1 className='text-danger'>Table under working but you can create user</h1>
@@ -107,6 +111,8 @@ const UserAdminList = () => {
         onSearchChange={handleSearchChange}
         loading={loading}
         showNoDataMessage={true}
+        // showEditView={true}
+        // onViewClick={handleViewClick}
       />
     </div>
   );

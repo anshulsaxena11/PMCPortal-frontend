@@ -6,3 +6,4 @@ export const validateToken = async() => axiosInstance.get('/admin/validate',{ wi
 export const logoutUser = async() => axiosInstance.post('/admin/logout',{ withCredentials: true })
 export const postForgetPassword = async (payload) => axiosInstance.post('/admin/forget-Password', payload).catch(err => {throw err});
 export const getLoginList = async({ page, limit, role = "",dir="",centre="",etype="",taskForceMember="",StatusNoida="",search="" }) => await axiosInstance.get("/admin/user",{params:{page,limit,role,dir,centre,etype,taskForceMember,StatusNoida,search}, withCredentials: true })
+export const getUserDetailsById = async(id) => axiosInstance.get(`/admin/register/${id}`,{ withCredentials: true,}).then(response => response.data).catch(error => { throw error });

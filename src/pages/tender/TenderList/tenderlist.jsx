@@ -43,8 +43,6 @@ const TenderDetailsList = () => {
         limit: 10,
         isDeleted: true,
       });
-      console.log(response)
-
       const transformedData = (response?.data || []).map(item => ({
         _id: item?._id || '',
         tenderName: item?.tenderName || 'N/A',
@@ -128,7 +126,7 @@ const TenderDetailsList = () => {
                 return false;
               }
               try {
-                const response = await updatetendermessage(data._id, message); // Axios call
+                const response = await updatetendermessage(data._id, message); 
                 if (response.status !== 200 && response.status !== 201) {
                   Swal.showValidationMessage(`Error: ${response.statusText}`);
                   return false;
