@@ -28,7 +28,7 @@ import "./homePage.css";
 
 
 const HomePage = () => {
-  const { control, handleSubmit, formState: { errors }, setValue,reset } = useForm({
+  const { control, handleSubmit, formState: { errors }, setValue,reset,trigger } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
       selectedProjectTypes: [],
@@ -165,7 +165,6 @@ const HomePage = () => {
       projectType: data.selectedProjectTypes.map(type => type.value),
       workOrder: uploadedFile,
     };
-    console.log(payload)
  
     setLoading(true);
     try{
@@ -203,6 +202,7 @@ const HomePage = () => {
         setSelectedTypeOfWorkOptions(null)
         setUploadedFile(null);
         setFileType("");
+        setDisableScopeOfWork('')
   
         toast.success('Form submitted successfully!', {
           className: 'custom-toast custom-toast-success',
@@ -342,8 +342,9 @@ const HomePage = () => {
       setValue('selectedProjectTypes', []);
       setSelectedTypeOfWorkOptions(selected)
       setDisableScopeOfWork(selected)
-      const selectedString = selected?.label;
+      const selectedString = selected?.label || '';
       setValue('typeOfWork',selectedString)
+      trigger('typeOfWork');
   }
 
   const formatINRCurrency = (value) => {
@@ -589,7 +590,7 @@ const HomePage = () => {
                           isMulti
                           getOptionLabel={(e) => e.label}
                           getOptionValue={(e) => e.value}
-                          onChange={(selected) => setValue("selectedProjectTypes", selected)} // Updates the form value
+                          onChange={(selected) => {setValue("selectedProjectTypes", selected);trigger('selectedProjectTypes')}} // Updates the form value
                           placeholder="Select Project Types"
                         />
                       )}
