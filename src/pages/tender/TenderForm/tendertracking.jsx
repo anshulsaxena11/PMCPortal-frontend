@@ -46,29 +46,38 @@ const TenderTracking = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
+  const { name, value, files } = e.target;
 
-    if (name === "valueINR") {
-      const raw = value.replace(/,/g, "").replace(/\D/g, "");
-      const formatted = raw ? formatIndianNumber(raw) : "";
-      setFormData((prev) => ({
-        ...prev,
-        valueINR: formatted,
-        rawValueINR: raw,
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        [name]: files ? files[0] : value,
-      }));
-    }
-
-    // Clear error on change
-    setErrors((prev) => ({
+  if (name === "valueINR") {
+    const input = e.target;
+    const cursorPos = input.selectionStart;
+    const raw = value.replace(/,/g, "").replace(/\D/g, "");
+    const formatted = raw ? formatIndianNumber(raw) : "";
+    const oldFormatted = formatIndianNumber(formData.valueINR?.replace(/,/g, "") || "");
+    const newFormatted = formatted;
+    const oldCommas = (oldFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+    const newCommas = (newFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+    const commaDiff = newCommas - oldCommas;
+    setFormData((prev) => ({
       ...prev,
-      [name]: "",
+      valueINR: formatted,
+      rawValueINR: raw,
     }));
-  };
+    setTimeout(() => {
+      const newPos = cursorPos + commaDiff;
+      input.setSelectionRange(newPos, newPos);
+    }, 0);
+  } else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+  }
+  setErrors((prev) => ({
+    ...prev,
+    [name]: "",
+  }));
+};
 
   const validateForm = () => {
     const newErrors = {};
@@ -194,14 +203,19 @@ const TenderTracking = () => {
         fetchEmpList();
     }, []);
 
-    const handleTaskForcwMemberChange = (selected)=>{
-      setSelectedEmpList(selected)
-      setFormData((prev) => ({
-      ...prev,
-        taskForce: selected?.label || "", 
-      }));
+  const handleTaskForcwMemberChange = (selected) => {
+  setSelectedEmpList(selected);
 
-    }
+  setFormData((prev) => ({
+    ...prev,
+    taskForce: selected
+      ? {
+          id: selected.value ,
+          name: selected.label,
+        }
+      : "", 
+  }));
+};
 const handleFileChange = (e) => {
   const file = e.target.files[0];
   setUploadedFile(file);
@@ -328,7 +342,7 @@ const handleFileChange = (e) => {
           </div>
           <div className="col-md-6">
             <Form.Group className="mb-3" >
-              <Form.Label className="fs-5 fw-bolder">Value (INR)<span className="text-danger">*</span></Form.Label>
+              <Form.Label className="fs-5 fw-bolder">Value ₹ (GST)<span className="text-danger">*</span></Form.Label>
               <input
                 type="text"
                 name="valueINR"

@@ -58,6 +58,7 @@ const HomePage = () => {
   const [fileType, setFileType] = useState(''); 
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+   const inputRef = useRef(null);
 
   useEffect(()=>{
     const fetchTypeOfWork = async() =>{
@@ -344,10 +345,15 @@ const HomePage = () => {
       const selectedString = selected?.label;
       setValue('typeOfWork',selectedString)
   }
+
   const formatINRCurrency = (value) => {
-    if (!value) return "";
-    const number = Number(value.toString().replace(/,/g, ""));
-    return number.toLocaleString("en-IN");
+    const number = value.replace(/,/g, '');
+    const x = number.length;
+    if (x <= 3) return number;
+    const lastThree = number.slice(x - 3);
+    const rest = number.slice(0, x - 3);
+    const formattedRest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
+    return formattedRest + ',' + lastThree;
   };
 
   return (
@@ -598,50 +604,45 @@ const HomePage = () => {
                 )}
                 <Form.Group className="mb-3" controlId="ProjectValue">
                   <Form.Label className="fs-5 fw-bolder">Project value (GST)<span className="text-danger">*</span></Form.Label>
-                  <Controller
-                    name="ProjectValue"
-                    control={control}
-                    render={({ field: { onChange, onBlur, value, ref } }) => (
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        className="form-control"
-                        placeholder="Project Value in ₹"
-                        value={value ? `${formatINRCurrency(value)}₹` : ""}
-                        onChange={(e) => {
-                          const rawValue = e.target.value.replace(/[^0-9]/g, "");
-                          if (!isNaN(rawValue)) {
-                            onChange(rawValue);
-                          }
-                        }}
-                        onBlur={onBlur}
-                        ref={ref}
-                        onKeyDown={(e) => {
-                          const input = e.target;
-                          const pos = input.selectionStart;
-                          const length = input.value.length;
-                          if (["e", "E", "+", "-", "."].includes(e.key)) {
-                            e.preventDefault();
-                          }
-                          if ((e.key === "ArrowRight" || e.key === "End") && pos >= length - 1) {
-                            e.preventDefault();
-                          }
-                          if (e.key === "Backspace" && pos >= length - 1) {
-                            e.preventDefault();
-                            const raw = value?.toString().slice(0, -1) || "";
+                   <Controller
+                      name="ProjectValue"
+                      control={control}
+                      render={({ field: { onChange, onBlur, value, ref } }) => (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          className="form-control"
+                          placeholder="Project Value in ₹"
+                          value={value ? formatINRCurrency(value) : ""}
+                          onChange={(e) => {
+                            const input = e.target;
+                            const cursorPosition = input.selectionStart;
+                            const raw = e.target.value.replace(/[^0-9]/g, '');
+                            const formatted = formatINRCurrency(raw);
+                            const prevCommas = (formatINRCurrency(value || "").slice(0, cursorPosition).match(/,/g) || []).length;
+                            const newCommas = (formatted.slice(0, cursorPosition).match(/,/g) || []).length;
+                            const commaDiff = newCommas - prevCommas;
+
                             onChange(raw);
-                          }
-                        }}
-                        onClick={(e) => {
-                          const input = e.target;
-                          const length = input.value.length;
-                          if (input.selectionStart >= length - 1) {
-                            input.setSelectionRange(length - 1, length - 1);
-                          }
-                        }}
-                      />
-                    )}
-                  />
+
+                            setTimeout(() => {
+                              const newPos = cursorPosition + commaDiff;
+                              input.setSelectionRange(newPos, newPos);
+                            }, 0);
+                          }}
+                          onBlur={onBlur}
+                          ref={(el) => {
+                            ref(el);
+                            inputRef.current = el;
+                          }}
+                          onKeyDown={(e) => {
+                            if (["e", "E", "+", "-", "."].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                        />
+                      )}
+                    />
                   {errors.ProjectValue && <p className="text-danger">{errors.ProjectValue.message}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3">
@@ -790,17 +791,57 @@ const HomePage = () => {
                   <Controller
                     name="PrimaryPhoneNo"
                     control={control}
-                    render={({ field }) => <input {...field} type="number" className="form-control" placeholder="Enter Primary Person Mobile Number" onKeyDown={(e) => {if (["e", "E", "+", "-", "."].includes(e.key)) {e.preventDefault();}}}/>}
+                    render={({ field }) => (
+                      <input
+                        {...field}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
+                        className="form-control"
+                        placeholder="Enter Primary Person Mobile Number"
+                        onKeyDown={(e) => {
+                          if (
+                            ["e", "E", "+", "-", ".", " "].includes(e.key) ||
+                            (!/^\d$/.test(e.key) &&
+                              !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onInput={(e) => {
+                          if (e.target.value.length > 10) {
+                            e.target.value = e.target.value.slice(0, 10);
+                          }
+                        }}
+                      />
+                    )}
                   />
                   {errors.PrimaryPhoneNo && <p className="text-danger">{errors.PrimaryPhoneNo.message}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="secondryPhoneNo">
                   <Form.Label className="fs-5 fw-bolder">Secondary Mobile Number</Form.Label>
-                  <Controller
-                    name="SecondaryPhoneNo"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" type="number" placeholder ="Enter Secondary Person Mobile Number" onKeyDown={(e) => {if (["e", "E", "+", "-", "."].includes(e.key)) {e.preventDefault();}}} />}
-                  />
+                 <Controller
+                  name="SecondaryPhoneNo"
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      maxLength={10}
+                      className="form-control"
+                      placeholder="Enter Secondary Person Mobile Number"
+                      onKeyDown={(e) => {
+                        if (["e", "E", "+", "-", "."].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onInput={(e) => {
+                        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        field.onChange(e);
+                      }}
+                    />
+                  )}
+                />
                   {errors.SecondaryPhoneNo && <p className="text-danger">{errors.SecondaryPhoneNo.message}</p>}
                 </Form.Group>
               </div>

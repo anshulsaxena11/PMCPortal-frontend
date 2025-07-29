@@ -168,7 +168,7 @@ const Sidebar = ({ onToggle }) => {
         }}
       >
       <Toolbar />
-      {userName && userRole && (
+      {/* {userName && userRole && (
         <Box
           sx={{
             textAlign: 'center',
@@ -202,7 +202,7 @@ const Sidebar = ({ onToggle }) => {
            </>
         )}
       </Box>
-    )}
+    )} */}
         <List>
           {menuItems
             .filter((item) => item.role === userRole)

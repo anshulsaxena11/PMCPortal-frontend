@@ -8,7 +8,7 @@ import { getTrackingById } from '../../../api/TenderTrackingAPI/tenderTrackingAp
 import { PiImagesSquareBold } from "react-icons/pi";
 
 const TenderTrackingView = ({ ID }) => {
-  const { register, reset } = useForm();
+  const { register, reset,watch } = useForm();
   const { id } = useParams();
   const trackingId = ID || id;
   const navigate = useNavigate();
@@ -17,6 +17,7 @@ const TenderTrackingView = ({ ID }) => {
   const [fileUrl, setFileUrl] = useState(null);
   const [filePreviewUrl, setFilePreviewUrl] = useState("");
   const [previewFileType, setPreviewFileType] = useState("");
+  const rawValue = watch("valueINR");
 
   useEffect(() => {
     const fetchTrackingTenderDetails = async () => {
@@ -70,6 +71,9 @@ const TenderTrackingView = ({ ID }) => {
     setPreviewFileType(fileType);
     setShowModal(true);
   };
+const formattedValue = rawValue
+  ? new Intl.NumberFormat("en-IN").format(Number(rawValue))
+  : "";
 
   return (
     <div className="container-fluid">
@@ -108,8 +112,8 @@ const TenderTrackingView = ({ ID }) => {
 
           <div className="col-sm-6 col-md-6 col-lg-6">
             <Form.Group className="pt-4">
-              <Form.Label className="fs-5 fw-bolder">Value (INR)<span className="text-danger">*</span></Form.Label>
-              <Form.Control type="text" {...register("valueINR")} readOnly disabled />
+              <Form.Label className="fs-5 fw-bolder">Value ₹ (GST)<span className="text-danger">*</span></Form.Label>
+              <Form.Control type="text" {...register("valueINR")} value={formattedValue} readOnly disabled/>
             </Form.Group>
             <Form.Group className="pt-4">
               <Form.Label className="fs-5 fw-bolder">Status<span className="text-danger">*</span></Form.Label>

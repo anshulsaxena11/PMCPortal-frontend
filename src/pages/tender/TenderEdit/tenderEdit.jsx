@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Form, Button, Spinner} from "react-bootstrap";
+import { Form, Spinner} from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -12,8 +12,12 @@ import { TiArrowBack } from "react-icons/ti";
 import { PiImagesSquareBold } from "react-icons/pi";
 import {getTrackingById,updateTenderById,updatetendermessage} from '../../../api/TenderTrackingAPI/tenderTrackingApi'
 import { getStateList } from '../../../api/stateApi/stateApi';
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import { getEmpList } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
 import withReactContent from 'sweetalert2-react-content';
+import CircularProgress from '@mui/material/CircularProgress';
+import EditIcon from '@mui/icons-material/Edit'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2'
 
 const TenderTrackingEdit =({ID}) =>{
@@ -370,14 +374,35 @@ const TenderTrackingEdit =({ID}) =>{
         <div className="container-fluid">
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
             <div className="row">
-                <div className="col-sm-10 col-md-10 col-lg-10">
-                     <h1 className="fw-bolder">Tender Tracking Edit</h1>
-                </div>
-                <div className="col-sm-2 col-md-2 col-lg-2">
-                    <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
-                        <TiArrowBack />BACK
-                    </Button>
-                </div>
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                position="relative"
+                mb={3}
+              >
+                <Box position="absolute" left={0}>
+                <Tooltip title="Back">
+                    <IconButton
+                    onClick={handleBackClick}
+                    sx={{
+                        backgroundColor: 'error.main',
+                        color: 'white',
+                        '&:hover': {
+                        backgroundColor: 'error.dark',
+                        },
+                        width: 48,
+                        height: 48,
+                    }}
+                    >
+                    <ArrowBackIcon  size={24} />
+                    </IconButton>
+                </Tooltip>
+                </Box>
+                <Typography variant="h4" fontWeight="bold">
+                Tender Tracking
+                </Typography>
+              </Box>
             </div>
             <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
             <form onSubmit={handleSubmit(onSubmit)}>
@@ -439,7 +464,7 @@ const TenderTrackingEdit =({ID}) =>{
                     <div className="col-sm-6 col-md-6 col-lg-6">
                         <Form.Group className="pt-4">
                           <Form.Label className="fs-5 fw-bolder">
-                            Value (INR)<span className="text-danger">*</span>
+                            Value ₹ (GST)<span className="text-danger">*</span>
                           </Form.Label>
                           <Controller
                             name="valueINR"
@@ -452,26 +477,52 @@ const TenderTrackingEdit =({ID}) =>{
                                 return true;
                               },
                             }}
-                            render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => {
-                              const numericValue = Number(value);
-                              const displayValue =
-                                value === "0" ? "0" : 
-                                value ? new Intl.NumberFormat("en-IN").format(numericValue) : ""; // else format or blank
+                            render={({ field: { onChange, onBlur, value, ref }, fieldState: { error } }) => {
+                              const formatINR = (val) => {
+                                if (!val) return "";
+                                const numStr = val.toString().replace(/,/g, "");
+                                const len = numStr.length;
+                                if (len <= 3) return numStr;
+                                const last3 = numStr.slice(-3);
+                                const rest = numStr.slice(0, -3);
+                                return rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + "," + last3;
+                              };
+
+                              const formattedValue = value ? formatINR(value) : "";
 
                               return (
                                 <>
                                   <Form.Control
                                     type="text"
-                                    value={displayValue}
+                                    inputMode="numeric"
+                                    className="form-control"
                                     isInvalid={!!error}
+                                    value={formattedValue}
+                                    ref={ref}
+                                    placeholder="Value in ₹"
                                     onChange={(e) => {
-                                      const raw = e.target.value.replace(/,/g, "").replace(/\D/g, "");
+                                      const input = e.target;
+                                      const cursorPos = input.selectionStart;
+
+                                      const raw = e.target.value.replace(/[^0-9]/g, "");
+
+                                      const oldFormatted = formatINR(value || "");
+                                      const newFormatted = formatINR(raw);
+
+                                      const oldCommas = (oldFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+                                      const newCommas = (newFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+                                      const commaDiff = newCommas - oldCommas;
+
                                       onChange(raw);
-                                      setValueINR(new Intl.NumberFormat("en-IN").format(raw));
+
+                                      setTimeout(() => {
+                                        const newCursor = cursorPos + commaDiff;
+                                        input.setSelectionRange(newCursor, newCursor);
+                                      }, 0);
                                     }}
                                     onBlur={onBlur}
                                     onKeyDown={(e) => {
-                                      if (["e", "E", "+", "-"].includes(e.key)) {
+                                      if (["e", "E", "+", "-", "."].includes(e.key)) {
                                         e.preventDefault();
                                       }
                                     }}
@@ -544,18 +595,50 @@ const TenderTrackingEdit =({ID}) =>{
                         </Form.Group>
                     </div>
                 </div>
-                <div className="d-flex align-items-center gap-3 ">
-               <Button type="submit" className="my-5 ml-4" variant="primary" disabled={loading}>
-                    {loading ? (
-                        <Spinner animation="border" size="sm" />
-                        ) : (
-                        'Save'
-                        )}
-                </Button>
-                <Button variant="danger" className='btn btn-success my-5' onClick={handleBackClick}>
-                    <TiArrowBack />BACK
-                </Button>
-                </div>
+               
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      mt: 4, 
+                    }}
+                  >
+                    <Button
+                      variant="contained"
+                      color="error"
+                      onClick={handleBackClick}
+                      startIcon={<TiArrowBack />}
+                      sx={{
+                        paddingX: 3,
+                        paddingY: 1,
+                        fontWeight: 'bold',
+                        borderRadius: 3,
+                        fontSize: '1rem',
+                        letterSpacing: '0.5px',
+                        boxShadow: 3,
+                      }}
+                    >
+                      BACK
+                    </Button>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      onClick={handleSubmit(onSubmit)}
+                      disabled={loading}
+                      startIcon={!loading && <EditIcon />}
+                      sx={{
+                        paddingX: 3,
+                        paddingY: 1,
+                        fontWeight: 'bold',
+                        borderRadius: 3,
+                        fontSize: '1rem',
+                        letterSpacing: '0.5px',
+                        boxShadow: 3,
+                      }}
+                    >
+                      {loading ? <CircularProgress size={24} color="inherit" /> : 'Update'}
+                    </Button>
+                  </Box>
             </form>
         </div>
     )

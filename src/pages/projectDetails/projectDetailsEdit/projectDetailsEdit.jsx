@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { Form } from "react-bootstrap";
 import { useParams } from "react-router-dom";
@@ -38,6 +38,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
     const [typeOfWorkOption,setTypeOfWorkOption] = useState([]);
     const [typeValue, setTypeValue] = useState()
     const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
+    const inputRef = useRef(null);
 
     const { id } = useParams();
     const projectId = ID || id;
@@ -250,6 +251,14 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             });
         }
         setLoading(false)
+    };
+    const formatINRCurrency = (value) => {
+    const x = value.replace(/,/g, "");
+    const len = x.length;
+    if (len <= 3) return x;
+    const lastThree = x.slice(len - 3);
+    const rest = x.slice(0, len - 3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+    return rest + "," + lastThree;
     };
     const projectTypeOptions = projectTypes.map((type) => ({
         value: type._id,
@@ -507,69 +516,74 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                         </Form.Group>
                         <Form.Group>
                             <Form.Label className="fs-5 fw-bolder pt-3">
-                                Project Value (GST) <span className="text-danger">*</span>
+                                Project Value ₹ (GST) <span className="text-danger">*</span>
                             </Form.Label>
                            <div className="position-relative">
                                 <Controller
-                                name="projectValue"
-                                control={control}
-                                rules={{
-                                    required: "Project Value is required",
-                                    validate: (val) => {
-                                    const raw = String(val).replace(/,/g, "");
-                                    if (raw === "") return "Value in INR is required";
-                                    if (!/^\d+$/.test(raw)) return "Only numeric values are allowed";
-                                    return true;
-                                    },
-                                }}
-                                render={({ field: { onChange, onBlur, value, ref }, fieldState: { error } }) => {
-                                    const formattedValue = value ? `${new Intl.NumberFormat("en-IN").format(Number(value))}₹` : "";
-                                    return (
-                                    <>
-                                        <Form.Control
-                                        type="text"
-                                        inputMode="numeric"
-                                        className="form-control"
-                                        value={formattedValue}
-                                        isInvalid={!!error}
-                                        ref={ref}
-                                        placeholder="Project Value in ₹"
-                                        onChange={(e) => {
-                                            const raw = e.target.value.replace(/[^0-9]/g, "");
-                                            onChange(raw);
-                                        }}
-                                        onKeyDown={(e) => {
-                                            const input = e.target;
-                                            const pos = input.selectionStart;
-                                            const length = input.value.length;
-                                            if (["e", "E", "+", "-", "."].includes(e.key)) {
-                                            e.preventDefault();
-                                            }
-                                            if ((e.key === "ArrowRight" || e.key === "End") && pos >= length - 1) {
-                                            e.preventDefault();
-                                            input.setSelectionRange(length - 1, length - 1);
-                                            }
-                                            if (e.key === "Backspace" && pos >= length - 1) {
-                                            e.preventDefault();
-                                            const raw = value?.toString().slice(0, -1) || "";
-                                            onChange(raw);
-                                            }
-                                        }}
-                                        onClick={(e) => {
-                                            const input = e.target;
-                                            const length = input.value.length;
-                                            if (input.selectionStart >= length - 1) {
-                                            input.setSelectionRange(length - 1, length - 1);
-                                            }
-                                        }}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                        {error?.message}
-                                        </Form.Control.Feedback>
-                                    </>
-                                    );
-                                }}
-                                />
+      name="projectValue"
+      control={control}
+      rules={{
+        required: "Project Value is required",
+        validate: (val) => {
+          const raw = String(val).replace(/,/g, "");
+          if (raw === "") return "Value in INR is required";
+          if (!/^\d+$/.test(raw)) return "Only numeric values are allowed";
+          return true;
+        },
+      }}
+      render={({
+        field: { onChange, onBlur, value, ref },
+        fieldState: { error },
+      }) => {
+        const formattedValue = value ? formatINRCurrency(value) : "";
+
+        return (
+          <>
+            <Form.Control
+              type="text"
+              inputMode="numeric"
+              className="form-control"
+              isInvalid={!!error}
+              ref={(el) => {
+                ref(el);
+                inputRef.current = el;
+              }}
+              placeholder="Project Value in ₹"
+              value={formattedValue}
+              onChange={(e) => {
+                const input = e.target;
+                const cursorPos = input.selectionStart;
+
+                const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+
+                const oldFormatted = formatINRCurrency(value || "");
+                const newFormatted = formatINRCurrency(rawDigits);
+
+                const oldCommas = (oldFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+                const newCommas = (newFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+                const diff = newCommas - oldCommas;
+
+                onChange(rawDigits);
+
+                setTimeout(() => {
+                  const newPos = cursorPos + diff;
+                  input.setSelectionRange(newPos, newPos);
+                }, 0);
+              }}
+              onKeyDown={(e) => {
+                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                  e.preventDefault();
+                }
+              }}
+              onBlur={onBlur}
+            />
+            <Form.Control.Feedback type="invalid">
+              {error?.message}
+            </Form.Control.Feedback>
+          </>
+        );
+      }}
+    />
                             </div>
 
                         </Form.Group>
@@ -832,7 +846,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                     </Button>
                     <Button
                         variant="contained"
-                        color="primary"
+                        color="success"
                         onClick={handleSubmit(onSubmit)}
                         disabled={loading}
                         startIcon={!loading && <EditIcon  />}
