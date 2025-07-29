@@ -8,20 +8,22 @@ const validationSchema = yup.object({
   startDate: yup.date()
   .required("Start Date is required")
   .nullable(),
-  endDate: yup.date()
-    .required("End Date is required")
-    .nullable()
-    .when('startDate', {
-    is: (startDate) => startDate !== null,  
-    then: yup.date().min(
-      yup.ref('startDate'),  
-      'End Date must be later than Start Date'
-    ),
-    otherwise: yup.date(), 
+  endDate: yup
+  .date()
+  .transform((value, originalValue) => {
+    return originalValue === '' || originalValue === null ? null : new Date(originalValue);
+  })
+  .nullable()
+  .required("End Date is required")
+  .when('startDate', {
+    is: (startDate) => startDate !== null,
+    then: yup
+      .date()
+      .min(yup.ref('startDate'), 'End Date must be later than Start Date'),
   }),
   ProjectName: yup.string().required("Project Name is required"),
   device:yup.string(),
-  ProjectValue: yup.number().positive().required("Project Value is required"),
+  ProjectValue: yup.number().transform((value, originalValue) =>originalValue === "" ? undefined : value).positive().required("Project Value is required"),
   ServiceLoction: yup.string().required("Service Location is required"),
   DirectrateName: yup.string().required("Directrate Name is required"),
   typeOfWork: yup.string().required("Type Of Work Required"),
@@ -31,7 +33,7 @@ const validationSchema = yup.object({
   SecondaryPhoneNo: yup.string().nullable().notRequired().matches(/^\d{10}$/, {message:"Secondary Phone Number must be 10 digits", excludeEmptyString: true},),
   PrimaryEmail: yup.string().email("Invalid email format").required("Primary Email is required"),
   projectManager: yup.string().required("Project Manager Name is required"),
-  // noOfauditor:yup.number().positive().required("auditor Value is required"),
+  primaryRoleAndDesignation:yup.string().required("Role or Designation is required"),
   SecondaryEmail: yup.string().transform((value) => (value === "" || value === undefined || value === null ? "N/A" : value)).test("email-or-na", "Invalid email format", (value) => {
     if (value === "N/A") return true; 
     return yup.string().email().isValidSync(value); 
