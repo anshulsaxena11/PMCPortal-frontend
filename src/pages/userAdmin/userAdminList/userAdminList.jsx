@@ -51,8 +51,6 @@ const UserAdminList = () => {
             })
             const fullData = response?.data
             const originalData = fullData?.data
-            console.log(originalData)
-
             const formatedData = originalData?.map(item=>({
                 ...item,
                 createdAt:item.createdAt ? dayjs(item.createdAt).format('DD/MM/YYYY') : '',
@@ -94,9 +92,12 @@ const UserAdminList = () => {
       navigate(`/register-view/${data._id}`);
     };
 
+    const handleEditClick = (data) => {
+      navigate(`/register-Edit/${data._id}`);
+    };
+
   return (
     <div>
-      <h1 className='text-danger'>Table under working but you can create user</h1>
       <ListView
         title="User Registration"
         buttonName="Create New User"
@@ -111,8 +112,9 @@ const UserAdminList = () => {
         onSearchChange={handleSearchChange}
         loading={loading}
         showNoDataMessage={true}
-        // showEditView={true}
-        // onViewClick={handleViewClick}
+        showEditView={true}
+        onViewClick={handleViewClick}
+        onEditClick={handleEditClick}
       />
     </div>
   );

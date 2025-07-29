@@ -791,17 +791,57 @@ const HomePage = () => {
                   <Controller
                     name="PrimaryPhoneNo"
                     control={control}
-                    render={({ field }) => <input {...field} type="number" className="form-control" placeholder="Enter Primary Person Mobile Number" onKeyDown={(e) => {if (["e", "E", "+", "-", "."].includes(e.key)) {e.preventDefault();}}}/>}
+                    render={({ field }) => (
+                      <input
+                        {...field}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={10}
+                        className="form-control"
+                        placeholder="Enter Primary Person Mobile Number"
+                        onKeyDown={(e) => {
+                          if (
+                            ["e", "E", "+", "-", ".", " "].includes(e.key) ||
+                            (!/^\d$/.test(e.key) &&
+                              !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
+                          ) {
+                            e.preventDefault();
+                          }
+                        }}
+                        onInput={(e) => {
+                          if (e.target.value.length > 10) {
+                            e.target.value = e.target.value.slice(0, 10);
+                          }
+                        }}
+                      />
+                    )}
                   />
                   {errors.PrimaryPhoneNo && <p className="text-danger">{errors.PrimaryPhoneNo.message}</p>}
                 </Form.Group>
                 <Form.Group className="mb-3" controlId="secondryPhoneNo">
                   <Form.Label className="fs-5 fw-bolder">Secondary Mobile Number</Form.Label>
-                  <Controller
-                    name="SecondaryPhoneNo"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" type="number" placeholder ="Enter Secondary Person Mobile Number" onKeyDown={(e) => {if (["e", "E", "+", "-", "."].includes(e.key)) {e.preventDefault();}}} />}
-                  />
+                 <Controller
+                  name="SecondaryPhoneNo"
+                  control={control}
+                  render={({ field }) => (
+                    <input
+                      {...field}
+                      type="text"
+                      maxLength={10}
+                      className="form-control"
+                      placeholder="Enter Secondary Person Mobile Number"
+                      onKeyDown={(e) => {
+                        if (["e", "E", "+", "-", "."].includes(e.key)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onInput={(e) => {
+                        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                        field.onChange(e);
+                      }}
+                    />
+                  )}
+                />
                   {errors.SecondaryPhoneNo && <p className="text-danger">{errors.SecondaryPhoneNo.message}</p>}
                 </Form.Group>
               </div>
