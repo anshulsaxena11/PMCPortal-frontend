@@ -19,7 +19,7 @@ import { getAllTenderList } from '../../api/TenderTrackingAPI/tenderTrackingApi'
 
 const tabData = [
   //{ label: 'Vulnerability', icon: <DescriptionIcon />, key: 'projectName' },
-  { label: 'Work Type', icon: <WorkIcon />, key: 'workType' },
+  { label: 'Projects', icon: <WorkIcon />, key: 'workType' },
   { label: 'Tender Tracking', icon: <RequestQuoteIcon />, key: 'tenderTracking' },
 ];
 
@@ -33,35 +33,31 @@ function groupByFinancialYear(data) {
   const yearMap = {};
 
   data.forEach((project) => {
-    const { startDate, endDate, phases = [] } = project;
+    const { startDate, projectValue } = project;
 
-    const startYear = new Date(startDate).getFullYear();
-    const endYear = new Date(endDate).getFullYear();
-    const fyLabel = `FY-${startYear}-${endYear}`;
+    const date = new Date(startDate);
+    const month = date.getMonth(); 
+    const year = date.getFullYear();
+    const fyStartYear = month < 3 ? year - 1 : year;
+    const fyEndYear = fyStartYear + 1;
 
-    let totalAmount = 0;
-    let receivedAmount = 0;
-
-    phases.forEach((phase) => {
-      totalAmount += parseFloat(phase.amountBuild || "0");
-      receivedAmount += parseFloat(phase.amountRecived || "0");
-    });
+    const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
+    const value = parseFloat(projectValue || "0");
 
     if (!yearMap[fyLabel]) {
-      yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, Received: 0 };
+      yearMap[fyLabel] = { financialYear: fyLabel, Total: 0 };
     }
 
-    yearMap[fyLabel].Total += totalAmount;
-    yearMap[fyLabel].Received += receivedAmount;
+    yearMap[fyLabel].Total += value;
   });
 
-  // Convert to Cr and round to 2 decimal places AFTER grouping
-  return Object.values(yearMap).map((item) => ({
-    financialYear: item.financialYear,
-    Total: +(item.Total / 10000000).toFixed(2),
-    Received: +(item.Received / 10000000).toFixed(2),
+  // Convert to Cr and round to 2 decimal places
+  return Object.values(yearMap).map(({ financialYear, Total }) => ({
+    financialYear,
+    Total: +(Total / 10000000).toFixed(2), // convert from ₹ to Cr
   }));
 }
+
 
 
 
@@ -96,9 +92,10 @@ function groupByFinancialYear(data) {
         const workTypeData = await getAllProjectDetails();
         const TenderData = await getAllTenderList({ isDeleted: false });
 
-        /*setProjectNameRows(reportData.data.map((r, i) => ({ id: i + 1, ...r }))); */
-        setWorkTypeRows(workTypeData.data.map((r, i) => ({ id: i + 1, ...r })));
-        setTendereRows(TenderData.data.map((r, i) => ({ id: i + 1, ...r })));
+        /*setProjectNameRows(reportData.data.map((r, i) => ({ id: r._id || i + 1, sno: i + 1, ...r }))); */
+        setWorkTypeRows(workTypeData.data.map((r, i) => ({ id: r._id || i + 1, sno: i + 1, ...r })));
+        setTendereRows(TenderData.data.map((r, i) => ({ id: r._id || i + 1, sno: i + 1, ...r })));
+    
       } catch (error) {
         console.error('API fetch error:', error);
       }
@@ -114,7 +111,12 @@ function groupByFinancialYear(data) {
   };
 
   /*const projectNameCols = [
-    {
+    
+  {
+      field: 'sno',
+    headerName: 'S.No',
+      width: 80,
+    },
       field: 'projectNameDisplay',
       headerName: 'Project Name',
       flex: 1,
@@ -133,6 +135,11 @@ function groupByFinancialYear(data) {
   ]; */
 
   const workTypeCols = [
+    {
+      field: 'sno',
+    headerName: 'S.No',
+      width: 80,
+    },
     { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
     {
       field: 'startDate',
@@ -157,6 +164,11 @@ function groupByFinancialYear(data) {
   ];
 
   const tenderCols = [
+    {
+      field: 'sno',
+    headerName: 'S.No',
+      width: 80,
+    },
     { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
     { field: 'organizationName', headerName: 'Organization Name', flex: 1 },
     { field: 'state', headerName: 'State', flex: 1 },
@@ -308,143 +320,125 @@ const handleDownloadPDF = () => {
 
 
   return (
-    
-    <Box sx={{ width: '100%' }}>
-      {/* Tab Cards */}
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
-        {tabData.map((tab, index) => (
-          <Paper
-            key={index}
-            onClick={() => setActiveTab(index)}
-            elevation={3}
-            sx={{
-              width: 250,
-              height: 100,
-              cursor: 'pointer',
-              borderRadius: 3,
-              px: 2,
-              py: 1.5,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              background: activeTab === index
+  <>
+<Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+      {tabData.map((tab, index) => (
+        <Paper
+          key={index}
+          onClick={() => setActiveTab(index)}
+          elevation={3}
+          sx={{
+            width: 250,
+            height: 100,
+            cursor: 'pointer',
+            borderRadius: 3,
+            px: 2,
+            py: 1.5,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            background:
+              activeTab === index
                 ? 'linear-gradient(to right, #2196f3, #21cbf3)'
                 : '#f5f5f5',
-              color: activeTab === index ? '#fff' : '#000',
-              '&:hover': {
-                boxShadow: 6,
-              },
-            }}
+            color: activeTab === index ? '#fff' : '#000',
+            '&:hover': {
+              boxShadow: 6,
+            },
+          }}
+        >
+          <Typography
+            variant="subtitle1"
+            fontWeight="bold"
+            display="flex"
+            alignItems="center"
+            gap={1}
           >
-            <Typography variant="subtitle1" fontWeight="bold" display="flex" alignItems="center" gap={1}>
-              {tab.icon}
-              {tab.label}
-            </Typography>
-          </Paper>
-        ))}
-      </Box>
+            {tab.icon}
+            {tab.label}
+          </Typography>
+        </Paper>
+      ))}
+    </Box>
 
-      {/* Search */}
-      <TextField
-        label="Search..."
-        variant="outlined"
-        fullWidth
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        sx={{
-          mb: 2,
-          backgroundColor: 'white',
-          '& .MuiInputBase-root': {
-            height: 40,
-          },
+    {activeTab === 0 && (
+      <><h6 class="MuiTypography-root MuiTypography-h6 css-1b5p7p6">Project Value Overview (Cr INR)</h6><Box sx={{ width: '100%', height: 300 }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={chartData}
+              margin={{ top: 30, right: 30, left: 20, bottom: 25 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="financialYear" />
+              <YAxis />
+             
+              <Bar
+                dataKey="Total"
+                fill="#1976d2"
+                name="Project Value (Cr)"
+                barSize={40}
+                radius={[6, 6, 0, 0]}
+                activeBar={false}
+              >
+                <LabelList
+                  dataKey="Total"
+                  position="top"
+                  content={({ x, y, value, width }) => (
+                    <text
+                      x={x + width / 2}
+                      y={y - 5}
+                      fill="#1976d2"
+                      fontSize={14}
+                      fontWeight="bold"
+                      textAnchor="middle"
+                    >
+                      ₹ {value} Cr
+                    </text>
+                  )} />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Box></>
+    )}
+
+    
+
+    <TextField
+      label="Search..."
+      variant="outlined"
+      fullWidth
+      value={search}
+      onChange={(e) => setSearch(e.target.value)}
+      sx={{
+        mb: 2,
+        backgroundColor: 'white',
+        '& .MuiInputBase-root': {
+          height: 40,
+        },
+      }}
+    />
+
+    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+      <Button variant="contained" onClick={handleDownloadCSV}>
+        Download CSV
+      </Button>
+      <Button variant="contained" color="secondary" onClick={handleDownloadPDF}>
+        Download PDF
+      </Button>
+    </Box>
+
+    <Box sx={{ height: 400 }}>
+      <DataGrid
+        rows={searchFilter(getCurrentTabRows())}
+        columns={getCurrentTabColumns()}
+        pageSize={5}
+        rowsPerPageOptions={[5, 10]}
+        pagination
+        slots={{
+          noRowsOverlay: CustomNoRowsOverlay,
         }}
       />
-{/* Bar Chart Section */}
-<Box sx={{ width: "100%", height: 350, mb: 4 }}>
-  <Typography variant="h6" sx={{ mb: 2 }}>
-    Project Value Overview (Cr INR)
-  </Typography>
-  <ResponsiveContainer width="50%" height="100%">
-    <BarChart
-      data={chartData}
-      margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="financialYear" />
-      <YAxis />
-      <Tooltip />
-      <Legend />
-      
-      {/* Total Bar (amountBuild) */}
-      <Bar dataKey="Total" fill="#1976d2" name="Total (Cr)">
-        <LabelList
-          dataKey="Total"
-          position="top"
-          content={({ x, y, value }) => (
-             <text
-        x={x}
-        y={y - 10}
-        fill="#1976d2"
-        fontSize={13}
-        fontWeight="bold"
-        textAnchor="middle"
-        dominantBaseline="middle"
-        stroke="#fff"
-        strokeWidth={2}
-        paintOrder="stroke"
-      >
-            
-              {value} Cr
-            </text>
-          )}
-        />
-      </Bar>
-
-      {/* Received Bar (amountRecived) */}
-      <Bar dataKey="Received" fill="#66bb6a" name="Received (Cr)">
-        <LabelList
-          dataKey="Received"
-          position="top"
-          content={({ x, y, value }) => (
-            <text
-        x={x}
-        y={y - 10}
-        fill="#388e3c"  // darker green for better visibility
-        fontSize={13}
-        fontWeight="bold"
-        textAnchor="middle"
-        stroke="#fff"
-        strokeWidth={2}
-        paintOrder="stroke"
-      >
-              {value} Cr
-            </text>
-          )}
-        />
-      </Bar>
-
-        </BarChart>
-      </ResponsiveContainer>
     </Box>
-      {/* Export Buttons */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-        <Button variant="contained" onClick={handleDownloadCSV}>Download CSV</Button>
-        <Button variant="contained" color="secondary" onClick={handleDownloadPDF}>Download PDF</Button>
-      </Box>
-
-      {/* Data Table */}
-      <Box sx={{ height: 400 }}>
-        <DataGrid
-          rows={searchFilter(getCurrentTabRows())}
-          columns={getCurrentTabColumns()}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10]}
-          pagination
-          slots={{
-            noRowsOverlay: CustomNoRowsOverlay,
-          }}
-        />
-      </Box>
-    </Box>
-  );
+  </>
+);
 }

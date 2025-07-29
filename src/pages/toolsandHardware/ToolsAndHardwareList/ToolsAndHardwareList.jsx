@@ -1,147 +1,171 @@
 import React, { useState, useEffect } from 'react';
-import ListView from '../../../components/listView/listView';
-import { getToolsAndHardware } from '../../../api/toolsAndHardware/toolsAndHardware'
-import { directoratesList } from '../../../api/syncEmp/syncEmp'
+import { Box, Button, CircularProgress, MenuItem, TextField, Typography, IconButton, Stack } from '@mui/material';
+import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+import { getToolsAndHardware } from '../../../api/toolsAndHardware/toolsAndHardware';
+import { directoratesList } from '../../../api/syncEmp/syncEmp';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
+import { Visibility, Edit, Delete } from '@mui/icons-material';
 
-const ToolsAndHardware = () =>{
-        const [data, setData] = useState([]);
-        const [page, setPage] = useState(1);
-        const [totalPages, setTotalPages] = useState(1);
-        const [totalCount, setTotalCount] = useState(0); // Total item count for pagination
-        const [searchQuery, setSearchQuery] = useState('');
-        const [selectedDir, setSelectedDir] = useState(null);
-        const [loading, setLoading] = useState(false);
-        const [dirOptions, setDirOptions] = useState([]);
-        const navigate = useNavigate();
+const ToolsAndHardware = () => {
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0); // MUI DataGrid uses 0-based indexing
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDir, setSelectedDir] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [dirOptions, setDirOptions] = useState([]);
+  const navigate = useNavigate();
 
-        const columns = [
-            'purchasedOrder',
-            'tollsName',
-            'quantity',
-            'assignedTo',
-            'directorates',
-            'startDate',
-            'endDate',
-        ];
+  useEffect(() => {
+    fetchDiretoratesData();
+  }, []);
 
-        const columnNames = {
-            purchasedOrder:"Purchased Order",
-            tollsName: 'Tools Name',
-            quantity: 'Quantity',
-            assignedTo: 'Assigne To',
-            startDate: 'Start Date',
-            endDate:'End Date',
-            directorates:"Directorates",
-        };
-        
-        useEffect(() => {
-            fetchData();
-        }, [page, searchQuery,selectedDir]); 
+  useEffect(() => {
+    fetchData();
+  }, [page, pageSize, searchQuery, selectedDir]);
 
-        useEffect(() => {
-            const fetchDiretoratesData = async () => {
-                setLoading(true);
-                try {
-                    const response = await directoratesList();
-                    const options = response.data.data.map((dir) => ({
-                        value: dir,
-                        label: dir,
-                    }));
-                    setDirOptions(options);
-                } catch (error) {
-                    console.error('Error fetching Directorates list:', error);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchDiretoratesData();
-        }, []);
-        
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-              const response = await getToolsAndHardware({
-                page,
-                search: searchQuery.trim(),
-                directorates:selectedDir?.value, 
-                limit: 10,
-                page: 1,
-              });
-             
-              const formattedData = response.data.map(item => ({
-                ...item,
-                startDate: item.startDate ? dayjs(item.startDate).format('DD/MM/YYYY') : '',
-                endDate: item.endDate ? dayjs(item.endDate).format('DD/MM/YYYY') : '',
-            }));
-        
-              setData(formattedData);
-              setTotalCount(response.total);
-              setTotalPages(response.totalPages);
-            } catch (error) {
-              console.error('Error fetching data:', error);
-            } finally {
-              setLoading(false);
-            }
-          };
+  const fetchDiretoratesData = async () => {
+    setLoading(true);
+    try {
+      const response = await directoratesList();
+      const options = response.data.data;
+      setDirOptions(options);
+    } catch (error) {
+      console.error('Error fetching Directorates list:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const handlePageChange = (newPage) => {
-            setPage(newPage);
-        };
-    
-        const handleSearchChange = (e) => {
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getToolsAndHardware({
+        page: page + 1, // Your API is 1-indexed
+        limit: pageSize,
+        search: searchQuery.trim(),
+        directorates: selectedDir || '',
+      });
+
+      const formattedData = response.data.map((item, index) => ({
+        id: item._id,
+        sno: page * pageSize + index + 1,
+        purchasedOrder: item.purchasedOrder,
+        tollsName: item.tollsName,
+        quantity: item.quantity,
+        assignedTo: item.assignedTo,
+        directorates: item.directorates,
+        startDate: item.startDate ? dayjs(item.startDate).format('DD/MM/YYYY') : '',
+        endDate: item.endDate ? dayjs(item.endDate).format('DD/MM/YYYY') : '',
+      }));
+
+      setData(formattedData);
+      setTotalCount(response.total || 0);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const columns = [
+    { field: 'sno', headerName: 'S.No', width: 80 },
+    { field: 'purchasedOrder', headerName: 'Purchased Order', flex: 1 },
+    { field: 'tollsName', headerName: 'Tools Name', flex: 1 },
+    { field: 'quantity', headerName: 'Quantity', flex: 0.7 },
+    { field: 'assignedTo', headerName: 'Assigned To', flex: 1 },
+    { field: 'directorates', headerName: 'Directorates', flex: 1 },
+    { field: 'startDate', headerName: 'Start Date', flex: 1 },
+    { field: 'endDate', headerName: 'End Date', flex: 1 },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 160,
+      sortable: false,
+      renderCell: (params) => (
+       
+        <Stack direction="row" spacing={1}>
+          <IconButton 
+            onClick={() => navigate(`/Tools-Hardware-View/${params.row.id}`)} 
+            size="small"
+           >
+          <Visibility />
+        </IconButton>
+
+          <IconButton 
+            onClick={() => navigate(`/Tools-Hardware-Edit/${params.row.id}`)} 
+            size="small"
+            >
+            <Edit />
+          </IconButton>
+          </Stack>
+       
+      ),
+    },
+  ];
+
+  return (
+    <Box p={2}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h6">Tools And Hardware List</Typography>
+        <Button variant="contained" onClick={() => navigate("/Tools-Hardware")}>
+          Add New
+        </Button>
+      </Box>
+
+      <Box display="flex" gap={2} mb={2}>
+        <TextField
+          label="Search"
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => {
             setSearchQuery(e.target.value);
-            setPage(1); 
-        };
+            setPage(0);
+          }}
+        />
+        <TextField
+          label="Select Directorate"
+          select
+          size="small"
+          fullWidth
+          value={selectedDir}
+          onChange={(e) => {
+            setSelectedDir(e.target.value);
+            setPage(0);
+          }}
+        >
+          <MenuItem value="">All</MenuItem>
+          {dirOptions.map((dir, index) => (
+            <MenuItem key={index} value={dir}>
+              {dir}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Box>
 
-        const handleAddNewClick = () => {
-            navigate("/Tools-Hardware");  
-        };
-
-        const handleViewClick = (data) => {
-            const id = data._id
-            navigate(`/Tools-Hardware-View/${id}`);  
-        };
-
-        const handleEditClick = (data)=>{
-            const id =data._id
-             navigate(`/Tools-Hardware-Edit/${id}`); 
-        }
-
-        const handleStausChange = (selectedOption) => {
-            setSelectedDir(selectedOption);
-            setPage(1);
-        };
-    return(
-        <div>
-            <ListView
-                title="Tools And Hardware List"
-                buttonName="Add New"
-                onAddNewClick={handleAddNewClick}
-                columns={columns}
-                columnNames={columnNames}
-                data={data}
-                page={page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                searchQuery={searchQuery}
-                onSearchChange={handleSearchChange}
-                loading={loading}
-                onViewClick={handleViewClick}
-                onEditClick={handleEditClick}
-                showEditView={true}
-                showFiltersTwo={true}
-                showFilters={true}
-                showFiltersStatus={true}
-                statusOptions={dirOptions}
-                setSelectedStatus={handleStausChange}
-                selectedStatus={selectedDir}
-                placeholder="Select Directorates"
-                showNoDataMessage={true}
-            />
-        </div>
-    )
-}
+      <div style={{ height: 550, width: '100%' }}>
+        <CustomDataGrid
+          rows={data}
+          columns={columns}
+          page={page}
+          onPageChange={(newPage) => setPage(newPage)}
+          pageSize={pageSize}        
+          paginationModel={{ page, pageSize }}
+          paginationMode="server"
+          onPageSizeChange={(newSize) => setPageSize(newSize)}
+          onPaginationModelChange={({ page, pageSize }) => {
+            setPage(page);
+            setPageSize(pageSize);
+          }}
+        rowsPerPageOptions={[10, 15, 25]}
+        loading={loading}
+        />
+      </div>
+    </Box>
+  );
+};
 
 export default ToolsAndHardware;

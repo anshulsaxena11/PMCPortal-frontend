@@ -1,115 +1,170 @@
 import React, { useState, useEffect } from 'react';
-import ListView from '../../../components/listView/listView';
-import { getToolsAndHardwareMappping } from '../../../api/toolsAndHardware/toolsAndHardware'
+import { DataGrid } from '@mui/x-data-grid';
+import { getToolsAndHardwareMappping } from '../../../api/toolsAndHardware/toolsAndHardware';
 import { useNavigate } from 'react-router-dom';
+import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+import {
+  Box,
+  Button,
+  CircularProgress,
+  TextField,
+  MenuItem,
+  Typography,
+  Stack,
+  IconButton
+} from '@mui/material';
+import { Visibility, Edit, Delete } from '@mui/icons-material';
 
-const ToolsAndHardwareList = () =>{
-        const [data, setData] = useState([]);
-        const [page, setPage] = useState(1);
-        const [totalPages, setTotalPages] = useState(1);
-        const [totalCount, setTotalCount] = useState(0); // Total item count for pagination
-        const [searchQuery, setSearchQuery] = useState('');
-         const [selectedStatus, setSelectedStatus] = useState(null);
-        const [loading, setLoading] = useState(false);
-        const navigate = useNavigate();
-        const statusOptions=[
-            { value: 'Software', label: 'Software' },
-            { value: 'Hardware', label: 'Hardware' },
-        ];
+const ToolsAndHardwareList = () => {
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0); // MUI DataGrid starts from 0
+  const [pageSize, setPageSize] = useState(10);
+  const [rowCount, setRowCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  
 
-        const columns = [
-            'tollsName',
-            'toolsAndHardwareType',
-        ];
+  const statusOptions = [
+    { value: '', label: 'All' },
+    { value: 'Software', label: 'Software' },
+    { value: 'Hardware', label: 'Hardware' },
+  ];
 
-        const columnNames = {
-            tollsName: 'Tools Name',
-            toolsAndHardwareType: 'Type',
-        };
-        
-        useEffect(() => {
-            fetchData();
-        }, [page, searchQuery,selectedStatus]); 
-        
 
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-              const response = await getToolsAndHardwareMappping({
-                page,
-                search: searchQuery.trim(),
-                toolsAndHardwareType:selectedStatus?.value, 
-                limit: 10,
-                page:1,
-              });
-             
-        
-              setData(response.data);
-              setTotalCount(response.total);
-              setTotalPages(response.totalPages);
-            } catch (error) {
-              console.error('Error fetching data:', error);
-            } finally {
-              setLoading(false);
-            }
-          };
+      const fetchData = async () => {
+  setLoading(true);
+  try {
+    const response = await getToolsAndHardwareMappping({
+      page: page + 1,
+  limit: pageSize, // <-- dynamic!
+  search: searchQuery.trim(),
+  toolsAndHardwareType: selectedStatus || "",
+    });
 
-        const handlePageChange = (newPage) => {
-            setPage(newPage);
-        };
-    
-        const handleSearchChange = (e) => {
+    const rowsWithSno = response.data.map((item, index) => ({
+      ...item,
+      id: item._id, // MUI needs `id`
+      sno: page * pageSize + index + 1,
+    }));
+
+    setData(rowsWithSno);
+    setRowCount(response.total || 0); // total items from backend
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+  useEffect(() => {
+    fetchData();
+  }, [page, pageSize, searchQuery, selectedStatus]);
+
+  const columns = [
+    { field: 'sno', headerName: 'S.No', width: 90 },
+    { field: 'tollsName', headerName: 'Tools Name', flex: 1 },
+    { field: 'toolsAndHardwareType', headerName: 'Type', flex: 1 },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 160,
+      sortable: false,
+      renderCell: (params) => (
+        <Stack direction="row" spacing={1}>
+
+
+             <IconButton
+                        onClick={() => navigate(`/Tools-Hardware-Master-View/${params.row._id}`)} size="small"
+                      >
+                        <Visibility />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => navigate(`/Tools-Hardware-Master-Edit/${params.row._id}`)} size="small"
+                      >
+                        <Edit />
+                      </IconButton>
+         
+        </Stack>
+      ),
+    },
+  ];
+
+  return (
+    <Box p={2}>
+      <Typography variant="h6" gutterBottom>
+        Tools And Hardware Master List
+      </Typography>
+
+      <Stack direction="row" spacing={2} mb={2}>
+        <TextField
+          label="Search"
+          variant="outlined"
+          size="small"
+          sx={{ width: '70%' }}
+          value={searchQuery}
+          onChange={(e) => {
             setSearchQuery(e.target.value);
-            setPage(1); 
-        };
+            setPage(0);
+          }}
+        />
 
-        const handleAddNewClick = () => {
-            navigate("/Tools-Hardware-Master");  
-        };
+        <TextField
+          select
+          label="Type"
+          size="small"
+          value={selectedStatus}
+          sx={{ width: '20%' }}
+          onChange={(e) => {
+            setSelectedStatus(e.target.value);
+            setPage(0);
+          }}
+        >
+          {statusOptions.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </TextField>
 
-        const handleViewClick = (data) => {
-            const id = data._id
-            navigate(`/Tools-Hardware-Master-View/${id}`);  
-        };
+        <Button
+          variant="contained"
+          color="primary"
+          sx={{ width: '10%' }}
+          onClick={() => navigate('/Tools-Hardware-Master')}
+        >
+          Add New
+        </Button>
+      </Stack>
 
-        const handleEditClick = (data)=>{
-            const id =data._id
-             navigate(`/Tools-Hardware-Master-Edit/${id}`); 
-        }
+      <Box height={500}>
+        <CustomDataGrid
+  rows={data}
+  columns={columns}
+  page={page}
+  onPageChange={(newPage) => setPage(newPage)}
+  pageSize={pageSize}
+ 
+  paginationModel={{ page, pageSize }}
+  onPaginationModelChange={({ page, pageSize }) => {
+    setPage(page);
+    setPageSize(pageSize);
+  }}
+  rowCount={rowCount}
+  paginationMode="server"
+  rowsPerPageOptions={[10, 15, 25]}
+  loading={loading}
+/>
 
-        const handleStausChange = (selectedOption) => {
-            setSelectedStatus(selectedOption);
-            setPage(1);
-          };
-    return(
-        <div>
-            <ListView
-                title="Tools And Hardware Master List"
-                buttonName="Add New"
-                onAddNewClick={handleAddNewClick}
-                columns={columns}
-                columnNames={columnNames}
-                data={data}
-                page={page}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                searchQuery={searchQuery}
-                onSearchChange={handleSearchChange}
-                loading={loading}
-                onViewClick={handleViewClick}
-                onEditClick={handleEditClick}
-                showEditView={true}
-                showFiltersTwo={true}
-                showFilters={true}
-                showFiltersStatus={true}
-                statusOptions={statusOptions}
-                setSelectedStatus={handleStausChange}
-                selectedStatus={selectedStatus}
-                placeholder="Select Type"
-                showNoDataMessage={true}
-            />
-        </div>
-    )
-}
+      </Box>
+
+      {loading && (
+        <Box display="flex" justifyContent="center" mt={2}>
+          <CircularProgress />
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 export default ToolsAndHardwareList;

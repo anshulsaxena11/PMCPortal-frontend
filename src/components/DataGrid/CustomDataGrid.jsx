@@ -19,9 +19,6 @@ const CustomDataGrid = ({
 }) => {
   return (
     <Box sx={{ height: 600, width: "100%" }}>
-      <Typography variant="h6" sx={{ mb: 1 }}>
-        Data Table
-      </Typography>
       <DataGrid
        autoSizeOptions={{ disableHeight: false }}
         rows={rows}
