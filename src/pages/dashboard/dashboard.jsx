@@ -36,10 +36,8 @@ function groupByFinancialYear(data) {
     const { startDate, projectValue } = project;
 
     const date = new Date(startDate);
-    const month = date.getMonth(); // 0 = Jan, 3 = April
+    const month = date.getMonth(); 
     const year = date.getFullYear();
-
-    // Financial Year logic: If month < April, FY = (year-1)-(year)
     const fyStartYear = month < 3 ? year - 1 : year;
     const fyEndYear = fyStartYear + 1;
 
