@@ -8,13 +8,14 @@ import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import GuestRoute from "./components/GuestRoutes/GetRoutes.jsx";
 import IdleTimerWrapper from "./components/IdleTimerWrapper/IdleTimerWrapper.jsx"; 
 import ForgotPassword from "./pages/login/forgotPasswordPannel/ForgotPanel"
+import ChangePassword from '../src/pages/login/changePasswordPannel/changePasswordPannel.jsx';
+import ResetPasswordVerify from "./pages/login/ResetPasswordVerification/ResetPasswordVerification.jsx"
 import NProgress from 'nprogress';
 import Footer from "./layout/footer/footer .jsx"
 import 'nprogress/nprogress.css';
 import "./App.css";
 
 function AppWrapper() {
-  const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(true);
   NProgress.configure({ showSpinner: false });
@@ -47,6 +48,22 @@ function AppWrapper() {
         element={
           <GuestRoute>
             <ForgotPassword />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/change-password"
+        element={
+          <GuestRoute>
+            <ChangePassword />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <GuestRoute>
+            <ResetPasswordVerify />
           </GuestRoute>
         }
       />

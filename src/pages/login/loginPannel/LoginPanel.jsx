@@ -51,6 +51,11 @@ const LoginPanel = () =>{
         navigate('/forgot-password');   
     };
 
+    const handleChangePasswordClick = () => {
+        NProgress.start();              
+        navigate('/change-password');  
+    }
+
     return( 
         <Box
             sx={{
@@ -144,20 +149,41 @@ const LoginPanel = () =>{
                         >
                             Login
                         </Button>
-                        <Typography
-                            variant="body2"
-                            align="right"
+                        <Box
                             sx={{
-                            mt: 3,
-                            mb: 1,
-                            cursor: 'pointer',
-                            color: '#1976d2',
-                            '&:hover': { textDecoration: 'underline' },
+                                display: 'flex',
+                                justifyContent: 'space-between',
                             }}
-                            onClick={handleForgotPasswordClick}
                         >
-                            Forgot Password?
-                        </Typography>
+                            <Typography
+                                variant="body2"
+                                align="left"
+                                sx={{
+                                    mt: 3,
+                                    mb: 1,
+                                    cursor: 'pointer',
+                                    color: '#1976d2',
+                                    '&:hover': { textDecoration: 'underline' },
+                                }}
+                                onClick={handleChangePasswordClick}
+                            >
+                                Change Password?
+                            </Typography>
+                            <Typography
+                                variant="body2"
+                                align="right"
+                                sx={{
+                                    mt: 3,
+                                    mb: 1,
+                                    cursor: 'pointer',
+                                    color: '#1976d2',
+                                    '&:hover': { textDecoration: 'underline' },
+                                }}
+                                onClick={handleForgotPasswordClick}
+                            >
+                                Forgot Password?
+                            </Typography>
+                        </Box>
                     </form>
                 </Paper>
             </Container>
