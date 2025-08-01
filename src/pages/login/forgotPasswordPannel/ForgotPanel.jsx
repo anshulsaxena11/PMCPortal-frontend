@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Container, Paper, Typography, TextField, Button } from '@mui/material';
+import { Box, Container, Paper, Typography, TextField, Button, CircularProgress  } from '@mui/material';
 import Swal from 'sweetalert2';
 import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -10,21 +10,27 @@ import NProgress from 'nprogress'
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
    const {register, handleSubmit, formState: { errors },} = useForm({
       resolver: yupResolver(forgetPasswordValidationSchema) 
     });
 
   const onSubmit = async (data) => {
+    setLoading(true);
     try {
       const payload ={
         username: data.username,
       }
       const response = await postForgetPassword(payload)
       if (response?.data?.statusCode === 200) {
-        Swal.fire('Success', response?.data?.message, 'success');
+        Swal.fire('Success', response?.data?.message, 'success').then(() => {
+            navigate('/login');
+        });;
       }
     } catch (error) {
       Swal.fire('Error', error?.response?.data?.message, 'error');
+    }finally {
+      setLoading(false);
     }
   };
    const handleLoginClick = () => {
@@ -86,8 +92,12 @@ const ForgotPassword = () => {
                 helperText={errors.username?.message}
                 autoComplete="username"
               />
-                <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-                  Reset Password
+                <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }} disabled={loading}>
+                   {loading ? (
+                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                  ) : (
+                    'Reset Password'
+                  )}
                 </Button>
                 <Typography
                   variant="body2"
