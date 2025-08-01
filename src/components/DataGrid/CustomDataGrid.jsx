@@ -15,7 +15,7 @@ const CustomDataGrid = ({
   onPaginationModelChange,
   rowCount,
   checkboxSelection = false,
-  paginationMode = "client", // or "server"
+  paginationMode = "server", // or "client"
 }) => {
   return (
     <Box sx={{ height: 600, width: "100%" }}>
