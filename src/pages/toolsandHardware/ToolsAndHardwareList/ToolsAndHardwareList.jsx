@@ -14,9 +14,15 @@ const ToolsAndHardware = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDir, setSelectedDir] = useState('');
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(false);
   const [dirOptions, setDirOptions] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const role = localStorage.getItem("userRole");
+    setUserRole(role);;
+  }, []);
 
   useEffect(() => {
     fetchDiretoratesData();
@@ -93,13 +99,16 @@ const ToolsAndHardware = () => {
            >
           <Visibility />
         </IconButton>
-
-          <IconButton 
-            onClick={() => navigate(`/Tools-Hardware-Edit/${params.row.id}`)} 
-            size="small"
-            >
-            <Edit />
-          </IconButton>
+         {(userRole !== 'User') && (
+          <>
+            <IconButton 
+              onClick={() => navigate(`/Tools-Hardware-Edit/${params.row.id}`)} 
+              size="small"
+              >
+              <Edit />
+            </IconButton>
+            </>
+          )}
           </Stack>
        
       ),
@@ -110,9 +119,11 @@ const ToolsAndHardware = () => {
     <Box p={2}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6">Tools And Hardware List</Typography>
+        {(userRole !== 'User') && (
         <Button variant="contained" onClick={() => navigate("/Tools-Hardware")}>
           Add New
         </Button>
+        )}
       </Box>
 
       <Box display="flex" gap={2} mb={2}>

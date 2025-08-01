@@ -16,8 +16,15 @@ const TenderDetailsList = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  
+  useEffect(() => {
+    const role = localStorage.getItem("userRole");
+    setUserRole(role);;
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -150,17 +157,20 @@ const TenderDetailsList = () => {
             size="small"
            >
           <Visibility />
-        </IconButton>
-
-          <IconButton 
-           onClick={() => handleEditClick(params.row.id)} 
-            size="small"
-            >
-            <Edit />
-          </IconButton>
-          <IconButton color="error" onClick={() => handleDeleteClick(params.row.id)}>
-        <Delete />
-      </IconButton>
+              </IconButton>
+                {(userRole !== 'User') && (
+                <>
+                  <IconButton 
+                    onClick={() => handleEditClick(params.row.id)} 
+                    size="small"
+                    >
+                    <Edit />
+                  </IconButton>
+                  <IconButton color="error" onClick={() => handleDeleteClick(params.row.id)}>
+                <Delete />
+              </IconButton>
+            </>
+           )}
           </Stack>
         </Box>
       ),
@@ -172,9 +182,11 @@ const TenderDetailsList = () => {
       <ToastContainer position="top-center" autoClose={5000} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h6">Tender Tracking</Typography>
-        <Button variant="contained" onClick={() => navigate('/Tender-Tracking')}>
-          Add New
-        </Button>
+          {(userRole !== 'User') && (
+            <Button variant="contained" onClick={() => navigate('/Tender-Tracking')}>
+              Add New
+            </Button>
+          )}
       </Box>
 
       <Box display="flex" gap={2} mb={2}>

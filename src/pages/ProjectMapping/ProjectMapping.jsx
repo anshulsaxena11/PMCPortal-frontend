@@ -27,40 +27,47 @@ const ProjectMapping = () => {
   const [selectedType, setSelectedType] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedItems, setSelectedItems] = useState([]);
+  const [userRole, setUserRole] = useState(null); 
   const [selecteddir, setSelectedDir] = useState(null);
   const [ProjectName, setProjectName] = useState([]);
   const [isViewMode, setIsViewMode] = useState(false);
 
-  const columnDefs = [
+   const columnDefs = [
      {
-  field: 'serialNo',
-  headerName: 'S.No.',
-  width: 70,
-  sortable: false,
-  filterable: false,
-},
-  { field: 'empid', headerName: 'Employee ID', width: 140 },
-  { field: 'ename', headerName: 'Employee Name', width: 190 },
-  { field: 'edesg', headerName: 'Designation', width: 160 },
-  { field: 'centre', headerName: 'Centre', width: 140 },
-  { field: 'dir', headerName: 'Directorates', width: 160 },
-  { field: 'etpe', headerName: 'Employee Type', width: 160 },
-  {
-    field: 'action',
-    headerName: 'Action',
-    width: 100,
-    sortable: false,
-    filterable: false,
-    renderCell: (params) => (
-      <input
-        type="checkbox"
-        checked={selectedItems.includes(params.row._id)}
-        onChange={() => handleCheckboxToggle(params.row)}
-      />
-    ),
-  },
-];
+        field: 'serialNo',
+        headerName: 'S.No.',
+        width: 70,
+        sortable: false,
+        filterable: false,
+      },
+      { field: 'empid', headerName: 'Employee ID', width: 140 },
+      { field: 'ename', headerName: 'Employee Name', width: 190 },
+      { field: 'edesg', headerName: 'Designation', width: 160 },
+      { field: 'centre', headerName: 'Centre', width: 140 },
+      { field: 'dir', headerName: 'Directorates', width: 160 },
+      { field: 'etpe', headerName: 'Employee Type', width: 160 },
+    ];
+    if(userRole !== 'User'){
+      columnDefs.push({
+        field: 'action',
+        headerName: 'Action',
+        width: 100,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => (
+          <input
+            type="checkbox"
+            checked={selectedItems.includes(params.row._id)}
+            onChange={() => handleCheckboxToggle(params.row)}
+          />
+          )
+      });
+    }
 
+  useEffect(() => {
+        const role = localStorage.getItem("userRole");
+        setUserRole(role);;
+    }, []);
 
   const fetchEmpList = async () => {
     if (!selectedProject) return;
@@ -176,19 +183,19 @@ const ProjectMapping = () => {
       <div className="row g-2 mb-3">
         <div className="col-md-3">
           <label>Project</label>
-          <Select options={ProjectName} value={selectedProject} onChange={setSelectedProject} />
+          <Select options={ProjectName} value={selectedProject} onChange={setSelectedProject} isClearable />
         </div>
         <div className="col-md-2">
           <label>Centre</label>
-          <Select options={centreOptions} value={selectedCentre} onChange={setSelectedCentre} />
+          <Select options={centreOptions} value={selectedCentre} onChange={setSelectedCentre} isClearable/>
         </div>
         <div className="col-md-2">
           <label>Directorates</label>
-          <Select options={dirOptions} value={selecteddir} onChange={setSelectedDir} />
+          <Select options={dirOptions} value={selecteddir} onChange={setSelectedDir} isClearable />
         </div>
         <div className="col-md-2">
           <label>Type</label>
-          <Select options={typeOptions} value={selectedType} onChange={setSelectedType} />
+          <Select options={typeOptions} value={selectedType} onChange={setSelectedType} isClearable />
         </div>
         <div className="col-md-3">
           <label>Search</label>
@@ -203,11 +210,15 @@ const ProjectMapping = () => {
 
       {/* DataGrid */}
       <CustomDataGrid
-  rows={(isViewMode ? viewData : data).map((row, index) => ({
-    id: row._id || index,
-    serialNo: page * pageSize + index + 1,
-    ...row,
-  }))}
+  rows={
+    (userRole === 'User' ? viewData : (isViewMode ? viewData : data)).map(
+    (row, index) => ({
+      id: row._id || index,
+      serialNo: page * pageSize + index + 1,
+      ...row,
+    })
+  )
+}
   columns={columnDefs}
   paginationMode="server"
   paginationModel={{ page, pageSize }}
@@ -232,21 +243,24 @@ const ProjectMapping = () => {
 
 
       {/* Buttons */}
-      <div className="mt-3 d-flex gap-3">
-  <button
-    className="btn btn-primary"
-    disabled={!selectedProject || selectedItems.length === 0}
-    onClick={handleMappingSubmit}
-  >
-    Save
-  </button>
-  <button
-    className="btn btn-warning"
-    onClick={() => setIsViewMode(!isViewMode)}
-  >
-    {isViewMode ? 'List' : 'View'}
-  </button>
-</div>
+        {(userRole !== 'User') && (
+          <div className="mt-3 d-flex gap-3">
+          <button
+            className="btn btn-primary"
+            disabled={!selectedProject || selectedItems.length === 0}
+            onClick={handleMappingSubmit}
+          >
+            Save
+          </button>
+        
+          <button
+            className="btn btn-warning"
+            onClick={() => setIsViewMode(!isViewMode)}
+            >
+            {isViewMode ? 'List' : 'View'}
+          </button>
+        </div>
+          )}
 
     </div>
   );

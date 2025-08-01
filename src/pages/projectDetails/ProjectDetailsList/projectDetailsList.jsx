@@ -25,7 +25,13 @@ const ProjectDetailsList = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
+
+   useEffect(() => {
+      const role = localStorage.getItem("userRole");
+      setUserRole(role);;
+    }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -120,14 +126,18 @@ const ProjectDetailsList = () => {
           >
             <Visibility />
           </IconButton>
-          <IconButton
-            onClick={() => navigate(`/projectDetailsEdit/${params.row.id}`)} size="small"
-          >
-            <Edit />
-          </IconButton>
-          <IconButton onClick={() => handleDelete(params.row.id)} size="small">
-            <Delete color="error" />
-          </IconButton>
+          {(userRole !== 'User') && (
+            <>
+              <IconButton
+                onClick={() => navigate(`/projectDetailsEdit/${params.row.id}`)} size="small"
+              >
+                <Edit />
+              </IconButton>
+              <IconButton onClick={() => handleDelete(params.row.id)} size="small">
+                <Delete color="error" />
+              </IconButton>
+            </>
+          )}
         </Stack>
       )
     }
@@ -135,11 +145,13 @@ const ProjectDetailsList = () => {
 
   return (
     <Box sx={{ p: 0 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h5">Project Details</Typography>
-        <Button variant="contained" onClick={() => navigate('/projectDetails')}>
-          Add New
-        </Button>
+        {(userRole !== 'User') && (
+          <Button variant="contained" onClick={() => navigate('/projectDetails')}>
+            Add New
+          </Button>
+        )}
       </Stack>
 
       <TextField
@@ -153,18 +165,18 @@ const ProjectDetailsList = () => {
       />
 
       <CustomDataGrid
-  key={pageSize}
-  rows={data}
-  columns={columns}
-  loading={loading}
-  paginationModel={{ page, pageSize }}
-  onPaginationModelChange={({ page, pageSize }) => {
-    setPage(page);
-    setPageSize(pageSize);
-  }}
-  rowCount={totalCount}
-  paginationMode="server"
-/>
+        key={pageSize}
+        rows={data}
+        columns={columns}
+        loading={loading}
+        paginationModel={{ page, pageSize }}
+        onPaginationModelChange={({ page, pageSize }) => {
+          setPage(page);
+          setPageSize(pageSize);
+        }}
+        rowCount={totalCount}
+        paginationMode="server"
+      />
 
 
 

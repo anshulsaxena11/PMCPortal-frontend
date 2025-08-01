@@ -18,7 +18,8 @@ const Timelines = () => {
     const [ProjectName, setProjectName] = useState([]);
     const [SelectedProjectName, setselectedProjectName] = useState();
     const [showModal, setShowModal] = useState(false); 
-    const [viewData, setViewData] = useState([]); 
+    const [viewData, setViewData] = useState([]);
+    const [userRole, setUserRole] = useState(null); 
     const [projectCreatedAt, setProjectCreatedAt] = useState('');
     const [oneStaus,setOneStatus] = useState(false)
     const [Phase, setPhase] = useState([ 
@@ -38,6 +39,11 @@ const Timelines = () => {
     const [selectStatus,setSelectStatus]= useState([]);
     const [valueStatus,setValueStaus] = useState()
     const formValues = getValues();
+
+    useEffect(() => {
+        const role = localStorage.getItem("userRole");
+        setUserRole(role);;
+    }, []);
 
     useEffect(() => {
         const fetchEmpList = async () => {
@@ -482,37 +488,41 @@ const Timelines = () => {
                                                 }
                                             />
                                         </Form.Group>
-                                        <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                            <Button variant="primary" size="sm"onClick={handleSubmitAllPhases}>
-                                                Submit Phases
-                                            </Button>
-                                             <Button
-                                                variant="danger"
-                                                size="sm"
-                                                onClick={() => handleRemoveStep(index)}
-                                                className="mt-2"
-                                                disabled={Phase.length === 1}
-                                            >
-                                                Remove Phase
-                                            </Button>
-                                        </div>
+                                            {(userRole !== 'User') && (
+                                                <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                                    <Button variant="primary" size="sm"onClick={handleSubmitAllPhases}>
+                                                        Submit Phases
+                                                    </Button>
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        onClick={() => handleRemoveStep(index)}
+                                                        className="mt-2"
+                                                        disabled={Phase.length === 1}
+                                                    >
+                                                        Remove Phase
+                                                    </Button>
+                                                </div>
+                                            )}
                                     </div>
                                 )}
                             </div>
                         ))}
-
-                       <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                            <Button
-                                variant="success"
-                                onClick={handleAddStep}
-                                disabled={isAddPhaseDisabled()}
-                            >
-                                Add Phase
-                            </Button>
-                             <Button variant="primary" onClick={handleSubmitAllPhases}>
-                                Submit All Phases
-                            </Button>
-                        </div>
+                        
+                        {(userRole !== 'User') && (
+                            <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                <Button
+                                    variant="success"
+                                    onClick={handleAddStep}
+                                    disabled={isAddPhaseDisabled()}
+                                >
+                                    Add Phase
+                                </Button>
+                                <Button variant="primary" onClick={handleSubmitAllPhases}>
+                                    Submit All Phases
+                                </Button>
+                            </div>
+                        )}
 
                     </div>
                 )}
