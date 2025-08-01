@@ -4,54 +4,125 @@ import { ToastContainer, toast } from 'react-toastify';
 import { FaCheck } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 import { Table, Pagination, InputGroup, FormControl, Button, Spinner } from 'react-bootstrap';
+import { CircularProgress, TextField, Typography, IconButton, Stack } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
-import {postTaskManagerUpdate} from '../../api/TaskMember/taskMemberApi'
+import {postTaskManagerUpdate} from '../../api/TaskMember/taskMemberApi';
+import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
-
                                                                                 
 const AdminSyncEmploy = () =>{
     const [loader,setLoader] = useState(false)
     const [data,setData] = useState([]);
-    const [page, setPage] = useState(1);
     const [centreOptions, setCentreOptions] = useState([]);
     const [dirOptions, setDirOptions] = useState([]);
     const [typeOptions, setTypeOptions] = useState([]);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0); 
-    const [searchQuery, setSearchQuery] = useState('');
     const [selectedCentre, setSelectedCentre] = useState(null);
     const [selecteddir, setSelectedDir] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [selectedType, setSelectedType] = useState(null);
+     const [page, setPage] = useState(0); 
+      const [pageSize, setPageSize] = useState(10);
+      const [totalCount, setTotalCount] = useState(0);
+      const [searchQuery, setSearchQuery] = useState('');
+      const [loading, setLoading] = useState(false);
     const statusOptions = [
       { value: true, label: "Active" },
       { value: false, label: "Not Active" },
     ];
+    const [rowsPerPage, setRowsPerPage] = useState(10); // default page size
     useEffect(() => {
       fetchEmpList();
-  }, [page, searchQuery, selectedCentre,selectedStatus,selectedType,selecteddir]);
+  }, [page, pageSize, searchQuery, selectedCentre,selectedStatus,selectedType,selecteddir]);
 
 
-    const columns = [
-        'empid',
-        'ename',
-        'centre',
-        "dir",
-        'etpe',
-        'StatusNoida',
-        'taskForceMember' 
-      ];
+     // ✅ Move this block to the top (before `columns`)
+const columnNames = {
+  empid: 'Employee ID',
+  ename: 'Employee Name',
+  centre: 'Centre',
+  dir: 'Directorates',
+  etpe: 'Employee Type',
+  StatusNoida: 'VAPT Team Member',
+  taskForceMember: 'Task Force Member Status',
+};
 
-      const columnNames = {
-        empid: 'Employee ID',
-        ename: 'Employe Name',
-        centre: 'Centre',
-        dir:'Directorates',
-        etpe:'Employee Type',
-        StatusNoida: 'VAPT Team Member',
-        taskForceMember:' Task Force Member Status'  
-      };
+// ✅ Now define columns
+const columns = [
+  {
+    field: 'serial',
+    headerName: 'S.No',
+    width: 60,
+    sortable: false,
+  },
+  { field: 'empid', headerName: columnNames.empid, width: 100 },
+  { field: 'ename', headerName: columnNames.ename, width: 140 },
+  { field: 'centre', headerName: columnNames.centre, width: 100 },
+  { field: 'dir', headerName: columnNames.dir, width: 140 },
+  { field: 'etpe', headerName: columnNames.etpe, width: 140 },
+  {
+    field: 'StatusNoida',
+    headerName: columnNames.StatusNoida,
+    width: 140,
+    renderCell: (params) => (
+      <span className={`fw-bold ${params.row.rawStatusNoida ? 'text-success' : 'text-danger'}`}>
+        {params.row.rawStatusNoida ? 'Active' : 'Inactive'}
+      </span>
+    ),
+  },
+  {
+    field: 'statusAction',
+    headerName: 'Action',
+    width: 90,
+    sortable: false,
+    renderCell: (params) =>
+      params.row.rawStatusNoida === false ? (
+        <FaCheck
+          className="text-success fs-4"
+          style={{ cursor: 'pointer' }}
+          onClick={() => handleActivate(params.row)}
+        />
+      ) : (
+        <IoClose
+          className="text-danger fs-4"
+          style={{ cursor: 'pointer' }}
+          onClick={() => handleDeactivate(params.row)}
+        />
+      ),
+  },
+  {
+    field: 'taskForceMember',
+    headerName: columnNames.taskForceMember,
+    width: 150,
+    renderCell: (params) => (
+      <span className={`fw-bold ${params.row.rawtaskForceMember === 'Yes' ? 'text-success' : 'text-danger'}`}>
+        {params.row.rawtaskForceMember === 'Yes' ? 'Yes' : 'No'}
+      </span>
+    ),
+  },
+  {
+    field: 'memberAction',
+    headerName: 'Member Status',
+    width: 120,
+    sortable: false,
+    renderCell: (params) =>
+      params.row.rawtaskForceMember === 'No' ? (
+        <FaCheck
+          className="text-success fs-4"
+          style={{ cursor: 'pointer' }}
+          onClick={() => handleTeamMember(params.row)}
+        />
+      ) : (
+        <IoClose
+          className="text-danger fs-4"
+          style={{ cursor: 'pointer' }}
+          onClick={() => handleTeamMember(params.row)}
+        />
+      ),
+  },
+];
+
 
     const handleSync = async() =>{
         setLoader(true);
@@ -86,22 +157,27 @@ const AdminSyncEmploy = () =>{
     const fetchEmpList = async() =>{
         setLoader(true);
         try{
-          const response = await empList({page,limit:10,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
-          const transformedData = response.data.map(item => ({
-              ...item,
-              rawStatusNoida: item.StatusNoida,
-              rawtaskForceMember: item.taskForceMember, 
-              StatusNoida: item.StatusNoida ? (
-                <span className="text-success fw-bold">Active</span>
-              ) : (
-                <span className="text-danger fw-bold">Inactive</span>
-              ),
-              taskForceMember:item.taskForceMember ==='Yes' ? (
-                <span className="text-success fw-bold">Yes</span>
-              ):(
-                <span className="text-danger fw-bold">No</span>
-              )
-            }));
+          const response = await empList({page: page + 1, // ✅ Convert 0-based to 1-based
+  limit: pageSize,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
+          const transformedData = response.data.map((item, index) => ({
+            ...item,
+            id: item._id, // Required by DataGrid
+           serial: page * pageSize + index + 1,
+            rawStatusNoida: item.StatusNoida,
+            rawtaskForceMember: item.taskForceMember,
+            StatusNoida: item.StatusNoida ? (
+              <span className="text-success fw-bold">Active</span>
+            ) : (
+              <span className="text-danger fw-bold">Inactive</span>
+            ),
+            taskForceMember: item.taskForceMember === 'Yes' ? (
+              <span className="text-success fw-bold">Yes</span>
+            ) : (
+              <span className="text-danger fw-bold">No</span>
+            )
+          }));
+
+
           setData(transformedData)
           setTotalCount(response.total);
           setTotalPages(response.totalPages);
@@ -336,161 +412,25 @@ const AdminSyncEmploy = () =>{
                 </Button>
                </div>
             </div>
-            <div style={{  overflowX: 'auto' }}>
-             <Table striped bordered hover responsive>
-                <thead>
-                  <tr>
-                    <th className="text-center">S.No</th>
-                    <th className="text-center">{columnNames.empid}</th>
-                    <th className="text-center">{columnNames.ename}</th>
-                    <th className="text-center">{columnNames.centre}</th>
-                    <th className="text-center">{columnNames.dir}</th>
-                    <th className="text-center">{columnNames.etpe}</th>
-                    <th className="text-center">{columnNames.StatusNoida}</th>
-                    <th className="text-center">Action</th>
-                    <th className="text-center">{columnNames.taskForceMember}</th>
-                    <th className="text-center">Member Status</th>
-                  </tr>
-                </thead>
-              <tbody>
-                {loader ? (
-                  <tr>
-                    <td colSpan={columns.length + 2} className="text-center">
-                      Loading...
-                    </td>
-                  </tr>
-                ) : data.length === 0 ? (
-                  <tr>
-                    <td colSpan={columns.length + 2} className="text-center text-muted">
-                      No data found.
-                    </td>
-                  </tr>
-                ) : (
-                  data.map((item, index) => (
-                    <tr key={index}>
-                     <td className="text-center">{(page - 1) * 10 + index + 1}</td>
-                      {columns.map((col) => (
-                        <React.Fragment key={col}>
-                          <td className="text-center">
-                            {(() => {
-                              switch (col) {
-                                case 'empid':
-                                  return item.empid || '-';
-                                case 'ename':
-                                  return item.ename?.toUpperCase() || '-';
-                                case 'centre':
-                                  return item.centre || 'N/A';
-                                case 'dir':
-                                  return item.dir;
-                                case 'etpe':
-                                  return item.etpe || '-';
-                                case 'StatusNoida':
-                                  return item.StatusNoida;
-                                case 'taskForceMember':
-                                  return item.taskForceMember;
-                                default:
-                                  return item[col] || '-';
-                              }
-                            })()}
-                          </td>
-                          {col === 'StatusNoida' && (
-                            <td className="text-center">
-                              {item.rawStatusNoida  === false ? (
-                                <span className="fs-4 text-success fw-bold">
-                                  <FaCheck
-                                    style={{ cursor: 'pointer', transition: 'transform 0.2s ease' }}
-                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
-                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
-                                    onClick={() => handleActivate(item)} 
-                                  />
-                                </span>
-                              ) : (
-                                <span className="fs-4 text-danger fw-bold">
-                                  <IoClose
-                                    style={{ cursor: 'pointer', transition: 'transform 0.2s ease' }}
-                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
-                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
-                                    onClick={() => handleDeactivate(item)} 
-                                  />
-                                </span>
-                              )}
-                            </td>
-                          )}
-                          {col === 'taskForceMember' && (
-                            <td className="text-center">
-                              {item.rawtaskForceMember === "No" ? (
-                                <span className="fs-4 text-success fw-bold">
-                                  <FaCheck
-                                    style={{ cursor: 'pointer', transition: 'transform 0.2s ease' }}
-                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
-                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
-                                    onClick={() => handleTeamMember(item)} 
-                                  />
-                                </span>
-                              ) : (
-                                <span className="fs-4 text-danger fw-bold">
-                                  <IoClose
-                                    onMouseOver={e => (e.currentTarget.style.transform = 'scale(1.2)')}
-                                    onMouseOut={e => (e.currentTarget.style.transform = 'scale(1)')}
-                                    onClick={() => handleTeamMember(item)} 
-                                  />
-                                </span>
-                              )}
-                            </td>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-             </Table>
-            </div>
-            <div className="d-flex justify-content-end mt-3">
-              <Pagination className="pagination-sm">
-                <Pagination.Prev
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
-                />
-            {(() => {
-              const items = [];
-              const maxPages = 10;
-              let start = Math.max(1, Math.min(page - Math.floor(maxPages / 2), totalPages - maxPages + 1));
-              let end = Math.min(totalPages, start + maxPages - 1);
-      
-              for (let i = start; i <= end; i++) {
-                items.push(
-                  <Pagination.Item
-                    key={i}
-                    active={i === page}
-                    onClick={() => handlePageChange(i)}
-                  >
-                    {i}
-                  </Pagination.Item>
-                );
-              }
-      
-              if (end < totalPages) {
-                items.push(<Pagination.Ellipsis key="end-ellipsis" disabled />);
-                items.push(
-                  <Pagination.Item
-                    key={totalPages}
-                    active={page === totalPages}
-                    onClick={() => handlePageChange(totalPages)}
-                  >
-                    {totalPages}
-                  </Pagination.Item>
-                );
-              }
-      
-              return items;
-              })()}
-                <Pagination.Next
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page === totalPages}
-                />
-              </Pagination>
-            </div>
+
+            <CustomDataGrid
+                  rows={data}
+                  columns={columns}
+                  rowCount={totalCount}
+                  page={page}
+                  onPageChange={(newPage) => setPage(newPage)}
+                  pageSize={pageSize}        
+                  paginationModel={{ page, pageSize }}
+                  paginationMode="server"
+                  onPageSizeChange={(newSize) => setPageSize(newSize)}            
+                  onPaginationModelChange={({ page: newPage, pageSize: newPageSize }) => {
+                    setPage(newPage);
+                    setPageSize(newPageSize);
+                  }}                  
+                rowsPerPageOptions={[10, 15, 25]}
+                loading={loading}
+
+            />
         </div>
         
     )

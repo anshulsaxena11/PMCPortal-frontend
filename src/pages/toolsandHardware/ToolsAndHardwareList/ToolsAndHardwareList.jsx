@@ -150,6 +150,7 @@ const ToolsAndHardware = () => {
         <CustomDataGrid
           rows={data}
           columns={columns}
+           rowCount={totalCount}
           page={page}
           onPageChange={(newPage) => setPage(newPage)}
           pageSize={pageSize}        
