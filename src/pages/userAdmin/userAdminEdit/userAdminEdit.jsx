@@ -7,13 +7,19 @@ import { useForm } from "react-hook-form";
 import Select from "react-select";
 import { Controller } from "react-hook-form";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
+import CircularProgress from '@mui/material/CircularProgress';
+import { TiArrowBack } from "react-icons/ti";
+import EditIcon from '@mui/icons-material/Edit';
+import {updateUserRegistration} from '../../../api/loginApi/loginApi'
+import Swal from 'sweetalert2';
 
 const UserAdminEdit = ({ ID }) => {
     const { id } = useParams();
     const userId = ID || id;
     const navigate = useNavigate();
     const [userDetails, setUserDetails] = useState(null);
-    const { register, handleSubmit, setValue, formState: { errors },control } = useForm();
+    const { register, handleSubmit, setValue, formState: { errors },control,trigger } = useForm();
+    const [loading, setLoading] = useState(false);
     const roles = [
         { value: 'Admin', label: 'Admin' },
         { value: 'SubAdmin', label: 'Sub Admin' },
@@ -33,7 +39,7 @@ const UserAdminEdit = ({ ID }) => {
 
                 const matchedRole = roles.find(role => role.value === item.role);
                 if (matchedRole) {
-                    setValue("role", matchedRole.value); // only value is stored
+                    setValue("role", matchedRole.value); 
                 }
             }
 
@@ -50,25 +56,51 @@ const UserAdminEdit = ({ ID }) => {
         }
 
         const onSubmit = async (formData) => {
-            try{
+            const result = await Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do You Want To change the Role ?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, update it!',
+                cancelButtonText: 'Cancel',
+                customClass: {
+                    popup: 'rounded-alert',
+                },
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
                 const payload = {
-                    id: userId,
-                    role: formData.role
+                role: formData.role,
                 };
-                console.log(payload,"data")
-            }catch(error){
 
+                const response = await updateUserRegistration(userId, payload);
+
+                if (response.statusCode === 401) {
+                Swal.fire('Unauthorized', `${response.message}`, 'error');
+                } else if (response.statusCode === 200) {
+                Swal.fire('Success!', `${response.message}`, 'success');
+                } else {
+                Swal.fire('Failed', 'Unexpected response from server.', 'warning');
+                }
+
+                console.log(response); 
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire('Error', `Request failed: ${error.message}`, 'error');
             }
+        };
 
-        }
-
-        const handleRole =(selected)=>{
-            console.log(selected)
-        }
+        const handleRole = (selected) => {
+            setValue("role", selected?.value); 
+            trigger("role"); 
+        };
 
     return(
         <div className='container-fluid'>
-            <h1 className='text-danger'>Table under working but you can create user</h1>
             <div className='row'>
                  <Box
                     display="flex"
@@ -99,9 +131,9 @@ const UserAdminEdit = ({ ID }) => {
                       User Details
                     </Typography>
                 </Box>
-                <hr className="my-3" style={{  width: '100%',height: '100%', backgroundColor: '#000', opacity: 1 }}></hr>
+                <hr className="mt-3" style={{  width: '100%',height: '100%', backgroundColor: '#000', opacity: 1 }}></hr>
                 <form onSubmit={handleSubmit(onSubmit)}>
-                    <div className="row pt-4">
+                    <div className="row ">
                         <div className="col-sm-6 col-md-6 col-lg-6 pt-4" >
                             <Form.Group className="pt-4">
                                 <Form.Label className="fs-5 fw-bolder">Employee Id<span className="text-danger">*</span></Form.Label>
@@ -140,22 +172,60 @@ const UserAdminEdit = ({ ID }) => {
                                 control={control}
                                 render={({ field }) => (
                                     <Select
-                                    {...field}
-                                    options={roles}
-                                    value={roles.find(option => option.value === field.value)}
-                                    onChange={(selectedOption) => {
-                                        if (userDetails?.role !== 'Admin') {
-                                         handleRole(selectedOption);  
-                                        }
-                                    }}
-                                    isDisabled={userDetails?.role === 'Admin'} // disable if role is Admin
-                                    placeholder="Select Role"
+                                        {...field}
+                                        options={roles}
+                                        value={roles.find(option => option.value === field.value)}
+                                        onChange={(selectedOption) => {handleRole(selectedOption); }}
+                                        placeholder="Select Role"
                                     />
                                 )}
                                 />
                             </Form.Group>
                         </div>
                     </div>
+                        <Box
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            mt: 4, 
+                        }}
+                        >
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={handleBackClick}
+                            startIcon={<TiArrowBack />}
+                            sx={{
+                            paddingX: 3,
+                            paddingY: 1,
+                            fontWeight: 'bold',
+                            borderRadius: 3,
+                            fontSize: '1rem',
+                            letterSpacing: '0.5px',
+                            boxShadow: 3,
+                            }}
+                        >
+                            BACK
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="success"
+                            onClick={handleSubmit(onSubmit)}
+                            disabled={loading}
+                            startIcon={!loading && <EditIcon  />}
+                            sx={{
+                            paddingX: 3,
+                            paddingY: 1,
+                            fontWeight: 'bold',
+                            borderRadius: 3,
+                            fontSize: '1rem',
+                            letterSpacing: '0.5px',
+                            boxShadow: 3,
+                            }}
+                        >
+                            {loading ? <CircularProgress size={24} color="inherit" /> : 'Update'}
+                        </Button>
+                    </Box>
                 </form>
             </div>
         </div>

@@ -17,6 +17,8 @@ import UserLoginForm from "../pages/userAdmin/userLoginForm/UserLoginForm"
 import UserLoginList from "../pages/userAdmin/userAdminList/userAdminList"
 import LoginPanel from "../pages/login/loginPannel/LoginPanel"
 import ForgotPassword from "../pages/login/forgotPasswordPannel/ForgotPanel"
+import ChangePassword from '../pages/login/changePasswordPannel/changePasswordPannel';
+import ResetPasswordVerify from "../pages/login/ResetPasswordVerification/ResetPasswordVerification"
 
 const AppRoutes = () => {
   return (
@@ -37,7 +39,9 @@ const AppRoutes = () => {
       <Route path="/tender-tracking" element={<TenderTracking/>}/>
       <Route path="/tender-list" element={<TenderList />} />
       <Route path="/register-list" element ={<UserLoginList/>}/>
-
+      <Route path="/change-password" element ={<ChangePassword/>}/>
+      <Route path="/reset-password" element={<ResetPasswordVerify/>}/>
+      
     </Routes>
   );
 };

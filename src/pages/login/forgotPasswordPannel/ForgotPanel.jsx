@@ -20,7 +20,6 @@ const ForgotPassword = () => {
         username: data.username,
       }
       const response = await postForgetPassword(payload)
-      console.log(response)
       if (response?.data?.statusCode === 200) {
         Swal.fire('Success', response?.data?.message, 'success');
       }
