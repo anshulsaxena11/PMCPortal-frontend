@@ -87,11 +87,17 @@ const Sidebar = ({ onToggle }) => {
     //subadmin
     { role: "SubAdmin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
-    { role: "SubAdmin", label: "Vulnerability", icon: <BiSolidReport />, path: "/report" },
+    { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "SubAdmin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "SubAdmin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
-    { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "SubAdmin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
+    //user
+    { role: "User", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
+    { role: "User", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
+    { role: "User", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
+    { role: "User", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
+    { role: "User", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
+    { role: "User", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
   ];
 
   return (
