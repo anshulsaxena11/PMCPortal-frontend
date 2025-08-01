@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Box, Button, Container, TextField, Typography, InputAdornment, IconButton, Paper} from '@mui/material'; 
+import {Box, Button, Container, TextField, Typography, InputAdornment, IconButton, Paper, CircularProgress } from '@mui/material'; 
 import Swal from 'sweetalert2';
 import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -13,6 +13,7 @@ import NProgress from 'nprogress'
 const ChangePassword = () => {
     const [emailExists,setEmailExists] = useState(false)
     const [checkEmails,setCheckMail]=useState(true)
+    const [loading, setLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false)
     const navigate = useNavigate();
     const schema = emailExists ? changePasswordValidationSchema : checkEmailValidationSchema;
@@ -47,6 +48,7 @@ const ChangePassword = () => {
     };
 
     const handlePasswordReset = async (data)=>{
+      setLoading(true);
       try{
         if (data.password !== data.confirmPassword) {
           setError('password', { type: 'manual', message: 'Passwords must match' });
@@ -60,7 +62,9 @@ const ChangePassword = () => {
           };
           const response = await paswordChangeRequest(payload)
           if(response?.statusCode === 200){
-             Swal.fire('Success', response?.message, 'success');
+             Swal.fire('Success', response?.message, 'success').then(() => {
+              navigate('/login');
+            });;
           }
         }
       } catch(error){
@@ -77,7 +81,9 @@ const ChangePassword = () => {
             text: error?.response?.data?.message || 'Something went wrong',
         });
         }
-      }
+      } finally {
+      setLoading(false);
+    }
     }
   return (
     <Box
@@ -184,8 +190,12 @@ const ChangePassword = () => {
                   </>
               )}
               {emailExists && (
-                <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-                  Change Password
+                <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}  disabled={loading}>
+                  {loading ? (
+                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                  ) : (
+                    'Change Password'
+                  )}
                 </Button>
               )}
                 <Typography

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {Box, Button, Container, TextField, Typography, InputAdornment, IconButton, Paper} from '@mui/material'; 
+import {Box, Button, Container, TextField, Typography, InputAdornment, IconButton, Paper,CircularProgress} from '@mui/material'; 
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useForm } from "react-hook-form";
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -17,8 +17,10 @@ const LoginPanel = () =>{
             resolver: yupResolver(loginValidationSchema) 
         });
     const togglePassword = () => setShowPassword((prev) => !prev);
+    const [loading, setLoading] = useState(false);
 
     const onSubmit = async(data)=>{
+        setLoading(true);
         try{
             const payload = {
                 username: data.username,
@@ -43,6 +45,8 @@ const LoginPanel = () =>{
         }
         }catch(error){
             Swal.fire('Error', error?.response?.data?.message || 'Login failed', 'error');
+        }finally {
+             setLoading(false);
         }
     }
 
@@ -146,8 +150,13 @@ const LoginPanel = () =>{
                             color="primary"
                             type="submit"
                             sx={{ mt: 3, py: 1.5, fontWeight: 600 }}
+                            disabled={loading}
                         >
-                            Login
+                             {loading ? (
+                                <CircularProgress size={24} sx={{ color: 'white' }} />
+                                ) : (
+                                'Login'
+                                )}
                         </Button>
                         <Box
                             sx={{
