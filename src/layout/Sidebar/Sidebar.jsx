@@ -74,7 +74,7 @@ const Sidebar = ({ onToggle }) => {
   const menuItems = [
     { role: "Admin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
-    { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
+    // { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Vulnerability", icon: <BiSolidReport />, path: "/report" },
     // { role: "Admin", label: "Generate File", icon: <TbReportAnalytics />, path: "/ReportPdfGenerator" },
     { role: "Admin", label: "VAPT Team Members", icon: <BsMicrosoftTeams />, path: "/admin-Emp" },
@@ -87,14 +87,14 @@ const Sidebar = ({ onToggle }) => {
     //subadmin
     { role: "SubAdmin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
-    { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
+    // { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "SubAdmin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "SubAdmin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "SubAdmin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
     //user
     { role: "User", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "User", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
-    { role: "User", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
+    // { role: "User", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "User", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "User", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "User", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },

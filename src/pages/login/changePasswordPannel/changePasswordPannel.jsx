@@ -142,7 +142,7 @@ const ChangePassword = () => {
               />
               {checkEmails && (
                 <Button type="submit" fullWidth variant="contained" sx={{ mt: 2 }}>
-                  Check E-mail
+                  Verify User Name
                 </Button>
               )}
                 {emailExists && (
