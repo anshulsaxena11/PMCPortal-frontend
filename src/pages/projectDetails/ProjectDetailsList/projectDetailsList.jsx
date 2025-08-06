@@ -28,10 +28,10 @@ const ProjectDetailsList = () => {
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
 
-   useEffect(() => {
-      const role = localStorage.getItem("userRole");
-      setUserRole(role);;
-    }, []);
+  useEffect(() => {
+    const role = localStorage.getItem("userRole");
+    setUserRole(role);
+  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -42,15 +42,22 @@ const ProjectDetailsList = () => {
         search: searchQuery.trim()
       });
 
-      const transformedData = response.data.map((item, index) => ({
-        id: item._id,
-        serial: page * pageSize + index + 1,
-        ...item,
-        projectType:
-          Array.isArray(item.projectType) && item.projectType.length > 0
-            ? item.projectType[0]?.ProjectTypeName || 'N/A'
-            : item.projectType || 'N/A'
-      }));
+      const transformedData = response.data.map((item, index) => {
+        const amountStatus = Array.isArray(item.phases) && item.phases.length > 0
+          ? item.phases[0].amountStatus || 'N/A'
+          : 'N/A';
+
+        return {
+          id: item._id,
+          serial: page * pageSize + index + 1,
+          ...item,
+          amountStatus,
+          projectType:
+            Array.isArray(item.projectType) && item.projectType.length > 0
+              ? item.projectType[0]?.ProjectTypeName || 'N/A'
+              : item.projectType || 'N/A',
+        };
+      });
 
       setData(transformedData);
       setTotalCount(response.total);
@@ -104,19 +111,22 @@ const ProjectDetailsList = () => {
     {
       field: 'serial',
       headerName: 'S. No.',
-      width: 80,
+      width: 70,
       sortable: false,
       filterable: false
     },
-    { field: 'orginisationName', headerName: 'Organisation Name', flex: 1.5},
-      { field: 'type', headerName: 'Org Type', flex: 1 },
-    { field: 'orderType', headerName: 'Order Type', flex: 1 },    
-    { field: 'projectName', headerName: 'Project Name', flex: 1.5 },
-    { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
+    { field: 'orginisationName', headerName: 'Organisation Name', flex: 1.5, minWidth: 200 },
+    { field: 'type', headerName: 'Org Type', flex: 1, minWidth: 100 },
+    { field: 'orderType', headerName: 'Order Type', flex: 1, minWidth: 110 },    
+    { field: 'projectName', headerName: 'Project Name', flex: 1.5, minWidth: 180 },
+    { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1, minWidth: 120 },
+    { field: 'amountStatus', headerName: 'Status', flex: 1, minWidth: 110 },
     {
       field: 'projectValue',
       headerName: 'Project Value (INR)',
       flex: 1,
+      align: 'right',
+      minWidth: 120,
       renderCell: (params) => {
         const val = params?.row?.projectValue;
         return val ? Number(val).toLocaleString('en-IN') : 'N/A';
@@ -126,6 +136,7 @@ const ProjectDetailsList = () => {
       field: 'actions',
       headerName: 'Actions',
       flex: 1,
+      minWidth: 120,
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
@@ -152,29 +163,27 @@ const ProjectDetailsList = () => {
   ];
 
   return (
-  <Box sx={{ p: 0, display: 'flex', flexDirection: 'column', flex: 1 }}>
-    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-      <Typography variant="h5">Project Details</Typography>
-      {(userRole !== 'User') && (
-        <Button variant="contained" onClick={() => navigate('/projectDetails')}>
-          Add New
-        </Button>
-      )}
-    </Stack>
+    <Box sx={{ width: '100%' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h5">Project Details</Typography>
+        {(userRole !== 'User') && (
+          <Button variant="contained" onClick={() => navigate('/projectDetails')}>
+            Add New
+          </Button>
+        )}
+      </Stack>
 
-    <TextField
-      fullWidth
-      label="Search"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      variant="outlined"
-      margin="normal"
-      size="small"
-    />
-
-    {/* ✅ Scroll wrapper with minimum width */}
-    <Box sx={{ width: '100%', overflowX: 'auto' }}>
-      <Box sx={{ minWidth: '1000px' }}> {/* 👈 Ensure columns go beyond screen */}
+      <TextField
+        fullWidth
+        label="Search"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        variant="outlined"
+        margin="normal"
+        size="small"
+      />
+      
+      <Box sx={{ width: '100%', overflowX: 'auto' }}>
         <CustomDataGrid
           key={pageSize}
           rows={data}
@@ -187,14 +196,15 @@ const ProjectDetailsList = () => {
           }}
           rowCount={totalCount}
           paginationMode="server"
-          autoHeight={false} // ⛔ Don't use autoHeight
+          autoHeight
+          sx={{
+            width: 'max-content',
+            minWidth: '100%',
+          }}
         />
       </Box>
     </Box>
-  </Box>
-);
-
-
-};
+  );
+}
 
 export default ProjectDetailsList;
