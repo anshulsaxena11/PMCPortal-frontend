@@ -108,12 +108,20 @@ const ProjectDetailsList = () => {
       sortable: false,
       filterable: false
     },
-    { field: 'workOrderNo', headerName: 'Work Order No', flex: 1 },
-    { field: 'orderType', headerName: 'Order Type', flex: 1 },
-    { field: 'type', headerName: 'Type', flex: 1 },
     { field: 'orginisationName', headerName: 'Organisation Name', flex: 1.5},
+      { field: 'type', headerName: 'Org Type', flex: 1 },
+    { field: 'orderType', headerName: 'Order Type', flex: 1 },    
     { field: 'projectName', headerName: 'Project Name', flex: 1.5 },
-    { field: 'projectManager', headerName: 'Project Manager', flex: 1.2 },
+    { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
+    {
+      field: 'projectValue',
+      headerName: 'Project Value (INR)',
+      flex: 1,
+      renderCell: (params) => {
+        const val = params?.row?.projectValue;
+        return val ? Number(val).toLocaleString('en-IN') : 'N/A';
+      }
+    },
     {
       field: 'actions',
       headerName: 'Actions',
@@ -144,44 +152,49 @@ const ProjectDetailsList = () => {
   ];
 
   return (
-    <Box sx={{ p: 0 }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Project Details</Typography>
-        {(userRole !== 'User') && (
-          <Button variant="contained" onClick={() => navigate('/projectDetails')}>
-            Add New
-          </Button>
-        )}
-      </Stack>
+  <Box sx={{ p: 0, display: 'flex', flexDirection: 'column', flex: 1 }}>
+    <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+      <Typography variant="h5">Project Details</Typography>
+      {(userRole !== 'User') && (
+        <Button variant="contained" onClick={() => navigate('/projectDetails')}>
+          Add New
+        </Button>
+      )}
+    </Stack>
 
-      <TextField
-        fullWidth
-        label="Search"
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        variant="outlined"
-        margin="normal"
-         size="small"
-      />
+    <TextField
+      fullWidth
+      label="Search"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      variant="outlined"
+      margin="normal"
+      size="small"
+    />
 
-      <CustomDataGrid
-        key={pageSize}
-        rows={data}
-        columns={columns}
-        loading={loading}
-        paginationModel={{ page, pageSize }}
-        onPaginationModelChange={({ page, pageSize }) => {
-          setPage(page);
-          setPageSize(pageSize);
-        }}
-        rowCount={totalCount}
-        paginationMode="server"
-      />
-
-
-
+    {/* ✅ Scroll wrapper with minimum width */}
+    <Box sx={{ width: '100%', overflowX: 'auto' }}>
+      <Box sx={{ minWidth: '1000px' }}> {/* 👈 Ensure columns go beyond screen */}
+        <CustomDataGrid
+          key={pageSize}
+          rows={data}
+          columns={columns}
+          loading={loading}
+          paginationModel={{ page, pageSize }}
+          onPaginationModelChange={({ page, pageSize }) => {
+            setPage(page);
+            setPageSize(pageSize);
+          }}
+          rowCount={totalCount}
+          paginationMode="server"
+          autoHeight={false} // ⛔ Don't use autoHeight
+        />
+      </Box>
     </Box>
-  );
+  </Box>
+);
+
+
 };
 
 export default ProjectDetailsList;
