@@ -5,6 +5,7 @@ import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 import Swal from 'sweetalert2';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { Tooltip } from '@mui/material';
 import { Visibility, Edit, Delete } from '@mui/icons-material';
 
 
@@ -140,7 +141,29 @@ const TenderDetailsList = () => {
     { field: 'organizationName', headerName: 'Organization', flex: 1 },
     { field: 'state', headerName: 'State', flex: 1 },
     { field: 'taskForce', headerName: 'Task Force Member', flex: 1 },
-    { field: 'valueINR', headerName: 'Value (INR)', flex: 1 },
+
+    {
+          field: 'valueINR',
+          headerName: 'Value (Cr INR)',
+          flex: 1,
+          align: 'right',
+          renderCell: (params) => {
+            const val = params?.row?.valueINR;
+            if (!val || isNaN(val)) return 'N/A';
+            const croreValue = Number(val) / 10000000;
+            const formattedCr = croreValue.toLocaleString('en-IN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+            const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
+            return (
+              <Tooltip title={fullValue} INR>
+                <span>{formattedCr} Cr</span>
+              </Tooltip>
+            );
+          }
+        },
+   // { field: 'valueINR', headerName: 'Value (INR)', flex: 1 },
     { field: 'status', headerName: 'Status', flex: 1 },
     { field: 'lastDate', headerName: 'Last Date', flex: 1 },
     {

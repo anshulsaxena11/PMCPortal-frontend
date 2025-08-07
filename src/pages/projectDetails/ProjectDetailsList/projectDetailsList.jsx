@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { DataGrid } from '@mui/x-data-grid';
+import { Tooltip } from '@mui/material';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 
 import {
@@ -123,13 +124,24 @@ const ProjectDetailsList = () => {
     { field: 'amountStatus', headerName: 'Status', flex: 1, minWidth: 110 },
     {
       field: 'projectValue',
-      headerName: 'Project Value (INR)',
+      headerName: 'Project Value (Cr INR)',
       flex: 1,
       align: 'right',
       minWidth: 120,
       renderCell: (params) => {
         const val = params?.row?.projectValue;
-        return val ? Number(val).toLocaleString('en-IN') : 'N/A';
+        if (!val || isNaN(val)) return 'N/A';
+        const croreValue = Number(val) / 10000000;
+        const formattedCr = croreValue.toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
+        return (
+          <Tooltip title={fullValue} INR>
+            <span>{formattedCr} Cr</span>
+          </Tooltip>
+        );
       }
     },
     {
