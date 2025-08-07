@@ -7,6 +7,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import { DataGrid } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
+import { Tooltip as MuiTooltip  } from '@mui/material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
@@ -152,14 +153,27 @@ function groupByFinancialYear(data) {
     },
     { field: 'directrate', headerName: 'Directorate', flex: 1 },
     {
-      field: 'projectValue',
-      headerName: 'Value (INR)',
-      flex: 1,
-      renderCell: (params) => {
-        const val = params?.row?.projectValue;
-        return val ? Number(val).toLocaleString('en-IN') : 'N/A';
-      }
-    },
+          field: 'projectValue',
+          headerName: 'Project Value (Cr INR)',
+          flex: 1,
+          align: 'right',
+          minWidth: 120,
+          renderCell: (params) => {
+            const val = params?.row?.projectValue;
+            if (!val || isNaN(val)) return 'N/A';
+            const croreValue = Number(val) / 10000000;
+            const formattedCr = croreValue.toLocaleString('en-IN', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            });
+            const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
+            return (
+              <MuiTooltip title={fullValue} INR>
+                <span>{formattedCr} Cr</span>
+              </MuiTooltip>
+            );
+          }
+        },  
     { field: 'primaryPersonName', headerName: 'Person Name', flex: 1 },
   ];
 
@@ -174,14 +188,27 @@ function groupByFinancialYear(data) {
     { field: 'state', headerName: 'State', flex: 1 },
     { field: 'taskForce', headerName: 'Task Force', flex: 1 },
     {
-      field: 'valueINR',
-      headerName: 'Value (INR)',
-      flex: 1,
-      renderCell: (params) => {
-        const val = params?.row?.valueINR;
-        return val ? Number(val).toLocaleString('en-IN') : 'N/A';
-      }
-    },
+              field: 'valueINR',
+              headerName: 'Value (Cr INR)',
+              align: 'right',
+              minWidth: 120,
+              renderCell: (params) => {
+                const val = params?.row?.valueINR;
+                if (!val || isNaN(val)) return 'N/A';
+                const croreValue = Number(val) / 10000000;
+                const formattedCr = croreValue.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                });
+                const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
+                return (
+                  <MuiTooltip  title={fullValue} INR>
+                    <span>{formattedCr} Cr</span>
+                  </MuiTooltip >
+                );
+              }
+            },
+    
     { field: 'status', headerName: 'Status', flex: 1 },
   ];
 
