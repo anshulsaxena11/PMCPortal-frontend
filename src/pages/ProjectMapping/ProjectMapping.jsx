@@ -9,6 +9,7 @@ import {
 import { getProjectNameList } from '../../api/ProjectDetailsAPI/projectDetailsApi';
 import { ToastContainer, toast } from 'react-toastify';
 import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
+import Heading from '../../components/Heading/heading';
 import Select from 'react-select';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -177,7 +178,8 @@ const ProjectMapping = () => {
   return (
     <div className="container mt-4">
       <ToastContainer position="top-center" autoClose={5000} />
-      <h4 className="mb-3">Project Mapping</h4>
+       <Heading title="Project Mapping" />
+       <hr></hr>
 
       {/* Filter Section */}
       <div className="row g-2 mb-3">

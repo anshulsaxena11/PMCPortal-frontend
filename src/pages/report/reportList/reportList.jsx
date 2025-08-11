@@ -10,6 +10,7 @@ import {getProjectTypeList} from '../../../api/projectTypeListApi/projectTypeLis
 import dayjs from 'dayjs'
 import withReactContent from 'sweetalert2-react-content';
 import Swal from 'sweetalert2'
+import Heading from '../../../components/Heading/heading';
 
 const ReportList = () => {
   const [data, setData] = useState([]);

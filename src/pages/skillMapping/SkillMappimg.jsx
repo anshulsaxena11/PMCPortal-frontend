@@ -14,6 +14,7 @@ import {
 } from '../../api/syncEmp/syncEmp';
 import { getProjectTypeList } from '../../api/projectTypeListApi/projectTypeListApi';
 import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
+import Heading from '../../components/Heading/heading';
 
 const SkillMapping = () => {
   const [selectedType, setSelectedType] = useState(null);
@@ -214,11 +215,14 @@ const SkillMapping = () => {
   return (
     <div className="skill-Mapping">
       <ToastContainer position="top-center" autoClose={5000} />
-      <div className="row mb-3 align-items-end">
-        <div className="col-sm-4">
-          <h3>Skill Mapping</h3>
+       <div className="col-sm-4">
+        
+          <Heading title="Skill Mapping" />
         </div>
-        <div className="col-sm-2">
+        <hr></hr>
+      <div className="row mb-3 align-items-end">
+       
+        <div className="col-sm-3">
           <Select
             options={dirOptions}
             value={selecteddir}
@@ -245,7 +249,7 @@ const SkillMapping = () => {
             isClearable
           />
         </div>
-        <div className="col-sm-2">
+        <div className="col-sm-5">
           <InputGroup>
             <FormControl
               placeholder="Search..."
