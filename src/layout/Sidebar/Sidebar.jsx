@@ -239,7 +239,7 @@ const Sidebar = ({ onToggle }) => {
             ))}
           <Divider sx={{ bgcolor: "gray", my: 1 }} />
           <Tooltip title={!isExpanded ? "Logout" : ""} placement="right">
-            <ListItem button onClick={logout} sx={{ px: 2 }}>
+              <ListItem button onClick={logout} sx={{ px: 2 ,cursor: !isExpanded ? 'default' : 'pointer', '&:hover': {backgroundColor: !isExpanded? 'transparent': 'rgba(255, 255, 255, 0.2)',}}}>
               <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isExpanded ? 2 : "auto", justifyContent: "center" }}>
                 <FaSignOutAlt />
               </ListItemIcon>
