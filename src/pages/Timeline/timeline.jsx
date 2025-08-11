@@ -8,6 +8,7 @@ import { Form, Button, Table } from "react-bootstrap";
 import { srpiEmpTypeListActive } from "../../api/syncEmp/syncEmp";
 import { IoIosArrowDropdownCircle, IoIosArrowDropupCircle } from "react-icons/io";
 import { ToastContainer, toast } from 'react-toastify';
+import Heading from '../../components/Heading/heading';
 import { FaRegCheckCircle } from "react-icons/fa";
 import { Timeline, TimelineEvent } from '@mailtop/horizontal-timeline';
 import './timeline.css'
@@ -319,7 +320,7 @@ const Timelines = () => {
             </Popup>
 
             <div className="container">
-                <h1>Project Management</h1>
+                <Heading title="Project Management"/>
                 <hr />
                 <Select
                     options={ProjectName}

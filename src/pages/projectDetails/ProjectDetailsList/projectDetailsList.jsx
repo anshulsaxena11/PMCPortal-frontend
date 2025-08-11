@@ -4,6 +4,8 @@ import Swal from 'sweetalert2';
 import { DataGrid } from '@mui/x-data-grid';
 import { Tooltip } from '@mui/material';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+import Heading from '../../../components/Heading/heading';
+import ArrowBackIcon from "@mui/icons-material/ArrowBack"
 
 import {
   Box,
@@ -176,44 +178,44 @@ const ProjectDetailsList = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Project Details</Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Heading title="Project List" />
+
         {(userRole !== 'User') && (
           <Button variant="contained" onClick={() => navigate('/projectDetails')}>
             Add New
           </Button>
         )}
       </Stack>
-
+<hr></hr>
       <TextField
         fullWidth
-        label="Search"
+        label="Search here..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         variant="outlined"
         margin="normal"
         size="small"
+        sx={{
+          backgroundColor: 'white',
+        }}
       />
       
       <Box sx={{ width: '100%', overflowX: 'auto' }}>
         <CustomDataGrid
-          key={pageSize}
-          rows={data}
-          columns={columns}
-          loading={loading}
-          paginationModel={{ page, pageSize }}
-          onPaginationModelChange={({ page, pageSize }) => {
-            setPage(page);
-            setPageSize(pageSize);
-          }}
-          rowCount={totalCount}
-          paginationMode="server"
-          autoHeight
-          sx={{
-            width: 'max-content',
-            minWidth: '100%',
-          }}
-        />
+  key={pageSize}
+  rows={data}
+  columns={columns}
+  loading={loading}
+  paginationModel={{ page, pageSize }}
+  onPaginationModelChange={({ page, pageSize }) => {
+    setPage(page);
+    setPageSize(pageSize);
+  }}
+  rowCount={totalCount}
+  paginationMode="server"
+  autoHeight
+/>
       </Box>
     </Box>
   );

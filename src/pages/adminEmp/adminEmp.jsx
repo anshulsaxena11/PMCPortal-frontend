@@ -8,6 +8,7 @@ import { CircularProgress, TextField, Typography, IconButton, Stack } from '@mui
 import 'react-toastify/dist/ReactToastify.css';
 import {postTaskManagerUpdate} from '../../api/TaskMember/taskMemberApi';
 import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
+import Heading from '../../components/Heading/heading';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
                                                                                 
@@ -345,11 +346,27 @@ const columns = [
     return(        
         <div className='admin-portal'>
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
+            <div className='row pb-3'>
+              <div className='col-sm-6 col-lg-6 col-md-6'>
+                   <Heading title="Employee List" />
+                </div>
+              <div className='col-sm-3 col-md-3 col-lg-3'></div>
+              
+               <div className="col-sm-3 col-md-3 col-lg-3 d-flex justify-content-end">
+                <Button variant="primary" className="btn btn-Primary" onClick={handleSync} style={{ width: "60%", height: "45px" }} disabled={loader}>
+                  {loader ? (
+                      <Spinner animation="border" size="sm" />
+                    ) : (
+                      <>
+                        Fetch HRMS
+                      </>
+                    )}
+                </Button>
+               </div>
+            </div>
+            <hr></hr>
             <div className='container-fluid'>
               <div className='row mb-3 align-items-end'>
-                <div className='col-sm-2 col-lg-2 col-md-2'>
-                   <h3 className="mb-0">Employees</h3>
-                </div>
                 <div className='col-sm-2 col-md-2 col-lg-2'>
                   <Select
                     options={dirOptions}
@@ -386,7 +403,7 @@ const columns = [
                       isClearable
                     />
                 </div>
-                 <div className='col-sm-2 col-md-2 col-lg-2'>
+                 <div className='col-sm-4 col-md-4 col-lg-4'>
                    <InputGroup>
                     <FormControl
                       placeholder="Search..."
@@ -397,21 +414,7 @@ const columns = [
                  </div>
               </div>
             </div>
-            <hr></hr>
-            <div className='row pb-3'>
-              <div className='col-sm-10 col-md-10 col-lg-10'></div>
-               <div className="col-sm-2 col-md-2 col-lg-2 d-flex justify-content-end">
-                <Button variant="primary" className="btn btn-Primary" onClick={handleSync} disabled={loader}>
-                  {loader ? (
-                      <Spinner animation="border" size="sm" />
-                    ) : (
-                      <>
-                        Fetch HRMS
-                      </>
-                    )}
-                </Button>
-               </div>
-            </div>
+            
 
             <CustomDataGrid
                   rows={data}
