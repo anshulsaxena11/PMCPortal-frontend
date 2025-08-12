@@ -25,9 +25,14 @@ const Timelines = () => {
     const [Phase, setPhase] = useState([ 
         { projectStartDate: "", testCompletedEndDate: "", reportSubmissionEndDate: "", comments: "" }
     ]);
+    const [invoiceGenerate, setInvoiceGenerate] = useState([
+        { invoiceDate:"", invoiceValue:"", amountRaised:""}
+    ])
     const [resourceMapping, setResourceMapping] = useState([]); 
 
     const [expandedPhases, setExpandedPhases] = useState({});
+    const [expandedInvoceGenerated, setExpandedInvoceGenerated] = useState({});
+
     const statusOptions = [
         {value:'Work Order Recived',label:'Work Order Recived'},
         {value:'Ongoing',label:'Ongoing'},
@@ -72,13 +77,11 @@ const Timelines = () => {
                 const response = await getProjectDetailsTimelineById(id);
                 const fetchedData = response?.data; 
                 const fetchPhase = fetchedData?.projectPhase; 
+                console.log(fetchPhase)
                 if (fetchedData) {
                     const formattedStartDate = fetchedData.startDate?.split("T")[0] || "";
                     const formattedEndDate = fetchedData.endDate?.split("T")[0] || "";
                     const formatedcreatedAt = fetchedData.createdAt?.split("T")[0] || "";
-                    const amountBuild = fetchPhase?.amountBuild || "";
-					const amountRecived = fetchPhase?.amountRecived || "";
-
                   reset({
 					  ...fetchedData,
 				  startDate: formattedStartDate,
@@ -86,8 +89,6 @@ const Timelines = () => {
 				  projectName: fetchedData.projectName,
 				  orginisationName: fetchedData.orginisationName,
 				  projectValue: fetchedData.projectValue,
-				  amountBuild: amountBuild,
-				  amountRecived: amountRecived,
 				});
 				
                 if (fetchPhase?.amountStatus && statusOptions.length > 0) {
@@ -96,25 +97,40 @@ const Timelines = () => {
                     );
                     setSelectStatus(matchedStatus || null);
                 }
-                    setProjectCreatedAt(formatedcreatedAt);
-                    setResourceMapping(fetchedData.resourseMapping || []);
-                    if (!fetchPhase ||!Array.isArray(fetchPhase.phase)||fetchPhase.phase.length === 0 ){
-                        setPhase([]);
-                    } else if (fetchPhase.phase && Array.isArray(fetchPhase.phase)) {
-                        const formattedPhases = fetchPhase.phase.map((p, index) => ({
-                            noOfPhases: `Phase ${index + 1}`,
-                            projectStartDate: p.projectStartDate?.split('T')[0] || '',
-                            testCompletedEndDate: p.testCompletedEndDate?.split('T')[0] || '',
-                            reportSubmissionEndDate: p.reportSubmissionEndDate?.split('T')[0] || '',
-                            comments: p.comments || '',
-                        }));
+                setProjectCreatedAt(formatedcreatedAt);
+                setResourceMapping(fetchedData.resourseMapping || []);
+                if (!fetchPhase ||!Array.isArray(fetchPhase.phase)||fetchPhase.phase.length === 0 ){
+                    setPhase([]);
+                } else if (fetchPhase.phase && Array.isArray(fetchPhase.phase)) {
+                    const formattedPhases = fetchPhase.phase.map((p, index) => ({
+                        noOfPhases: `Phase ${index + 1}`,
+                        projectStartDate: p.projectStartDate?.split('T')[0] || '',
+                        testCompletedEndDate: p.testCompletedEndDate?.split('T')[0] || '',
+                        reportSubmissionEndDate: p.reportSubmissionEndDate?.split('T')[0] || '',
+                        comments: p.comments || '',
+                    }));
                         setPhase(formattedPhases);
-
                         const expandedInit = {};
                         formattedPhases.forEach((_, idx) => {
-                            expandedInit[idx] = true;
+                            expandedInit[idx] = false;
                         });
                         setExpandedPhases(expandedInit);
+                    }
+                     if (!fetchPhase ||!Array.isArray(fetchPhase.invoiceGenerated)||fetchPhase.invoiceGenerated.length === 0 ){
+                        setInvoiceGenerate([]);
+                    } else if (fetchPhase.invoiceGenerated && Array.isArray(fetchPhase.invoiceGenerated)) {
+                        const formattedInvoice = fetchPhase.invoiceGenerated.map((p, index) => ({
+                            noOfInvoice: `Invoice ${index + 1}`,
+                            invoiceDate: p.invoiceDate?.split('T')[0] || '',
+                            invoiceValue: p.invoiceValue || '',
+                            amountRaised: p.amountRaised || '',
+                        }));
+                        setInvoiceGenerate(formattedInvoice)
+                        const expandedInitInvoice = {};
+                        formattedInvoice.forEach((_, idx) => {
+                            expandedInitInvoice[idx] = false;
+                        });
+                        setExpandedInvoceGenerated(expandedInitInvoice);
                     }
                     setOneStatus(true)
                 }
@@ -165,6 +181,20 @@ const Timelines = () => {
     const handleShowModal = () => setShowModal(true);
     const handleCloseModal = () => setShowModal(false);
 
+     const handleAddInvoiceStep = () => {
+        const newIndex = invoiceGenerate.length + 1;
+        setInvoiceGenerate([
+            ...invoiceGenerate,
+            {
+                noOfInvoice: `Invoice ${newIndex}`,
+                invoiceDate: "",
+                invoiceValue: "",
+                amountRaised: "",
+            },
+        ]);
+        setExpandedInvoceGenerated(prev => ({ ...prev, [invoiceGenerate.length]: true }));
+    };
+
     const handleAddStep = () => {
         const newIndex = Phase.length + 1;
         setPhase([
@@ -192,10 +222,34 @@ const Timelines = () => {
         setExpandedPhases(prev => {
             const newExpanded = {};
             reindexedSteps.forEach((_, idx) => {
-                newExpanded[idx] = prev[idx >= index ? idx + 1 : idx] ?? true; 
+                newExpanded[idx] = prev[idx >= index ? idx + 1 : idx] ?? false; 
             });
             return newExpanded;
         });
+    };
+
+    const handleRemoveInvoiceStep = (index) => {
+        const updatedSteps = invoiceGenerate.filter((_, i) => i !== index);
+        const reindexedSteps = updatedSteps.map((step, idx) => ({
+            ...step,
+            noOfInvoice: `Invoice ${idx + 1}`,
+        }));
+        setInvoiceGenerate(reindexedSteps);
+
+
+        setExpandedInvoceGenerated(prev => {
+            const newExpanded = {};
+            reindexedSteps.forEach((_, idx) => {
+                newExpanded[idx] = prev[idx >= index ? idx + 1 : idx] ?? false; 
+            });
+            return newExpanded;
+        });
+    };
+
+    const handleChangeInvoiceInput = (index, field, value) => {
+        const updatedPhases = [...invoiceGenerate];
+        updatedPhases[index][field] = value;
+        setInvoiceGenerate(updatedPhases);
     };
 
     const handleChangePhaseInput = (index, field, value) => {
@@ -204,12 +258,22 @@ const Timelines = () => {
         setPhase(updatedPhases);
     };
 
+   const toggleExpandInvoice = (index) => {
+        setExpandedInvoceGenerated((prev) => {
+            if (prev[index]) {
+                return {};
+            }
+            return { [index]: true };
+        });
+    };
 
     const toggleExpandPhase = (index) => {
-        setExpandedPhases(prev => ({
-            ...prev,
-            [index]: !prev[index],
-        }));
+        setExpandedPhases((prev) => {
+            if (prev[index]) {
+                return {};
+            }
+            return { [index]: true };
+        })
     };
 
     const handleSubmitAllPhases = async () => {
@@ -218,9 +282,11 @@ const Timelines = () => {
             return;
         }
         const payload = {
-            amountBuild:formValues.amountBuild,
-            amountRecived:formValues.amountRecived,
             amountStatus:valueStatus,
+            invoiceGenerated: invoiceGenerate.map((item,index)=>({
+                ...item,
+                noOfInvoice: `Invoice ${index + 1}`,
+            })),
             phase: Phase.map((item, index) => ({
                 ...item,
                 noOfPhases: `Phase ${index + 1}`,
@@ -246,6 +312,18 @@ const Timelines = () => {
                     expandedInit[idx] = true;
                 });
                 setExpandedPhases(expandedInit);
+                const formattedInvoice = response.data.invoiceGenerated.map((p, i) => ({
+                    noOfInvoice: `Invoice ${i + 1}`,
+                    invoiceDate: p.invoiceDate?.split('T')[0] || '',
+                    invoiceValue: p.invoiceValue || '',
+                    amountRaised: p.amountRaised || '',
+                }));
+                setInvoiceGenerate(formattedInvoice)
+                const expandedInitInvoice = {};
+                    formattedInvoice.forEach((_, idx) => {
+                    expandedInitInvoice[idx] = true;
+                    });
+                setExpandedInvoceGenerated(expandedInitInvoice)
                 setOneStatus(false)
             } else {
                 toast.error("Failed to submit phases.");
@@ -267,25 +345,14 @@ const Timelines = () => {
                 // !phase.comments
         );
     };
-    const timelineEvents = [
-        { label: 'Work Order Recived', date: projectCreatedAt || '',subTitle:projectCreatedAt },
-        ...Phase.flatMap((phase, index) => [
-            { label: `Phase ${index + 1} Start`, date: phase.projectStartDate || '' },
-            { label: `Phase ${index + 1} Test Completed`, date: phase.testCompletedEndDate || '' },
-            { label: `Phase ${index + 1} Report Submitted`, date: phase.reportSubmissionEndDate || '' }
-        ])
-        ].filter(event => event.date);
-        console.log(timelineEvents)
-
         const handleStatusChange = (e) =>{
             const selected= e?.label
             setSelectStatus(e)
             setValueStaus(selected)
         }
-
     return (
         <div>
-            <Popup show={showModal} handleClose={handleCloseModal} title="Resource Allotment" showFooter={false}>
+            <Popup show={showModal} handleClose={handleCloseModal} title="Resource Allotment" showFooter={false} style={{ position: 'fixed',top: '50%',left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999}}>
                 <div>
                     {resourceMapping.length > 0 ? (
                         <div style={{ maxHeight: '400px', overflowY: 'auto',maxWidth:'1000px'}}>
@@ -364,21 +431,6 @@ const Timelines = () => {
                                     <Form.Control type="text" disabled readOnly {...register("projectValue")} />
                                 </Form.Group>
                             </div>
-                            
-                        </div>
-                        <div className='row pt-3'>
-                            <div className="col-md-3">
-                                <Form.Group>
-                                    <Form.Label>Invoice Raise (GST)</Form.Label>
-                                    <Form.Control type="text"  {...register("amountBuild")} />
-                                </Form.Group>
-                            </div>
-                            <div className="col-md-3">
-                                <Form.Group>
-                                    <Form.Label>Amount Recived (GST)</Form.Label>
-                                    <Form.Control type="text"  {...register("amountRecived")} />
-                                </Form.Group>
-                            </div>
                             <div className="col-md-3">
                                 <Form.Group>
                                     <Form.Label>Status</Form.Label>
@@ -392,33 +444,127 @@ const Timelines = () => {
                                 </Form.Group>
                             </div>
                         </div>
-
-                        {/* <div className="mt-5">
-                            <h4>Timeline Overview</h4>
-                            {timelineEvents.length > 0 ? (
-                                <Timeline>
-                                {timelineEvents.map((event, idx) => (
-                                    <TimelineEvent 
-                                        key={idx} 
-                                        title={event.label} 
-                                        color='#87a2c7'
-                                        icon={FaRegCheckCircle}
-                                        subtitle={event.subTitle}
-                                        createdAt={event.date}
-                                        >
-                                    </TimelineEvent>
-                                    
-                                ))}
-                                </Timeline>
-                            ) : (
-                                <p>No timeline events to display.</p>
-                            )}
-                            </div> */}
                         <div className="my-4">
                             <Button variant="primary" onClick={handleShowModal}>Resource Allotment</Button>
                         </div>
+                        <div className='row pt-3'>
+                            <h4>Invoice Generated</h4>
+                            {invoiceGenerate.length === 0 && 
+                                <>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <p>No Invoice found.</p>
+                                    <Button
+                                        variant="success"
+                                        onClick={handleAddInvoiceStep}
+                                        // disabled={isAddPhaseDisabled()}
+                                    >
+                                        Add Invoice
+                                    </Button>
+                                </div>
+                            </>
+                            }
+                            {invoiceGenerate.map((invoice, index) => (
+                                <div key={index} className="mb-3 bg-info bg-opacity-10 border border-info border-start-0 rounded-end p-3 rounded">
+                                    <div 
+                                        style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                                        onClick={() => toggleExpandInvoice(index)}>
+                                        <h5>{invoice.noOfInvoice}</h5>
+                                        <Button
+                                            variant="black"
+                                            size="sm"
+                                            aria-expanded={expandedInvoceGenerated[index] ? "true" : "false"}
+                                        >
+                                            {expandedInvoceGenerated[index] ? <IoIosArrowDropupCircle /> : <IoIosArrowDropdownCircle />}
+                                        </Button>   
+                                    </div>
+                                    {expandedInvoceGenerated[index] && (
+                                        <div className="mt-3">
+                                            <div className='row'>
+                                                <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label>Invoice Date</Form.Label>
+                                                        <Form.Control
+                                                        type="date"
+                                                        value={invoice.invoiceDate}
+                                                        onChange={(e) =>
+                                                            handleChangeInvoiceInput(index, "invoiceDate", e.target.value)
+                                                        }
+                                                    />
+                                                    </Form.Group>
+                                                </div>
+                                                <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                    <Form.Group className="mb-3">
+                                                    <Form.Label>Invoice Raised</Form.Label>
+                                                    <Form.Control
+                                                        rows={2}
+                                                        value={invoice.invoiceValue}
+                                                        onChange={(e) =>
+                                                            handleChangeInvoiceInput(index, "invoiceValue", e.target.value)
+                                                        }
+                                                    />
+                                                </Form.Group>
+                                                </div>
+                                                <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                    <Form.Group className="mb-3">
+                                                    <Form.Label>Amount Raised</Form.Label>
+                                                    <Form.Control
+                                                        rows={2}
+                                                        value={invoice.amountRaised}
+                                                        onChange={(e) =>
+                                                            handleChangeInvoiceInput(index, "amountRaised", e.target.value)
+                                                        }
+                                                    />
+                                                </Form.Group>
+                                                </div>
+                                            </div>
+                                             {(userRole !== 'User') && (
+                                                <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                                    <div>
+                                                        {index === invoiceGenerate.length - 1 && (
+                                                            <Button
+                                                                variant="success"
+                                                                onClick={handleAddInvoiceStep}
+                                                                // disabled={isAddPhaseDisabled()}
+                                                            >
+                                                                Add Invoice
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                    {(invoiceGenerate.length > 1) && (
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            onClick={() => handleRemoveInvoiceStep(index)}
+                                                            className="mt-2"
+                                                            disabled={invoiceGenerate.length === 1}
+                                                        >
+                                                            Remove Invoice
+                                                        </Button>
+                                                    )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                         <h4>Project Phases</h4>
-                        {Phase.length === 0 && <p>No phases found.</p>}
+                        {Phase.length === 0 && 
+                            <>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                    <p>No phases found.</p>
+                                    <Button
+                                        variant="success"
+                                        onClick={handleAddStep}
+                                        disabled={isAddPhaseDisabled()}
+                                    >
+                                        Add Phase
+                                    </Button>
+                                </div>
+                            </>
+                        }
                         {Phase.map((phase, index) => (
                             <div key={index} className="mb-3 bg-info bg-opacity-10 border border-info border-start-0 rounded-end p-3 rounded">
                                 <div 
@@ -490,18 +636,29 @@ const Timelines = () => {
                                         </Form.Group>
                                             {(userRole !== 'User') && (
                                                 <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                                    <Button variant="primary" size="sm"onClick={handleSubmitAllPhases}>
-                                                        Submit Phases
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleRemoveStep(index)}
-                                                        className="mt-2"
-                                                        disabled={Phase.length === 1}
-                                                    >
-                                                        Remove Phase
-                                                    </Button>
+                                                    <div>
+                                                        {index === Phase.length - 1 && (
+                                                            <Button
+                                                                variant="success"
+                                                                onClick={handleAddStep}
+                                                                disabled={isAddPhaseDisabled()}
+                                                            >
+                                                                Add Phase
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                    <div>  
+                                                    {(Phase.length > 1) &&(
+                                                        <Button
+                                                            variant="danger"
+                                                            size="sm"
+                                                            onClick={() => handleRemoveStep(index)}
+                                                            className="mt-2"
+                                                        >
+                                                            Remove Phase
+                                                        </Button>
+                                                    )}
+                                                    </div>
                                                 </div>
                                             )}
                                     </div>
@@ -511,15 +668,8 @@ const Timelines = () => {
                         
                         {(userRole !== 'User') && (
                             <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                <Button
-                                    variant="success"
-                                    onClick={handleAddStep}
-                                    disabled={isAddPhaseDisabled()}
-                                >
-                                    Add Phase
-                                </Button>
                                 <Button variant="primary" onClick={handleSubmitAllPhases}>
-                                    Submit All Phases
+                                    Submit 
                                 </Button>
                             </div>
                         )}

@@ -20,7 +20,7 @@ const Popup = ({ show, handleClose, title, children, showFooter, footerText, han
   };
 
   return (
-    <Modal show={show} onHide={handleClose}>
+    <Modal show={show} onHide={handleClose} style={{ position: 'fixed',top: '60%',left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999}}>
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>
