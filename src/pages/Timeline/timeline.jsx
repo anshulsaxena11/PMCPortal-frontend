@@ -4,12 +4,18 @@ import Select from 'react-select';
 import { getProjectDetailsTimelineById, putProjectDetailsTimelineById } from '../../api/TimelineAPI/timelineApi';
 import { useForm } from "react-hook-form";
 import Popup from '../../components/popupBox/PopupBox';
-import { Form, Button, Table } from "react-bootstrap";
+import { Form, Table } from "react-bootstrap";
 import { srpiEmpTypeListActive } from "../../api/syncEmp/syncEmp";
 import { IoIosArrowDropdownCircle, IoIosArrowDropupCircle } from "react-icons/io";
 import { ToastContainer, toast } from 'react-toastify';
 import Heading from '../../components/Heading/heading';
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material'
+import { CiViewList } from "react-icons/ci";
+import { TbPlaylistAdd } from "react-icons/tb";
+import { CgPlayListRemove } from "react-icons/cg";
 import { FaRegCheckCircle } from "react-icons/fa";
+import CircularProgress from '@mui/material/CircularProgress';
+import { IoIosSave } from "react-icons/io";
 import { Timeline, TimelineEvent } from '@mailtop/horizontal-timeline';
 import './timeline.css'
 
@@ -298,7 +304,9 @@ const Timelines = () => {
             const response = await putProjectDetailsTimelineById(SelectedProjectName.value, payload);
 
             if (response.statuscode === 200) {
-                toast.success("All phases submitted successfully!");
+                toast.success("All phases submitted successfully!", {
+                    className: 'custom-toast custom-toast-success',
+                });;
                 const formattedPhases = response.data.phase.map((p, i) => ({
                     noOfPhases: `Phase ${i + 1}`,
                     projectStartDate: p.projectStartDate?.split('T')[0] || '',
@@ -327,16 +335,25 @@ const Timelines = () => {
                 setExpandedInvoceGenerated(expandedInitInvoice)
                 setOneStatus(false)
             } else {
-                toast.error("Failed to submit phases.");
+                toast.error("Failed to submit phases.", {
+                    className: "custom-toast custom-toast-error",
+                });
             }
         } catch (error) {
-			console.log(error);
-			console.log(error.message);
-            console.error("Error submitting all phases:");
-            toast.error("Submission error");
+            toast.error(error.message, {
+                className: "custom-toast custom-toast-error",
+            });
         }
     };
 
+    const isAddInvoiceDisabled = () =>{
+         return invoiceGenerate.some(
+            (invoiceGenerate) =>
+                !invoiceGenerate.invoiceDate ||
+                !invoiceGenerate.invoiceValue || 
+                !invoiceGenerate.amountRaised
+        );
+    }
     const isAddPhaseDisabled = () => {
         return Phase.some(
             (phase) =>
@@ -353,6 +370,7 @@ const Timelines = () => {
         }
     return (
         <div>
+            <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
             <Popup show={showModal} handleClose={handleCloseModal} title="Resource Allotment" showFooter={false} style={{ position: 'fixed',top: '50%',left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999}}>
                 <div>
                     {resourceMapping.length > 0 ? (
@@ -388,7 +406,7 @@ const Timelines = () => {
 
             <div className="container">
                 <Heading title="Project Management"/>
-                <hr />
+                <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
                 <Select
                     options={ProjectName}
                     value={SelectedProjectName}
@@ -402,24 +420,24 @@ const Timelines = () => {
                         <div className="row mt-4">
                             <div className="col-md-3">
                                 <Form.Group>
-                                    <Form.Label>Project Name</Form.Label>
+                                    <Form.Label className="fs-5 fw-bolder">Project Name</Form.Label>
                                     <Form.Control type="text" readOnly disabled {...register("projectName")} />
                                 </Form.Group>
                             </div>
                             <div className="col-md-3">
                                 <Form.Group>
-                                    <Form.Label>Organisation Name</Form.Label>
+                                    <Form.Label className="fs-5 fw-bolder">Organisation Name</Form.Label>
                                     <Form.Control type="text" readOnly disabled {...register("orginisationName")} />
                                 </Form.Group>
                             </div>
                             <div className="col-md-3">
-                                <Form.Group>
+                                <Form.Group className="fs-5 fw-bolder">
                                     <Form.Label>Project Start Date</Form.Label>
                                     <Form.Control type="date" readOnly  disabled {...register("startDate")} />
                                 </Form.Group>
                             </div>
                             <div className="col-md-3">
-                                <Form.Group>
+                                <Form.Group className="fs-5 fw-bolder">
                                     <Form.Label>Project End Date</Form.Label>
                                     <Form.Control type="date" readOnly disabled {...register("endDate")} />
                                 </Form.Group>
@@ -428,13 +446,13 @@ const Timelines = () => {
                         <div className='row pt-3'>
                             <div className="col-md-3">
                                 <Form.Group>
-                                    <Form.Label>Project Value</Form.Label>
+                                    <Form.Label className="fs-5 fw-bolder">Project Value</Form.Label>
                                     <Form.Control type="text" disabled readOnly {...register("projectValue")} />
                                 </Form.Group>
                             </div>
                             <div className="col-md-3">
                                 <Form.Group>
-                                    <Form.Label>Status</Form.Label>
+                                    <Form.Label className="fs-5 fw-bolder">Status</Form.Label>
                                     <Select
                                         options={statusOptions}
                                         value={selectStatus}
@@ -445,124 +463,157 @@ const Timelines = () => {
                                 </Form.Group>
                             </div>
                         </div>
-                        <div className="my-4">
-                            <Button variant="primary" onClick={handleShowModal}>Resource Allotment</Button>
-                        </div>
-                        <div className='row pt-3'>
-                            <h4>Invoice Generated</h4>
-                            {invoiceGenerate.length === 0 && 
-                                <>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <p>No Invoice found.</p>
-                                    <Button
-                                        variant="success"
-                                        onClick={handleAddInvoiceStep}
-                                        // disabled={isAddPhaseDisabled()}
-                                    >
-                                        Add Invoice
-                                    </Button>
-                                </div>
-                            </>
-                            }
-                            {invoiceGenerate.map((invoice, index) => (
-                                <div key={index} className="mb-3 bg-info bg-opacity-10 border border-info border-start-0 rounded-end p-3 rounded">
-                                    <div 
-                                        style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}
-                                        onClick={() => toggleExpandInvoice(index)}>
-                                        <h5>{invoice.noOfInvoice}</h5>
-                                        <Button
-                                            variant="black"
-                                            size="sm"
-                                            aria-expanded={expandedInvoceGenerated[index] ? "true" : "false"}
-                                        >
-                                            {expandedInvoceGenerated[index] ? <IoIosArrowDropupCircle /> : <IoIosArrowDropdownCircle />}
-                                        </Button>   
+                         <Box
+                            sx={{
+                                display: 'flex',
+                                justifyContent: 'right',
+                                 
+                            }}
+                        >
+                            <div>
+                                <Button variant="contained" color="primary" disabled={loading} startIcon={!loading && <CiViewList />} onClick={handleShowModal}>Resource Allotment</Button>
+                            </div>
+                        </Box>
+                        <h4>Invoice Generated</h4>
+                        <div className='container'>
+                            <div className='row pt-3'>
+                                {invoiceGenerate.length === 0 && 
+                                    <>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <p>No Invoice found.</p>
+                                         {(userRole !== 'User') && (
+                                            <Button
+                                                color="success"
+                                                variant="contained"
+                                                onClick={handleAddInvoiceStep}
+                                                disabled={loading}
+                                                startIcon={!loading && <TbPlaylistAdd  />}
+                                            >
+                                                Add Invoice
+                                            </Button>
+                                        )}
                                     </div>
-                                    {expandedInvoceGenerated[index] && (
-                                        <div className="mt-3">
-                                            <div className='row'>
-                                                <div className='col-sm-4 col-md-4 col-lg-4'>
-                                                    <Form.Group className="mb-3">
-                                                        <Form.Label>Invoice Date</Form.Label>
+                                </>
+                                }
+                                {invoiceGenerate.map((invoice, index) => (
+                                    <div key={index} className="mb-3 bg-info bg-opacity-10 border border-info border-start-0 rounded-end p-3 rounded">
+                                        <div 
+                                            style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                                            onClick={() => toggleExpandInvoice(index)}>
+                                            <h5>{invoice.noOfInvoice}</h5>
+                                            <Button
+                                                variant="black"
+                                                size="sm"
+                                                aria-expanded={expandedInvoceGenerated[index] ? "true" : "false"}
+                                            >
+                                                {expandedInvoceGenerated[index] ? <IoIosArrowDropupCircle /> : <IoIosArrowDropdownCircle />}
+                                            </Button>   
+                                        </div>
+                                        {expandedInvoceGenerated[index] && (
+                                            <div className="mt-3">
+                                                <div className='row'>
+                                                    <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                        <Form.Group className="mb-3">
+                                                            <Form.Label className="fs-6 fw-bolder">Invoice Date</Form.Label>
+                                                            <Form.Control
+                                                            type="date"
+                                                            value={invoice.invoiceDate}
+                                                            onChange={(e) =>
+                                                                handleChangeInvoiceInput(index, "invoiceDate", e.target.value)
+                                                            }
+                                                        />
+                                                        </Form.Group>
+                                                    </div>
+                                                    <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                        <Form.Group className="mb-3">
+                                                        <Form.Label className="fs-6 fw-bolder">Invoice Raised ₹ (GST)</Form.Label>
                                                         <Form.Control
-                                                        type="date"
-                                                        value={invoice.invoiceDate}
-                                                        onChange={(e) =>
-                                                            handleChangeInvoiceInput(index, "invoiceDate", e.target.value)
-                                                        }
-                                                    />
+                                                            type="number"
+                                                            rows={2}
+                                                            value={invoice.invoiceValue}
+                                                            onChange={(e) =>
+                                                                handleChangeInvoiceInput(index, "invoiceValue", e.target.value)
+                                                            }
+                                                            onKeyDown={(e) => {
+                                                                if (["e", "E", "+", "-"].includes(e.key)) {
+                                                                e.preventDefault();
+                                                                }
+                                                            }}
+                                                        />
                                                     </Form.Group>
+                                                    </div>
+                                                    <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                        <Form.Group className="mb-3">
+                                                        <Form.Label className="fs-6 fw-bolder">Amount Raised ₹ (GST)</Form.Label>
+                                                        <Form.Control
+                                                            type="number"
+                                                            rows={2}
+                                                            value={invoice.amountRaised}
+                                                            onChange={(e) =>
+                                                                handleChangeInvoiceInput(index, "amountRaised", e.target.value)
+                                                            }
+                                                            onKeyDown={(e) => {
+                                                                if (["e", "E", "+", "-"].includes(e.key)) {
+                                                                e.preventDefault();
+                                                                }
+                                                            }}
+                                                        />
+                                                    </Form.Group>
+                                                    </div>
                                                 </div>
-                                                <div className='col-sm-4 col-md-4 col-lg-4'>
-                                                    <Form.Group className="mb-3">
-                                                    <Form.Label>Invoice Raised</Form.Label>
-                                                    <Form.Control
-                                                        rows={2}
-                                                        value={invoice.invoiceValue}
-                                                        onChange={(e) =>
-                                                            handleChangeInvoiceInput(index, "invoiceValue", e.target.value)
-                                                        }
-                                                    />
-                                                </Form.Group>
-                                                </div>
-                                                <div className='col-sm-4 col-md-4 col-lg-4'>
-                                                    <Form.Group className="mb-3">
-                                                    <Form.Label>Amount Raised</Form.Label>
-                                                    <Form.Control
-                                                        rows={2}
-                                                        value={invoice.amountRaised}
-                                                        onChange={(e) =>
-                                                            handleChangeInvoiceInput(index, "amountRaised", e.target.value)
-                                                        }
-                                                    />
-                                                </Form.Group>
-                                                </div>
-                                            </div>
-                                             {(userRole !== 'User') && (
-                                                <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                                    <div>
-                                                        {index === invoiceGenerate.length - 1 && (
+                                                {(userRole !== 'User') && (
+                                                    <div className= 'py-3' style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                                        <div>
+                                                            {index === invoiceGenerate.length - 1 && (
+                                                                <Button
+                                                                    color="success"
+                                                                    variant="contained"
+                                                                    startIcon={!loading && <TbPlaylistAdd  />}
+                                                                    onClick={handleAddInvoiceStep}
+                                                                    disabled={isAddInvoiceDisabled()}
+                                                                >
+                                                                    Add Invoice
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                        {(invoiceGenerate.length > 1) && (
                                                             <Button
-                                                                variant="success"
-                                                                onClick={handleAddInvoiceStep}
-                                                                // disabled={isAddPhaseDisabled()}
+                                                                color="error"
+                                                                variant="contained"
+                                                                disabled={loading}
+                                                                startIcon={!loading && <CgPlayListRemove  />}
+                                                                onClick={() => handleRemoveInvoiceStep(index)}
+                                                                className="mt-2"
                                                             >
-                                                                Add Invoice
+                                                                Remove Invoice
                                                             </Button>
                                                         )}
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                    {(invoiceGenerate.length > 1) && (
-                                                        <Button
-                                                            variant="danger"
-                                                            size="sm"
-                                                            onClick={() => handleRemoveInvoiceStep(index)}
-                                                            className="mt-2"
-                                                            disabled={invoiceGenerate.length === 1}
-                                                        >
-                                                            Remove Invoice
-                                                        </Button>
-                                                    )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                         <h4>Project Phases</h4>
                         {Phase.length === 0 && 
                             <>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     <p>No phases found.</p>
-                                    <Button
-                                        variant="success"
-                                        onClick={handleAddStep}
-                                        disabled={isAddPhaseDisabled()}
-                                    >
-                                        Add Phase
-                                    </Button>
+                                    {(userRole !== 'User') && (
+                                        <Button
+                                            color="success"
+                                            variant="contained"
+                                            disabled={loading}
+                                            startIcon={!loading && <TbPlaylistAdd  />}
+                                            onClick={handleAddStep}
+                                        >
+                                            Add Phase
+                                        </Button>
+                                    )}
                                 </div>
                             </>
                         }
@@ -585,7 +636,7 @@ const Timelines = () => {
                                         <div className='row'>
                                             <div className='col-sm-4 col-md-4 col-lg-4'>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Start Date</Form.Label>
+                                                    <Form.Label className="fs-6 fw-bolder">Start Date</Form.Label>
                                                     <Form.Control
                                                         type="date"
                                                         value={phase.projectStartDate}
@@ -597,7 +648,7 @@ const Timelines = () => {
                                             </div>
                                             <div className='col-sm-4 col-md-4 col-lg-4'>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Test Completion Date</Form.Label>
+                                                    <Form.Label className="fs-6 fw-bolder">Test Completion Date</Form.Label>
                                                     <Form.Control
                                                         type="date"
                                                         disabled={!phase.projectStartDate}
@@ -611,7 +662,7 @@ const Timelines = () => {
                                             </div>
                                              <div className='col-sm-4 col-md-4 col-lg-4'>
                                                 <Form.Group className="mb-3">
-                                                    <Form.Label>Report Submitted Date</Form.Label>
+                                                    <Form.Label className="fs-6 fw-bolder">Report Submitted Date</Form.Label>
                                                     <Form.Control
                                                         type="date"
                                                         disabled={!phase.testCompletedEndDate}
@@ -625,7 +676,7 @@ const Timelines = () => {
                                             </div>
                                         </div>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Comments</Form.Label>
+                                            <Form.Label className="fs-6 fw-bolder">Comments</Form.Label>
                                             <Form.Control
                                                 as="textarea"
                                                 rows={2}
@@ -636,11 +687,13 @@ const Timelines = () => {
                                             />
                                         </Form.Group>
                                             {(userRole !== 'User') && (
-                                                <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                                <div className='py-3' style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                                                     <div>
                                                         {index === Phase.length - 1 && (
                                                             <Button
-                                                                variant="success"
+                                                                color="success"
+                                                                variant="contained"
+                                                                startIcon={!loading && <TbPlaylistAdd  />}
                                                                 onClick={handleAddStep}
                                                                 disabled={isAddPhaseDisabled()}
                                                             >
@@ -651,10 +704,11 @@ const Timelines = () => {
                                                     <div>  
                                                     {(Phase.length > 1) &&(
                                                         <Button
-                                                            variant="danger"
-                                                            size="sm"
+                                                            color="error"
+                                                            variant="contained"
+                                                            startIcon={!loading && <CgPlayListRemove  />}
                                                             onClick={() => handleRemoveStep(index)}
-                                                            className="mt-2"
+                                                        
                                                         >
                                                             Remove Phase
                                                         </Button>
@@ -666,19 +720,25 @@ const Timelines = () => {
                                 )}
                             </div>
                         ))}
-                        
-                        {(userRole !== 'User') && (
-                            <div style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                <Button variant="primary" onClick={handleSubmitAllPhases}>
-                                    Submit 
-                                </Button>
-                            </div>
-                        )}
+
+                        <Box
+                            sx={{
+                                display: 'flex',
+                                justifyContent: 'right',
+                                mt: 4, 
+                            }}
+                        >
+                            {(userRole !== 'User') && (
+                                <div className="py-4" style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                    <Button variant="contained"  color="primary"  disabled={loading}  startIcon={!loading && <IoIosSave />}  sx={{paddingX: 3,paddingY: 1,fontWeight: 'bold',borderRadius: 3,fontSize: '1rem',letterSpacing: '0.5px',boxShadow: 3,}}onClick={handleSubmitAllPhases}>
+                                        {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+                                    </Button>
+                                </div>
+                            )}
+                        </Box>
 
                     </div>
                 )}
-
-                <ToastContainer />
             </div>
         </div>
     );
