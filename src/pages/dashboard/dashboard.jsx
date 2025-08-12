@@ -7,7 +7,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import { DataGrid } from '@mui/x-data-grid';
 import dayjs from 'dayjs';
-import { Tooltip as MuiTooltip  } from '@mui/material';
+import { Tooltip as MuiTooltip, Stack  } from '@mui/material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import {
@@ -355,8 +355,8 @@ const handleDownloadPDF = () => {
           onClick={() => setActiveTab(index)}
           elevation={3}
           sx={{
-            width: 250,
-            height: 100,
+            width: 200,
+            height: 70,
             cursor: 'pointer',
             borderRadius: 3,
             px: 2,
@@ -430,29 +430,35 @@ const handleDownloadPDF = () => {
 
     
 
-    <TextField
+    
+
+    <Stack direction="row" spacing={2} mb={2}>
+      <TextField
       label="Search..."
       variant="outlined"
-      fullWidth
       value={search}
+      size="small"
       onChange={(e) => setSearch(e.target.value)}
       sx={{
         mb: 2,
+         width: 250,
         backgroundColor: 'white',
         '& .MuiInputBase-root': {
           height: 40,
         },
+        width: '70%',
       }}
     />
-
-    <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
       <Button variant="contained" onClick={handleDownloadCSV}>
         Download CSV
       </Button>
       <Button variant="contained" color="secondary" onClick={handleDownloadPDF}>
         Download PDF
       </Button>
-    </Box>
+    </Stack>
+
+
+
 
     <Box sx={{ height: 400 }}>
       <DataGrid

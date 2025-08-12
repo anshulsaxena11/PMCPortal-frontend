@@ -3,6 +3,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { getToolsAndHardwareMappping } from '../../../api/toolsAndHardware/toolsAndHardware';
 import { useNavigate } from 'react-router-dom';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+import Heading from '../../../components/Heading/heading';
 import {
   Box,
   Button,
@@ -91,11 +92,15 @@ const ToolsAndHardwareList = () => {
   ];
 
   return (
-    <Box p={2}>
-      <Typography variant="h6" gutterBottom>
-        Tools And Hardware Master List
-      </Typography>
+    <Box>
 
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Heading title=" Tools And Hardware Master List" />        
+          <Button variant="contained" onClick={() => navigate('/Tools-Hardware-Master')}>
+            Add New
+          </Button>
+        </Stack>
+        <hr></hr>
       <Stack direction="row" spacing={2} mb={2}>
         <TextField
           label="Search"
@@ -114,7 +119,7 @@ const ToolsAndHardwareList = () => {
           label="Type"
           size="small"
           value={selectedStatus}
-          sx={{ width: '20%' }}
+          sx={{ width: '30%' }}
           onChange={(e) => {
             setSelectedStatus(e.target.value);
             setPage(0);
@@ -127,14 +132,7 @@ const ToolsAndHardwareList = () => {
           ))}
         </TextField>
 
-        <Button
-          variant="contained"
-          color="primary"
-          sx={{ width: '10%' }}
-          onClick={() => navigate('/Tools-Hardware-Master')}
-        >
-          Add New
-        </Button>
+        
       </Stack>
 
       <Box height={500}>

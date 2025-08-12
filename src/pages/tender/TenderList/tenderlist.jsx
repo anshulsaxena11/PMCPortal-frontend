@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, CircularProgress, TextField, Typography, IconButton, Stack } from '@mui/material';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+import Heading from '../../../components/Heading/heading';
 import Swal from 'sweetalert2';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -204,7 +205,7 @@ const TenderDetailsList = () => {
     <Box p={2}>
       <ToastContainer position="top-center" autoClose={5000} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6">Tender Tracking</Typography>
+        <Heading title="Tender Tracking" />
           {(userRole !== 'User') && (
             <Button variant="contained" onClick={() => navigate('/Tender-Tracking')}>
               Add New

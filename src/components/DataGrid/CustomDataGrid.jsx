@@ -20,13 +20,14 @@ const CustomDataGrid = ({
   return (
     <Box sx={{ height: 600, width: "100%" }}>
       <DataGrid
+      
        autoSizeOptions={{ disableHeight: false }}
         rows={rows}
         columns={columns}
         loading={loading}
         getRowId={getRowId}
         checkboxSelection={checkboxSelection}
-        pageSizeOptions={[5, 10, 20]}
+        pageSizeOptions={[10, 25, 50]}
         paginationModel={paginationModel}
         onPaginationModelChange={onPaginationModelChange}
         rowCount={rowCount}
@@ -34,6 +35,25 @@ const CustomDataGrid = ({
         rowHeight={rowHeight}
         disableRowSelectionOnClick
         onRowClick={onRowClick}
+         getRowClassName={(params) =>
+            params.indexRelativeToCurrentPage % 2 === 0 ? 'even-row' : 'odd-row'
+          }
+        sx={{
+          '& .even-row': {
+            backgroundColor: '#f5f5f5',
+          },
+          '& .odd-row': {
+            backgroundColor: '#ffffff',
+          },
+          '& .MuiDataGrid-columnHeader': {
+            backgroundColor: '#AAC9D5', 
+            fontWeight: 'bold',
+          },              
+          "& .MuiDataGrid-row:hover": {
+           backgroundColor: "#e3f2fd !important",
+          },
+        }}
+
       />
     </Box>
   );

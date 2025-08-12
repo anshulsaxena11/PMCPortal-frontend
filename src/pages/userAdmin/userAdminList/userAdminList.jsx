@@ -1,123 +1,178 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ListView from '../../../components/listView/listView';
-import {getLoginList} from '../../../api/loginApi/loginApi'
+import { getLoginList } from '../../../api/loginApi/loginApi';
 import dayjs from 'dayjs';
+import { Box, Button, TextField, IconButton } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import EditIcon from '@mui/icons-material/Edit';
+import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+import Heading from '../../../components/Heading/heading';
+import { Visibility, Edit, Delete } from '@mui/icons-material';
 
 const UserAdminList = () => {
-    const [loading, setLoading] = useState(false);
-    const [data,setData] = useState([]);
-    const [page, setPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0)
-    const [searchQuery, setSearchQuery] = useState('');
-    const [totalPages, setTotalPages] = useState(1);
-    const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const navigate = useNavigate();
 
-    const columns = [
-        'empId',
-        'ename',
-        'email',
-        "dir",
-        'centre',
-        'etpe',
-        'role',
-        'StatusNoida',
-        'taskForceMember' 
-      ];
+  const columnNames = {
+    empId: 'Employee Id',
+    ename: 'Employee Name',
+    email: 'Employee E-mail',
+    dir: 'Directorates',
+    centre: 'Centre',
+    etpe: 'Employee Type',
+    role: 'Role',
+    StatusNoida: 'VAPT Team Member',
+    taskForceMember: 'Task Force Member Status'
+  };
 
-       const columnNames = {
-            empId:"Employee Id",
-            ename: 'Employee Name',
-            email: 'Employee E-mail',
-            dir: 'Directorates',
-            centre: 'Centre',
-            etpe:'Employee Type',
-            role:"Role",
-            StatusNoida:"VAPT Team Member",
-            taskForceMember:"Task Force Member Status"
-        };
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getLoginList({
+        page: page + 1, // API expects 1-based
+        limit: pageSize,
+        search: searchQuery.trim(),
+      });
 
-      useEffect(() => {
-            fetchData();
-        }, [page,searchQuery]); 
+      const fullData = response?.data;
+      const originalData = fullData?.data || [];
 
-    const fetchData = async() =>{
-        setLoading(true);
-        try{
-            const  response = await getLoginList({
-                page,
-                limit:10,
-                search: searchQuery.trim(),
-            })
-            const fullData = response?.data
-            const originalData = fullData?.data
-            const formatedData = originalData?.map(item=>({
-                ...item,
-                createdAt:item.createdAt ? dayjs(item.createdAt).format('DD/MM/YYYY') : '',
-                StatusNoida: item.StatusNoida ? (
-                <span className="text-success fw-bold">Active</span>
-              ) : (
-                <span className="text-danger fw-bold">Inactive</span>
-              ),
-              taskForceMember:item.taskForceMember ==='No' ? (
-                <span className="text-danger fw-bold">No</span>
-              ):(
-                <span className="text-success fw-bold">Yes</span>
-              )
-            }))
-            setData(formatedData)
-            setTotalCount(fullData?.total)
-            setTotalPages(fullData?.page);
-        }catch(error){
-                console.log(error)
-        }finally {
-            setLoading(false);
-        }
+     const formattedData = originalData.map((item, index) => ({
+  ...item,
+  id: item._id,
+  sno: page * pageSize + index + 1,
+  createdAt: item.createdAt ? dayjs(item.createdAt).format('DD/MM/YYYY') : ''
+}));
+
+
+      setData(formattedData);
+      setTotalCount(fullData?.total || 0);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const handlePageChange = (newPage) => {
-        setPage(newPage);
-    };
+  useEffect(() => {
+    fetchData();
+  }, [page, searchQuery, pageSize]);
 
-    const handleSearchChange = (e) => {
-        setSearchQuery(e.target.value);
-        setPage(1); 
-    };
+  const handleAddNewClick = () => {
+    navigate("/register");
+  };
 
-    const handleAddNewClick = () => {
-        navigate("/register");
-    };
+  const handleViewClick = (row) => {
+    navigate(`/register-view/${row._id}`);
+  };
 
-    const handleViewClick = (data) => {
-      navigate(`/register-view/${data._id}`);
-    };
+  const handleEditClick = (row) => {
+    navigate(`/register-Edit/${row._id}`);
+  };
 
-    const handleEditClick = (data) => {
-      navigate(`/register-Edit/${data._id}`);
-    };
+  const gridColumns = [
+  { field: 'sno', headerName: 'S.No', width: 80 },
+  { field: 'empId', headerName: columnNames.empId, flex: 1 },
+  { field: 'ename', headerName: columnNames.ename, flex: 1 },
+  { field: 'email', headerName: columnNames.email, flex: 1 },
+  { field: 'dir', headerName: columnNames.dir, flex: 1 },
+  { field: 'centre', headerName: columnNames.centre, flex: 1 },
+  { field: 'etpe', headerName: columnNames.etpe, flex: 1 },
+  { field: 'role', headerName: columnNames.role, flex: 1 },
+  {
+    field: 'StatusNoida',
+    headerName: columnNames.StatusNoida,
+    flex: 1,
+    renderCell: (params) =>
+      params.value ? (
+        <span className="text-success fw-bold">Active</span>
+      ) : (
+        <span className="text-danger fw-bold">Inactive</span>
+      )
+  },
+  {
+    field: 'taskForceMember',
+    headerName: columnNames.taskForceMember,
+    flex: 1,
+    renderCell: (params) =>
+      params.value === 'No' ? (
+        <span className="text-danger fw-bold">No</span>
+      ) : (
+        <span className="text-success fw-bold">Yes</span>
+      )
+  },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    sortable: false,
+    width: 150,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+       <IconButton 
+            onClick={() => handleViewClick(params.row.id)} 
+            size="small">
+          <Visibility />
+              </IconButton>
+       <IconButton 
+           onClick={() => handleEditClick(params.row.id)} 
+           size="small">
+       <Edit />
+       </IconButton>
+      </Box>
+    )
+  }
+];
+
 
   return (
-    <div>
-      <ListView
-        title="User Registration"
-        buttonName="Create New User"
-        onAddNewClick={handleAddNewClick}
-        columns={columns}
-        columnNames={columnNames}
-        data={data}
+    <Box p={2}>
+      <ToastContainer position="top-center" autoClose={5000} />
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+      <Heading title="User Registration"/>
+        <Button variant="contained" onClick={() => navigate('/register')}>Add New</Button>
+        </Box>
+
+          <hr></hr>                  
+        <Box display="flex" gap={2} mb={2}>
+          <TextField
+              label="Search"
+              variant="outlined"
+              size="small"
+              fullWidth
+              value={searchQuery}
+              onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(0);
+              }}
+          />
+        </Box>
+
+       <div style={{ height: 600, width: '100%' }}>          
+      <CustomDataGrid
+        rows={data}
+        columns={gridColumns}
+         getRowId={(row) => row._id}
+        rowCount={totalCount}
         page={page}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
+        onPageChange={(newPage) => setPage(newPage)}
+        pageSize={pageSize}
+        paginationMode="server"
+        onPageSizeChange={(newSize) => setPageSize(newSize)}
+        rowsPerPageOptions={[10, 15, 25]}
         loading={loading}
-        showNoDataMessage={true}
-        showEditView={true}
-        onViewClick={handleViewClick}
-        onEditClick={handleEditClick}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
       />
+      
     </div>
-  );
+    </Box>
+    )
 };
 
 export default UserAdminList;

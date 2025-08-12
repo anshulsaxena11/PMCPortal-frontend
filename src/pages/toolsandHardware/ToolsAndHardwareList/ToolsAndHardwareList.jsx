@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, CircularProgress, MenuItem, TextField, Typography, IconButton, Stack } from '@mui/material';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
+import Heading from '../../../components/Heading/heading';
 import { getToolsAndHardware } from '../../../api/toolsAndHardware/toolsAndHardware';
 import { directoratesList } from '../../../api/syncEmp/syncEmp';
 import { useNavigate } from 'react-router-dom';
@@ -117,20 +118,26 @@ const ToolsAndHardware = () => {
 
   return (
     <Box p={2}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h6">Tools And Hardware List</Typography>
-        {(userRole !== 'User') && (
-        <Button variant="contained" onClick={() => navigate("/Tools-Hardware")}>
-          Add New
-        </Button>
-        )}
-      </Box>
+
+
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Heading title=" Tools And Hardware List" />
+         {(userRole !== 'User') && (        
+          <Button variant="contained" onClick={() => navigate('/Tools-Hardware')}>
+            Add New
+          </Button>
+           )}
+        </Stack>
+        <hr></hr>
+
+     
 
       <Box display="flex" gap={2} mb={2}>
         <TextField
           label="Search"
           variant="outlined"
           size="small"
+          fullWidth
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
