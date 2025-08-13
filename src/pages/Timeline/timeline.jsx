@@ -598,128 +598,133 @@ const Timelines = () => {
                                 ))}
                             </div>
                         </div>
+                        <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
                         <h4>Project Phases</h4>
-                        {Phase.length === 0 && 
-                            <>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                    <p>No phases found.</p>
-                                    {(userRole !== 'User') && (
+                        <div className='container'>
+                            <div className='row'>
+                            {Phase.length === 0 && 
+                                <>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <p>No phases found.</p>
+                                        {(userRole !== 'User') && (
+                                            <Button
+                                                color="success"
+                                                variant="contained"
+                                                disabled={loading}
+                                                startIcon={!loading && <TbPlaylistAdd  />}
+                                                onClick={handleAddStep}
+                                            >
+                                                Add Phase
+                                            </Button>
+                                        )}
+                                    </div>
+                                </>
+                            }
+                            {Phase.map((phase, index) => (
+                                <div key={index} className="mb-3 bg-info bg-opacity-10 border border-info border-start-0 rounded-end p-3 rounded">
+                                    <div 
+                                    style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+                                    onClick={() => toggleExpandPhase(index)}>
+                                        <h5>{phase.noOfPhases}</h5>
                                         <Button
-                                            color="success"
-                                            variant="contained"
-                                            disabled={loading}
-                                            startIcon={!loading && <TbPlaylistAdd  />}
-                                            onClick={handleAddStep}
+                                            variant="black"
+                                            size="sm"
+                                            aria-expanded={expandedPhases[index] ? "true" : "false"}
                                         >
-                                            Add Phase
-                                        </Button>
-                                    )}
-                                </div>
-                            </>
-                        }
-                        {Phase.map((phase, index) => (
-                            <div key={index} className="mb-3 bg-info bg-opacity-10 border border-info border-start-0 rounded-end p-3 rounded">
-                                <div 
-                                  style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}
-                                  onClick={() => toggleExpandPhase(index)}>
-                                    <h5>{phase.noOfPhases}</h5>
-                                    <Button
-                                        variant="black"
-                                        size="sm"
-                                        aria-expanded={expandedPhases[index] ? "true" : "false"}
-                                    >
-                                        {expandedPhases[index] ? <IoIosArrowDropupCircle /> : <IoIosArrowDropdownCircle />}
-                                    </Button>        
-                                </div>
-                                {expandedPhases[index] && (
-                                    <div className="mt-3">
-                                        <div className='row'>
-                                            <div className='col-sm-4 col-md-4 col-lg-4'>
-                                                <Form.Group className="mb-3">
-                                                    <Form.Label className="fs-6 fw-bolder">Start Date</Form.Label>
-                                                    <Form.Control
-                                                        type="date"
-                                                        value={phase.projectStartDate}
-                                                        onChange={(e) =>
-                                                            handleChangePhaseInput(index, "projectStartDate", e.target.value)
-                                                        }
-                                                    />
-                                                </Form.Group>
+                                            {expandedPhases[index] ? <IoIosArrowDropupCircle /> : <IoIosArrowDropdownCircle />}
+                                        </Button>        
+                                    </div>
+                                    {expandedPhases[index] && (
+                                        <div className="mt-3">
+                                            <div className='row'>
+                                                <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label className="fs-6 fw-bolder">Start Date</Form.Label>
+                                                        <Form.Control
+                                                            type="date"
+                                                            value={phase.projectStartDate}
+                                                            onChange={(e) =>
+                                                                handleChangePhaseInput(index, "projectStartDate", e.target.value)
+                                                            }
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+                                                <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label className="fs-6 fw-bolder">Test Completion Date</Form.Label>
+                                                        <Form.Control
+                                                            type="date"
+                                                            disabled={!phase.projectStartDate}
+                                                            min={phase.projectStartDate || ''}
+                                                            value={phase.testCompletedEndDate}
+                                                            onChange={(e) =>
+                                                                handleChangePhaseInput(index, "testCompletedEndDate", e.target.value)
+                                                            }
+                                                        />
+                                                    </Form.Group>
+                                                </div>
+                                                <div className='col-sm-4 col-md-4 col-lg-4'>
+                                                    <Form.Group className="mb-3">
+                                                        <Form.Label className="fs-6 fw-bolder">Report Submitted Date</Form.Label>
+                                                        <Form.Control
+                                                            type="date"
+                                                            disabled={!phase.testCompletedEndDate}
+                                                            min={phase.testCompletedEndDate || ''}
+                                                            value={phase.reportSubmissionEndDate}
+                                                            onChange={(e) =>
+                                                                handleChangePhaseInput(index, "reportSubmissionEndDate", e.target.value)
+                                                            }
+                                                        />
+                                                    </Form.Group>
+                                                </div>
                                             </div>
-                                            <div className='col-sm-4 col-md-4 col-lg-4'>
-                                                <Form.Group className="mb-3">
-                                                    <Form.Label className="fs-6 fw-bolder">Test Completion Date</Form.Label>
-                                                    <Form.Control
-                                                        type="date"
-                                                        disabled={!phase.projectStartDate}
-                                                        min={phase.projectStartDate || ''}
-                                                        value={phase.testCompletedEndDate}
-                                                        onChange={(e) =>
-                                                            handleChangePhaseInput(index, "testCompletedEndDate", e.target.value)
-                                                        }
-                                                    />
-                                                </Form.Group>
-                                            </div>
-                                             <div className='col-sm-4 col-md-4 col-lg-4'>
-                                                <Form.Group className="mb-3">
-                                                    <Form.Label className="fs-6 fw-bolder">Report Submitted Date</Form.Label>
-                                                    <Form.Control
-                                                        type="date"
-                                                        disabled={!phase.testCompletedEndDate}
-                                                        min={phase.testCompletedEndDate || ''}
-                                                        value={phase.reportSubmissionEndDate}
-                                                        onChange={(e) =>
-                                                            handleChangePhaseInput(index, "reportSubmissionEndDate", e.target.value)
-                                                        }
-                                                    />
-                                                </Form.Group>
-                                            </div>
-                                        </div>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="fs-6 fw-bolder">Comments</Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                rows={2}
-                                                value={phase.comments}
-                                                onChange={(e) =>
-                                                    handleChangePhaseInput(index, "comments", e.target.value)
-                                                }
-                                            />
-                                        </Form.Group>
-                                            {(userRole !== 'User') && (
-                                                <div className='py-3' style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                                                    <div>
-                                                        {index === Phase.length - 1 && (
+                                            <Form.Group className="mb-3">
+                                                <Form.Label className="fs-6 fw-bolder">Comments</Form.Label>
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={2}
+                                                    value={phase.comments}
+                                                    onChange={(e) =>
+                                                        handleChangePhaseInput(index, "comments", e.target.value)
+                                                    }
+                                                />
+                                            </Form.Group>
+                                                {(userRole !== 'User') && (
+                                                    <div className='py-3' style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                                                        <div>
+                                                            {index === Phase.length - 1 && (
+                                                                <Button
+                                                                    color="success"
+                                                                    variant="contained"
+                                                                    startIcon={!loading && <TbPlaylistAdd  />}
+                                                                    onClick={handleAddStep}
+                                                                    disabled={isAddPhaseDisabled()}
+                                                                >
+                                                                    Add Phase
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                        <div>  
+                                                        {(Phase.length > 1) &&(
                                                             <Button
-                                                                color="success"
+                                                                color="error"
                                                                 variant="contained"
-                                                                startIcon={!loading && <TbPlaylistAdd  />}
-                                                                onClick={handleAddStep}
-                                                                disabled={isAddPhaseDisabled()}
+                                                                startIcon={!loading && <CgPlayListRemove  />}
+                                                                onClick={() => handleRemoveStep(index)}
+                                                            
                                                             >
-                                                                Add Phase
+                                                                Remove Phase
                                                             </Button>
                                                         )}
+                                                        </div>
                                                     </div>
-                                                    <div>  
-                                                    {(Phase.length > 1) &&(
-                                                        <Button
-                                                            color="error"
-                                                            variant="contained"
-                                                            startIcon={!loading && <CgPlayListRemove  />}
-                                                            onClick={() => handleRemoveStep(index)}
-                                                        
-                                                        >
-                                                            Remove Phase
-                                                        </Button>
-                                                    )}
-                                                    </div>
-                                                </div>
-                                            )}
-                                    </div>
-                                )}
+                                                )}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
                             </div>
-                        ))}
+                        </div>
 
                         <Box
                             sx={{
