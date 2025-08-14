@@ -69,11 +69,11 @@ const UserAdminList = () => {
   };
 
   const handleViewClick = (row) => {
-    navigate(`/register-view/${row._id}`);
+    navigate(`/register-view/${row}`);
   };
 
   const handleEditClick = (row) => {
-    navigate(`/register-Edit/${row._id}`);
+    navigate(`/register-Edit/${row}`);
   };
 
   const gridColumns = [
@@ -115,12 +115,12 @@ const UserAdminList = () => {
     renderCell: (params) => (
       <Box sx={{ display: 'flex', gap: 1 }}>
        <IconButton 
-            onClick={() => handleViewClick(params.row.id)} 
+            onClick={() => handleViewClick(params.id)} 
             size="small">
           <Visibility />
               </IconButton>
        <IconButton 
-           onClick={() => handleEditClick(params.row.id)} 
+           onClick={() => handleEditClick(params.id)} 
            size="small">
        <Edit />
        </IconButton>
@@ -135,7 +135,7 @@ const UserAdminList = () => {
       <ToastContainer position="top-center" autoClose={5000} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
       <Heading title="User Registration"/>
-        <Button variant="contained" onClick={() => navigate('/register')}>Add New</Button>
+        <Button variant="contained" onClick={handleAddNewClick}>Add New</Button>
         </Box>
 
           <hr></hr>                  
