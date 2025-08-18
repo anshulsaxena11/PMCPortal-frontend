@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { getLoginList } from '../../../api/loginApi/loginApi';
 import dayjs from 'dayjs';
 import { Box, Button, TextField, IconButton } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
+import { ToastContainer } from 'react-toastify';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 import Heading from '../../../components/Heading/heading';
-import { Visibility, Edit, Delete } from '@mui/icons-material';
+import { Visibility, Edit } from '@mui/icons-material';
 
 const UserAdminList = () => {
   const [loading, setLoading] = useState(false);
