@@ -222,7 +222,7 @@ const Sidebar = ({ onToggle }) => {
                     px: 2,
                     cursor: !isExpanded ? 'default' : 'pointer',
                     backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.12)' : 'inherit', // ✅ Background for active
-                    borderLeft: location.pathname === item.path ? '4px solid #1abc9c' : '4px solid transparent', // ✅ Left accent
+                    //borderLeft: location.pathname === item.path ? '4px solid #1abc9c' : '4px solid transparent', // ✅ Left accent
                     '&:hover': {
                       backgroundColor: !isExpanded
                         ? 'transparent'
