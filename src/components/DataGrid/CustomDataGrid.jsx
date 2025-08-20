@@ -7,7 +7,7 @@ const CustomDataGrid = ({
   rows,
   columns,
   pageSize = 10,
-  rowHeight = 52,
+  rowHeight = 50,
   loading = false,
   getRowId = (row) => row.id,
   onRowClick,
@@ -18,7 +18,7 @@ const CustomDataGrid = ({
   paginationMode = "server", // or "client"
 }) => {
   return (
-    <Box sx={{ height: 600, width: "100%" }}>
+    <Box sx={{ height: 'auto', width: "100%" }}>
       <DataGrid
       
        autoSizeOptions={{ disableHeight: false }}
@@ -48,9 +48,17 @@ const CustomDataGrid = ({
           '& .MuiDataGrid-columnHeader': {
             backgroundColor: '#AAC9D5', 
             fontWeight: 'bold',
+          },
+          '& .MuiDataGrid-footerContainer': {
+            backgroundColor: '#AAC9D5',
+            fontWeight: 'bold',
           },              
           "& .MuiDataGrid-row:hover": {
            backgroundColor: "#e3f2fd !important",
+          },
+           '& p': {
+            padding: 0,
+            margin: 0, 
           },
         }}
 

@@ -192,12 +192,13 @@ const SkillMapping = () => {
 
     return [
       { field: 'serial', headerName: 'S.No', width: 50 },
-      { field: 'ename', headerName: 'Employee Name', width: 150 },
+      { field: 'ename', headerName: 'Employee Name', flex:1 },
       ...dynamicCols,
       {
         field: 'action',
         headerName: 'Action',
         width: 100,
+      
         renderCell: (params) => (
           <MuiButton
             variant="contained"

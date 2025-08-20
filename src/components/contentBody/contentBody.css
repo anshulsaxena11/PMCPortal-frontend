@@ -43,4 +43,15 @@
   color: #777;
 }
 
+.css-1n95x5i-MuiDrawer-docked .MuiDrawer-paper ul li{
+margin-top: 2px;
+  border-radius: 25px;
+  font-size: small;
+  width:99.5%;
+}
+
+.css-1n95x5i-MuiDrawer-docked .MuiDrawer-paper ul li:hover {
+  transform: scale(1.01); 
+}
+
 

@@ -37,16 +37,16 @@ const ProjectMapping = () => {
      {
         field: 'serialNo',
         headerName: 'S.No.',
-        width: 70,
+        width: 50,
         sortable: false,
         filterable: false,
       },
-      { field: 'empid', headerName: 'Employee ID', width: 140 },
-      { field: 'ename', headerName: 'Employee Name', width: 190 },
-      { field: 'edesg', headerName: 'Designation', width: 160 },
-      { field: 'centre', headerName: 'Centre', width: 140 },
-      { field: 'dir', headerName: 'Directorates', width: 160 },
-      { field: 'etpe', headerName: 'Employee Type', width: 160 },
+      { field: 'empid', headerName: 'Employee ID', flex:1 },
+      { field: 'ename', headerName: 'Employee Name', flex:1 },
+      { field: 'edesg', headerName: 'Designation', flex:1 },
+      { field: 'centre', headerName: 'Centre', flex:1 },
+      { field: 'dir', headerName: 'Directorates', flex:1 },
+      { field: 'etpe', headerName: 'Employee Type', flex:1 },
     ];
     if(userRole !== 'User'){
       columnDefs.push({
@@ -209,7 +209,25 @@ const ProjectMapping = () => {
           />
         </div>
       </div>
-
+{/* Buttons */}
+        {(userRole !== 'User') && (
+          <div className="d-flex gap-3">
+          <button
+            className="btn btn-primary"
+            disabled={!selectedProject || selectedItems.length === 0}
+            onClick={handleMappingSubmit}
+          >
+            Save
+          </button>
+        
+          <button
+            className="btn btn-warning"
+            onClick={() => setIsViewMode(!isViewMode)}
+            >
+            {isViewMode ? 'List' : 'View'}
+          </button>
+        </div>
+          )}
       {/* DataGrid */}
       <CustomDataGrid
   rows={
@@ -241,28 +259,6 @@ const ProjectMapping = () => {
     ),
   }}
 />
-
-
-
-      {/* Buttons */}
-        {(userRole !== 'User') && (
-          <div className="mt-3 d-flex gap-3">
-          <button
-            className="btn btn-primary"
-            disabled={!selectedProject || selectedItems.length === 0}
-            onClick={handleMappingSubmit}
-          >
-            Save
-          </button>
-        
-          <button
-            className="btn btn-warning"
-            onClick={() => setIsViewMode(!isViewMode)}
-            >
-            {isViewMode ? 'List' : 'View'}
-          </button>
-        </div>
-          )}
 
     </div>
   );
