@@ -65,6 +65,10 @@ const CustomDataGrid = ({
             fontWeight: "bold",
             fontSize: "16px",
           },
+           '& p': {
+            padding: 0,
+            margin: 0, 
+          },
         }}
 
       />
