@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { getLoginList } from '../../../api/loginApi/loginApi';
 import dayjs from 'dayjs';
 import { Box, Button, TextField, IconButton } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import EditIcon from '@mui/icons-material/Edit';
+import { ToastContainer } from 'react-toastify';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 import Heading from '../../../components/Heading/heading';
-import { Visibility, Edit, Delete } from '@mui/icons-material';
+import { Visibility, Edit } from '@mui/icons-material';
 
 const UserAdminList = () => {
   const [loading, setLoading] = useState(false);
@@ -69,11 +67,11 @@ const UserAdminList = () => {
   };
 
   const handleViewClick = (row) => {
-    navigate(`/register-view/${row._id}`);
+    navigate(`/register-view/${row}`);
   };
 
   const handleEditClick = (row) => {
-    navigate(`/register-Edit/${row._id}`);
+    navigate(`/register-Edit/${row}`);
   };
 
   const gridColumns = [
@@ -115,12 +113,12 @@ const UserAdminList = () => {
     renderCell: (params) => (
       <Box sx={{ display: 'flex', gap: 1 }}>
        <IconButton 
-            onClick={() => handleViewClick(params.row.id)} 
+            onClick={() => handleViewClick(params.id)} 
             size="small">
           <Visibility />
               </IconButton>
        <IconButton 
-           onClick={() => handleEditClick(params.row.id)} 
+           onClick={() => handleEditClick(params.id)} 
            size="small">
        <Edit />
        </IconButton>
@@ -135,7 +133,7 @@ const UserAdminList = () => {
       <ToastContainer position="top-center" autoClose={5000} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
       <Heading title="User Registration"/>
-        <Button variant="contained" onClick={() => navigate('/register')}>Add New</Button>
+        <Button variant="contained" onClick={handleAddNewClick}>Add New</Button>
         </Box>
 
           <hr></hr>                  

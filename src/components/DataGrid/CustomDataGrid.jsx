@@ -13,6 +13,7 @@ const CustomDataGrid = ({
   onRowClick,
   paginationModel,
   onPaginationModelChange,
+  noRowsLabel="No Data Found",
   rowCount,
   checkboxSelection = false,
   paginationMode = "server", // or "client"
@@ -35,6 +36,9 @@ const CustomDataGrid = ({
         rowHeight={rowHeight}
         disableRowSelectionOnClick
         onRowClick={onRowClick}
+        localeText={{
+          noRowsLabel 
+        }}
          getRowClassName={(params) =>
             params.indexRelativeToCurrentPage % 2 === 0 ? 'even-row' : 'odd-row'
           }
@@ -56,9 +60,10 @@ const CustomDataGrid = ({
           "& .MuiDataGrid-row:hover": {
            backgroundColor: "#e3f2fd !important",
           },
-           '& p': {
-            padding: 0,
-            margin: 0, 
+          "& .MuiDataGrid-overlay": {
+            color: "red", 
+            fontWeight: "bold",
+            fontSize: "16px",
           },
         }}
 
