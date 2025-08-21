@@ -404,7 +404,7 @@ const Timelines = () => {
                 </div>
             </Popup>
 
-            <div className="container">
+            <div className="container-fluid">
                 <Heading title="Project Management"/>
                 <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
                 <Select

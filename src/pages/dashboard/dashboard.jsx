@@ -1,20 +1,16 @@
 /* global am4core, am4charts, am4themes_animated */
 
 import React, { useEffect, useState, useRef } from 'react';
-import {
-  Box, Paper, Typography, TextField, Button
-} from '@mui/material';
+import { Box, Paper, Typography, TextField, Button, IconButton, Stack, Tooltip } from '@mui/material';
 import WorkIcon from '@mui/icons-material/Work';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
-import { DataGrid } from '@mui/x-data-grid';
-
+import { Visibility, Edit, Delete } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Tooltip as MuiTooltip, Stack } from '@mui/material';
-import { getAllProjectDetails, getAllprojectData } from '../../api/ProjectDetailsAPI/projectDetailsApi';
-import { getAllReportList } from '../../api/reportApi/reportApi';
+import { getProjectDetailsList } from '../../api/ProjectDetailsAPI/projectDetailsApi';
 import { getAllTenderList } from '../../api/TenderTrackingAPI/tenderTrackingApi';
+import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
 
 const tabData = [
   { label: 'Projects', icon: <WorkIcon />, key: 'workType' },
@@ -28,6 +24,15 @@ export default function TabCardWithGrids() {
   const [tenderRows, setTendereRows] = useState([]);
   const chartRef = useRef(null);
   const [chartData, setChartData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
+  const userRole = localStorage.getItem('userRole');
+
+  // ---- Helper: Group projects by Financial Year (using startDate) ----
+
+
+
 
   function groupByFinancialYear(data) {
     const yearMap = {};
@@ -50,183 +55,255 @@ export default function TabCardWithGrids() {
       Total: +(Total / 10000000).toFixed(2),
     }));
   }
+  
 
-  // Effect to fetch project data for the chart
-  useEffect(() => {
-    const fetchProjectData = async () => {
-      try {
-        const res = await getAllprojectData();
-        const projects = Array.isArray(res?.data)
-          ? res.data
-          : res?.data?.data || [];
-        const fyData = groupByFinancialYear(projects);
-        setChartData(fyData);
-      } catch (err) {
-        console.error("Error fetching project data:", err);
-      }
-    };
-    fetchProjectData();
-  }, []);
+  // ---- Fetch all data ----
+  const fetchAllData = async () => {
+    setLoading(true);
+    try {
+      // Pass safe defaults to avoid "params.page is undefined" inside your API helper
+      const workTypeResponse = await getProjectDetailsList({ page: 1, limit: 100, isDeleted: false });
+      const tenderResponse = await getAllTenderList({ isDeleted: false });
 
-  // Effect to fetch data for the DataGrid tabs
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const reportData = await getAllReportList(); // This API is not used in the final code, but it's in your original code
-        const workTypeData = await getAllProjectDetails();
-        const TenderData = await getAllTenderList({ isDeleted: false });
-        setWorkTypeRows(workTypeData.data.map((r, i) => ({ id: r._id || i + 1, sno: i + 1, ...r })));
-        setTendereRows(TenderData.data.map((r, i) => ({ id: r._id || i + 1, sno: i + 1, ...r })));
-      } catch (error) {
-        console.error('API fetch error:', error);
-      }
+      // Transform projects (ensure numeric projectValue, compute amountStatus & projectType)
+      const transformedWorkTypeData = (workTypeResponse?.data || []).map((item, index) => {
+        const amountStatus = item?.phases?.[0]?.amountStatus || 'N/A';
+        const projectType = Array.isArray(item?.projectType) && item.projectType.length > 0
+          ? item.projectType[0]?.ProjectTypeName || 'N/A'
+          : (item.projectType || 'N/A');
+
+        return {
+          id: item?._id || index + 1,
+          sno: index + 1,
+          ...item,
+          projectValue: Number(item?.projectValue) || 0,
+          amountStatus,
+          projectType,
+        };
+      });
+
+      // ✅ Use the transformed data in the grid
+      setWorkTypeRows(transformedWorkTypeData);
+
+      // Tenders untouched
+      setTendereRows((tenderResponse?.data || []).map((r, i) => ({
+        id: r?._id || i + 1,
+        sno: i + 1,
+        ...r,
+      })));
+
+      // Build chart data from transformed projects
+      const processedChartData = groupByFinancialYear(transformedWorkTypeData);
+      setChartData(processedChartData);
+    } catch (error) {
+      console.error('API fetch error:', error);
+    } finally {
+      setLoading(false);
     }
-    fetchData();
+  };
+
+  useEffect(() => {
+    fetchAllData();
   }, []);
 
-  // Fix for the chart lifecycle management
+  // ---- Render amCharts XY Column chart ----
   useEffect(() => {
-    // Only run this effect if the 'Projects' tab is active.
-    if (activeTab === 0 && chartData.length > 0) {
+    if (activeTab !== 0) return;
+    if (!chartData.length) return;
+
+    if (window.am4core && window.am4charts && window.am4themes_animated) {
       const core = window.am4core;
       const charts = window.am4charts;
       const animated = window.am4themes_animated;
 
-      // Dispose of the existing chart instance before creating a new one.
       if (chartRef.current) {
         chartRef.current.dispose();
+        chartRef.current = null;
       }
 
       core.useTheme(animated);
-      const chart = core.create("chartdiv", charts.XYChart);
+      const chart = core.create('chartdiv', charts.XYChart);
       chartRef.current = chart;
 
-      chart.data = chartData.map(item => ({
+      chart.data = chartData.map((item) => ({
         category: item.financialYear,
         value: item.Total,
       }));
 
-      let categoryAxis = chart.xAxes.push(new charts.CategoryAxis());
-      categoryAxis.dataFields.category = "category";
-      categoryAxis.title.text = "Financial Year";
+      const categoryAxis = chart.xAxes.push(new charts.CategoryAxis());
+      categoryAxis.dataFields.category = 'category';
+      categoryAxis.title.text = 'Financial Year';
 
-      let valueAxis = chart.yAxes.push(new charts.ValueAxis());
-      valueAxis.title.text = "Project Value (Cr INR)";
+      const valueAxis = chart.yAxes.push(new charts.ValueAxis());
+      valueAxis.title.text = 'Project Value (Cr INR)';
 
-      let series = chart.series.push(new charts.ColumnSeries());
-      series.dataFields.valueY = "value";
-      series.dataFields.categoryX = "category";
+      const series = chart.series.push(new charts.ColumnSeries());
+      series.dataFields.valueY = 'value';
+      series.dataFields.categoryX = 'category';
       series.columns.template.width = 50;
 
-      let labelBullet = series.bullets.push(new charts.LabelBullet());
-      labelBullet.label.text = "{valueY} Cr";
+      const labelBullet = series.bullets.push(new charts.LabelBullet());
+      labelBullet.label.text = '{valueY} Cr';
       labelBullet.label.fontSize = 12;
-      labelBullet.label.fontWeight = "600";
-      labelBullet.label.fill = core.color("#000");
+      labelBullet.label.fontWeight = '600';
+      labelBullet.label.fill = core.color('#000');
       labelBullet.label.dy = -5;
-      labelBullet.label.horizontalCenter = "middle";
+      labelBullet.label.horizontalCenter = 'middle';
 
-      series.name = "Project Value";
-      series.columns.template.tooltipText = "{categoryX}: [bold]{valueY} Cr[/]";
+      series.name = 'Project Value';
+      series.columns.template.tooltipText = '{categoryX}: [bold]{valueY} Cr[/]';
 
-      // Cleanup function to dispose of the chart instance.
       return () => {
         if (chartRef.current) {
           chartRef.current.dispose();
+          chartRef.current = null;
         }
       };
+    } else {
+      console.error('amCharts library not loaded.');
     }
   }, [activeTab, chartData]);
 
+  // ---- Search filter ----
   const searchFilter = (rows) => {
     if (!search.trim()) return rows;
-    return rows.filter((row) =>
-      Object.values(row).join(' ').toLowerCase().includes(search.toLowerCase())
-    );
+    const lower = search.toLowerCase().trim();
+
+    return rows.filter((row) => {
+      if (!row || typeof row !== 'object') return false;
+      for (const key in row) {
+        if (Object.prototype.hasOwnProperty.call(row, key)) {
+          const value = row[key];
+          if (value !== null && value !== undefined) {
+            if (String(value).toLowerCase().includes(lower)) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    });
   };
 
+  // ---- Columns ----
   const workTypeCols = [
-    { field: 'sno', headerName: 'S.No', width: 80, },
+    { field: 'sno', headerName: 'S. No.', width: 60, sortable: false, filterable: false },
+    { field: 'orginisationName', headerName: 'Organisation Name', flex: 1.5 },
+    { field: 'type', headerName: 'Org Type', flex: 1 },
+    { field: 'orderType', headerName: 'Order Type', flex: 1 },
+    { field: 'projectName', headerName: 'Project Name', flex: 1 },
     { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
+    { field: 'amountStatus', headerName: 'Status', flex: 1 },
     {
-      field: 'startDate', headerName: 'Start Date', flex: 1,
-      renderCell: (params) => {
-        const date = params?.row?.startDate;
-        return date ? dayjs(date).format('DD-MM-YYYY') : 'N/A';
-      }
-    },
-    { field: 'directrate', headerName: 'Directorate', flex: 1 },
-    {
-      field: 'projectValue', headerName: 'Value (INR)', flex: 1,
+      field: 'projectValue',
+      headerName: 'Project Value (Cr INR)',
+      flex: 1,
+      align: 'right',
       renderCell: (params) => {
         const val = params?.row?.projectValue;
-        return val ? Number(val).toLocaleString('en-IN') : 'N/A';
-      }
+        if (!val || isNaN(val)) return 'N/A';
+        const croreValue = Number(val) / 10000000;
+        const formattedCr = croreValue.toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
+        return (
+          <Tooltip title={fullValue}>
+            <span>{formattedCr} Cr</span>
+          </Tooltip>
+        );
+      },
     },
-    { field: 'primaryPersonName', headerName: 'Person Name', flex: 1 },
   ];
 
   const tenderCols = [
-    { field: 'sno', headerName: 'S.No', width: 80, },
+    { field: 'sno', headerName: 'S.No', width: 80 },
     { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
     { field: 'organizationName', headerName: 'Organization Name', flex: 1 },
     { field: 'state', headerName: 'State', flex: 1 },
     { field: 'taskForce', headerName: 'Task Force', flex: 1 },
     {
-      field: 'valueINR', headerName: 'Value (INR)', flex: 1,
-      renderCell: (params) => {
-        const val = params?.row?.valueINR;
-        return val ? Number(val).toLocaleString('en-IN') : 'N/A';
-      }
-    },
+              field: 'valueINR',
+              headerName: 'Value (Cr INR)',
+              flex: 1,
+              align: 'right',
+              renderCell: (params) => {
+                const val = params?.row?.valueINR;
+                if (!val || isNaN(val)) return 'N/A';
+                const croreValue = Number(val) / 10000000;
+                const formattedCr = croreValue.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                });
+                const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
+                return (
+                  <Tooltip title={fullValue} INR>
+                    <span>{formattedCr} Cr</span>
+                  </Tooltip>
+                );
+              }
+            },
     { field: 'status', headerName: 'Status', flex: 1 },
+    {
+    field: 'lastDate',
+    headerName: 'Last Date',
+    flex: 1,
+    renderCell: (params) => {
+      // Check if params.value exists and is a valid date
+      if (params.value) {
+        return dayjs(params.value).format('YYYY-MM-DD');
+      }
+      return 'N/A';
+    },
+  },
+    
   ];
 
   const getCurrentTabRows = () => {
     switch (tabData[activeTab].key) {
-      case 'workType': return workTypeRows;
-      case 'tenderTracking': return tenderRows;
-      default: return [];
+      case 'workType':
+        return workTypeRows;
+      case 'tenderTracking':
+        return tenderRows;
+      default:
+        return [];
     }
   };
 
   const getCurrentTabColumns = () => {
     switch (tabData[activeTab].key) {
-      case 'workType': return workTypeCols;
-      case 'tenderTracking': return tenderCols;
-      default: return [];
+      case 'workType':
+        return workTypeCols;
+      case 'tenderTracking':
+        return tenderCols;
+      default:
+        return [];
     }
   };
 
-  function CustomNoRowsOverlay() {
-    return (
-      <Box sx={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', }}>
-        <Typography sx={{ color: 'red', fontWeight: 'bold' }}>
-          No data found
-        </Typography>
-      </Box>
-    );
-  }
-
+  // ---- Export helpers ----
   const handleDownloadCSV = () => {
     const columns = getCurrentTabColumns();
     const rawRows = searchFilter(getCurrentTabRows());
-    const headers = columns.map(col => `"${col.headerName}"`).join(',');
-    const data = rawRows.map(row => {
-      return columns.map(col => {
-        let value = '';
-        switch (col.field) {
-          case 'projectValue':
-            value = row.projectValue ? Number(row.projectValue).toLocaleString('en-IN') : 'N/A';
-            break;
-          case 'startDate':
-            value = row.startDate ? dayjs(row.startDate).format('DD-MM-YYYY') : 'N/A';
-            break;
-          default:
-            value = row[col.field] ?? 'N/A';
-        }
-        return `"${value}"`;
-      }).join(',');
+    const headers = columns.map((col) => `"${col.headerName}"`).join(',');
+    const data = rawRows.map((row) => {
+      return columns
+        .map((col) => {
+          let value = '';
+          switch (col.field) {
+            case 'projectValue':
+              value = row.projectValue ? Number(row.projectValue).toLocaleString('en-IN') : 'N/A';
+              break;
+            case 'startDate':
+              value = row.startDate ? dayjs(row.startDate).format('DD-MM-YYYY') : 'N/A';
+              break;
+            default:
+              value = row[col.field] ?? 'N/A';
+          }
+          return `"${value}"`;
+        })
+        .join(',');
     });
     const csvContent = [headers, ...data].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -241,14 +318,14 @@ export default function TabCardWithGrids() {
 
   const handleDownloadPDF = () => {
     const doc = new jsPDF();
-    const columns = getCurrentTabColumns().map(col => ({
+    const columns = getCurrentTabColumns().map((col) => ({
       header: col.headerName,
       dataKey: col.field,
     }));
     const rawRows = searchFilter(getCurrentTabRows());
-    const rows = rawRows.map(row => {
+    const rows = rawRows.map((row) => {
       const formatted = {};
-      columns.forEach(col => {
+      columns.forEach((col) => {
         switch (col.dataKey) {
           case 'projectValue':
             formatted[col.dataKey] = row.projectValue
@@ -275,6 +352,8 @@ export default function TabCardWithGrids() {
     doc.save(`${tabData[activeTab].label.replace(/\s+/g, '_')}.pdf`);
   };
 
+  const filteredRows = searchFilter(getCurrentTabRows());
+
   return (
     <>
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
@@ -284,16 +363,28 @@ export default function TabCardWithGrids() {
             onClick={() => setActiveTab(index)}
             elevation={3}
             sx={{
-              width: 200, height: 70, cursor: 'pointer', borderRadius: 3, px: 2, py: 1.5,
-              display: 'flex', flexDirection: 'column', justifyContent: 'center',
-              background: activeTab === index
-                ? 'linear-gradient(to right, #2196f3, #21cbf3)'
-                : '#f5f5f5',
+              width: 200,
+              height: 70,
+              cursor: 'pointer',
+              borderRadius: 3,
+              px: 2,
+              py: 1.5,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              background:
+                activeTab === index ? 'linear-gradient(to right, #2196f3, #21cbf3)' : '#f5f5f5',
               color: activeTab === index ? '#fff' : '#000',
               '&:hover': { boxShadow: 6 },
             }}
           >
-            <Typography variant="subtitle1" fontWeight="bold" display="flex" alignItems="center" gap={1}>
+            <Typography
+              variant="subtitle1"
+              fontWeight="bold"
+              display="flex"
+              alignItems="center"
+              gap={1}
+            >
               {tab.icon}
               {tab.label}
             </Typography>
@@ -310,41 +401,44 @@ export default function TabCardWithGrids() {
         </>
       )}
 
-      <Stack direction="row" spacing={2} mb={2}>
-      <TextField
-      label="Search..."
-      variant="outlined"
-      value={search}
-      size="small"
-      onChange={(e) => setSearch(e.target.value)}
-      sx={{
-        mb: 2,
-         width: 250,
-        backgroundColor: 'white',
-        '& .MuiInputBase-root': {
-          height: 40,
-        },
-        width: '70%',
-      }}
-    />
-      <Button variant="contained" onClick={handleDownloadCSV}>
-        Download CSV
-      </Button>
-      <Button variant="contained" color="secondary" onClick={handleDownloadPDF}>
-        Download PDF
-      </Button>
-    </Stack>
+      <Stack direction="row" spacing={2} mb={2} alignItems="center">
+        <TextField
+          label="Search..."
+          variant="outlined"
+          value={search}
+          size="small"
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{
+            mb: 2,
+            width: 250,
+            backgroundColor: 'white',
+            '& .MuiInputBase-root': {
+              height: 40,
+            },
+            flexGrow: 1,
+          }}
+        />
+        <Button variant="contained" onClick={handleDownloadCSV}>
+          Download CSV
+        </Button>
+        <Button variant="contained" color="secondary" onClick={handleDownloadPDF}>
+          Download PDF
+        </Button>
+      </Stack>
 
       <Box sx={{ height: 400 }}>
-        <DataGrid
-          rows={searchFilter(getCurrentTabRows())}
+        <CustomDataGrid
+          rows={filteredRows}
           columns={getCurrentTabColumns()}
-          pageSize={5}
-          rowsPerPageOptions={[5, 10]}
-          pagination
-          slots={{
-            noRowsOverlay: CustomNoRowsOverlay,
+          loading={loading}
+          paginationModel={{ page, pageSize }}
+          onPaginationModelChange={({ page, pageSize }) => {
+            setPage(page);
+            setPageSize(pageSize);
           }}
+          rowCount={filteredRows.length}
+          paginationMode="client"
+          autoHeight
         />
       </Box>
     </>
