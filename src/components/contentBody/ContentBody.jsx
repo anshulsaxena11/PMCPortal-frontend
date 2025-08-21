@@ -32,6 +32,10 @@ import UserLoginList from "../../pages/userAdmin/userAdminList/userAdminList.jsx
 import UserLoginForm from "../../pages/userAdmin/userLoginForm/UserLoginForm.jsx"
 import UserAdminView from "../../pages/userAdmin/userAdminView/userAdminView.jsx"
 import UserAdminEdit from "../../pages/userAdmin/userAdminEdit/userAdminEdit.jsx"
+import TypesOfWorkMasterList from "../../pages/TypesOfWorksMaster/TypesOfWorkMasterList/TypeOfWorkMasterList.jsx"
+import TypesOfWorkMasterView from "../../pages/TypesOfWorksMaster/TypeOfWorkMasterView/TypesPfWorkMasterView.jsx"
+import TypesOfWorkMasterEdit from "../../pages/TypesOfWorksMaster/TypesOfWorkMasterEdit/TypesOfWorkMasterEdit.jsx"
+import TypesOfWorkMasterForm from "../../pages/TypesOfWorksMaster/TypesOfWorkMasterForm/TypesOfWorkMasterForm.jsx"
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -88,6 +92,10 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/register-list" element ={<UserLoginList/>}/>
           <Route path="/register-view/:id" element = {<UserAdminView/>}/>
           <Route path="/register-Edit/:id" element = {<UserAdminEdit/>}/>
+          <Route path="/type-of-work-master-list" element ={<TypesOfWorkMasterList/>}/>
+          <Route path="/type-of-work-master-view/:id" element ={<TypesOfWorkMasterView/>}/> 
+          <Route path="/type-of-work-master-edit/:id" element ={<TypesOfWorkMasterEdit/>}/>
+          <Route path="/type-of-work-master-form" element={<TypesOfWorkMasterForm/>}/>
         </Routes>
       </div>
     </div>

@@ -63,11 +63,11 @@ const HomePage = () => {
   useEffect(()=>{
     const fetchTypeOfWork = async() =>{
       try{
-        const response = await getTypeOfWork();
+        const response = await getTypeOfWork({});
         if(response.data && Array.isArray(response.data.data)){
           const option = response.data.data.map((TypeOfWork)=>({
             value:TypeOfWork._id,
-            label:TypeOfWork.typrOfWork
+            label:TypeOfWork.typeOfWork
           }))
           setTypeOfWorkOption(option)
         }else{

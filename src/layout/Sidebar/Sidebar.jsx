@@ -11,7 +11,8 @@ import {
   Toolbar,
   Tooltip,
   Typography,
-  Avatar
+  Avatar,
+  Collapse
 } from "@mui/material";
 import { TbReportAnalytics } from "react-icons/tb";
 import MenuIcon from "@mui/icons-material/Menu";
@@ -33,7 +34,7 @@ import { MdSpatialTracking } from "react-icons/md";
 import { CgListTree } from "react-icons/cg";
 import { GoProjectSymlink } from "react-icons/go";
 import { BsMicrosoftTeams } from "react-icons/bs";
-
+import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { logoutUser } from "../../api/loginApi/loginApi";
 
 const drawerWidth = 240;
@@ -41,10 +42,14 @@ const miniDrawerWidth = 70;
 
 const Sidebar = ({ onToggle }) => {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [openedByHamburger, setOpenedByHamburger] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
+  const [openGroups, setOpenGroups] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
+  const isDrawerOpen = openedByHamburger ? isExpanded : isHovered || isExpanded;
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
@@ -56,9 +61,24 @@ const Sidebar = ({ onToggle }) => {
   const toggleDrawer = () => {
     const newState = !isExpanded;
     setIsExpanded(newState);
+    setOpenedByHamburger(newState);
     onToggle(newState);
   };
 
+
+const handleMouseEnter = () => {
+  if (!openedByHamburger) {   // only allow hover expand if NOT controlled by hamburger
+    setIsHovered(true);
+    onToggle(true);
+  }
+};
+
+  const handleMouseLeave = () => {
+  if (!openedByHamburger) {   // only collapse on hover if not hamburger-expanded
+    setIsHovered(false);
+    onToggle(false);
+  }
+};
   const logout = async () => {
     try {
       await logoutUser();
@@ -80,10 +100,20 @@ const Sidebar = ({ onToggle }) => {
     { role: "Admin", label: "VAPT Team Members", icon: <BsMicrosoftTeams />, path: "/admin-Emp" },
     { role: "Admin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "Admin", label: "Skill Mapping", icon: <GiSkills />, path: "/skills-Mapping" },
-    { role: "Admin", label: "Tools/Hardware Master", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
+
     { role: "Admin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "Admin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
+    
+    {
+      role: "Admin",
+      label: "Master",
+      icon: <FaTools />,
+      children: [
+            { role: "Admin", label: "Tools/Hardware Master", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
+        { role: "Admin", label: "Type Of Work", icon: <MdSpatialTracking />, path: "/type-of-work-master-list" },
+      ],
+    },
     //subadmin
     { role: "SubAdmin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
@@ -99,6 +129,10 @@ const Sidebar = ({ onToggle }) => {
     { role: "User", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "User", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
   ];
+
+  const handleToggleGroup = (label) => {
+    setOpenGroups((prev) => ({ ...prev, [label]: !prev[label] }));
+  };
 
   return (
     <Box sx={{ display: "flex", transition: "all 0.3s ease-in-out" }}>
@@ -144,11 +178,13 @@ const Sidebar = ({ onToggle }) => {
       </Box>
       <Drawer
         variant="permanent"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         sx={{
-          width: isExpanded ? drawerWidth : miniDrawerWidth,
+          width: isDrawerOpen ? drawerWidth : miniDrawerWidth,
           flexShrink: 0,
           [`& .MuiDrawer-paper`]: {
-            width: isExpanded ? drawerWidth : miniDrawerWidth,
+            width: isDrawerOpen ? drawerWidth : miniDrawerWidth,
             boxSizing: "border-box",
             bgcolor: "#2c3e50",
             color: "#fff",
@@ -209,41 +245,96 @@ const Sidebar = ({ onToggle }) => {
         )}
       </Box>
     )} */}
-        <List>
-          {menuItems
-            .filter((item) => item.role === userRole)
-            .map((item, index) => (
-              <Tooltip title={!isExpanded ? item.label : ""} placement="right" key={index}>
-                <ListItem
-                  button
-                  onClick={() => navigate(item.path)}
-                  selected={location.pathname === item.path} 
-                  sx={{
-                    px: 2,
-                    cursor: !isExpanded ? 'default' : 'pointer',
-                    backgroundColor: location.pathname === item.path ? 'rgba(255, 255, 255, 0.12)' : 'inherit', // ✅ Background for active
-                    //borderLeft: location.pathname === item.path ? '4px solid #1abc9c' : '4px solid transparent', // ✅ Left accent
-                    '&:hover': {
-                      backgroundColor: !isExpanded
-                        ? 'transparent'
-                        : 'rgba(255, 255, 255, 0.2)',
-                    },
-                  }}
-                >
-                  <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isExpanded ? 2 : "auto", justifyContent: "center" }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  {isExpanded && <ListItemText primary={item.label} />}
-                </ListItem>
-              </Tooltip>
-            ))}
+      <List>
+        {menuItems
+          .filter((item) => item.role === userRole)
+          .map((item, index) => {
+            if (item.children) {
+              // 🔽 Dropdown
+              const isOpen = openGroups[item.label] || location.pathname.includes(item.children?.map(c => c.path).join(","));
+              return (
+                <React.Fragment key={index}>
+                  <ListItem button onClick={() => handleToggleGroup(item.label)} sx={{ px: 2 }}>
+                    <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    {isDrawerOpen  && (
+                      <>
+                        <ListItemText primary={item.label} />
+                        {isOpen ? <ExpandLess /> : <ExpandMore />}
+                      </>
+                    )}
+                    </ListItem>
+                    <Collapse in={isOpen} timeout="auto" unmountOnExit>
+                      <List component="div" disablePadding>
+                        {item.children.map((child, childIndex) => (
+                          <ListItem
+                            key={childIndex}
+                            button
+                            onClick={() => navigate(child.path)}
+                            selected={location.pathname === child.path}
+                            sx={{
+                              pl: isDrawerOpen  ? 4 : 4,
+                              backgroundColor:
+                                location.pathname === child.path ? "rgba(255, 255, 255, 0.12)" : "inherit",
+                              borderLeft:
+                                location.pathname === child.path ? "4px solid #1abc9c" : "4px solid transparent",
+                              "&:hover": {
+                                backgroundColor: !isDrawerOpen 
+                                  ? "transparent"
+                                  : "rgba(255, 255, 255, 0.2)",
+                              },
+                            }}
+                          >
+                            <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
+                              {child.icon}
+                            </ListItemIcon>
+                            {isDrawerOpen  && <ListItemText primary={child.label} />}
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Collapse>
+                  </React.Fragment>
+                );
+              } else {
+                // 🔹 Single item
+                return (
+                  <Tooltip title={!isDrawerOpen  ? item.label : ""} placement="right" key={index}>
+                    <ListItem
+                      button
+                      onClick={() => navigate(item.path)}
+                      selected={location.pathname === item.path}
+                      sx={{
+                        px: 2,
+                        cursor: !isDrawerOpen  ? "default" : "pointer",
+                        backgroundColor:
+                          location.pathname === item.path ? "rgba(255, 255, 255, 0.12)" : "inherit",
+                        borderLeft:
+                          location.pathname === item.path ? "4px solid #1abc9c" : "4px solid transparent",
+                        "&:hover": {
+                          backgroundColor: !isDrawerOpen  ? "transparent" : "rgba(255, 255, 255, 0.2)",
+                        },
+                      }}
+                    >
+                      <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      {isDrawerOpen  && <ListItemText primary={item.label} />}
+                    </ListItem>
+                  </Tooltip>
+                );
+              }
+            })}
+
           <Divider sx={{ bgcolor: "gray", my: 1 }} />
-          <Tooltip title={!isExpanded ? "Logout" : ""} placement="right">
-              <ListItem button onClick={logout} sx={{ px: 2 ,cursor: !isExpanded ? 'default' : 'pointer', '&:hover': {backgroundColor: !isExpanded? 'transparent': 'rgba(255, 255, 255, 0.2)',}}}>
-              <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isExpanded ? 2 : "auto", justifyContent: "center" }}>
+
+          {/* Logout */}
+          <Tooltip title={!isDrawerOpen  ? "Logout" : ""} placement="right">
+            <ListItem button onClick={logout} sx={{ px: 2 }}>
+              <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
                 <FaSignOutAlt />
               </ListItemIcon>
-              {isExpanded && <ListItemText primary="Logout" />}
+              {isDrawerOpen  && <ListItemText primary="Logout" />}
             </ListItem>
           </Tooltip>
         </List>
