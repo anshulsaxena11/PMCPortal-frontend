@@ -56,8 +56,10 @@ const ToolsAndHardwareMapping = () =>{
                 });
             }
         }catch(error){
-
-        }
+            toast.error(error, {
+                className: "custom-toast custom-toast-error",
+            });
+}
         setLoading(false);
       }
     return(

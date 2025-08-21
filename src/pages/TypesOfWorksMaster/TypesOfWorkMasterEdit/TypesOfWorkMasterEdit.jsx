@@ -59,6 +59,7 @@ const TypesOfWorkMasterEdit = ({ID})=>{
             }
 
         } catch (error){
+            
 
         } finally{
 
