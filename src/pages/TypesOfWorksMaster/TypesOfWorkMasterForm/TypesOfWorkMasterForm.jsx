@@ -5,10 +5,12 @@ import { useNavigate } from 'react-router-dom';
 import { yupResolver } from "@hookform/resolvers/yup";
 import Form from "react-bootstrap/Form";
 import { useForm, Controller } from "react-hook-form";
-import typeOfWorkMasterValidation from "../../../validation/toolsAndHardwareMasterValidation"
+import typeOfWorkMasterValidation from "../../../validation/typeOfWorkMasterValidation"
 import { TiArrowBack } from "react-icons/ti";
+import {postTypeOfWork} from "../../../api/typeOfWorkAPi/typeOfWorkApi"
 import { IoIosSave } from "react-icons/io";
 import CircularProgress from '@mui/material/CircularProgress';
+import { ToastContainer, toast } from 'react-toastify'
 
 const TypesOfWorkMasterForm = () =>{
     const { control, handleSubmit, formState: { errors }, setValue,reset,trigger } = useForm({resolver: yupResolver(typeOfWorkMasterValidation),defaultValues: {},});
@@ -25,23 +27,30 @@ const TypesOfWorkMasterForm = () =>{
         const payload = {
          typeOfWork:data.typeOfWork
         };
-     
+      console.log(payload,"payload")
         setLoading(true);
         try{
-       
-         
-           
-         
-      
-        
+            const response = await postTypeOfWork(payload) 
+            if(response?.data?.statusCode === 200){
+                toast.success(response?.data?.message, {
+                    className: 'custom-toast custom-toast-success',
+                });
+            }
+            if(response?.data?.statusCode === 401){
+               toast.error(response?.data?.message, {
+                    className: "custom-toast custom-toast-error",
+                });
+            }
         }catch(error){
-         
+            toast.error(error, {
+                className: "custom-toast custom-toast-error",
+            });
         }
         setLoading(false);
     };
     return(
         <div className="container-fluid">
-            <h1>On Development</h1>
+            <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
             <Box
                 display="flex"
                 justifyContent="center"

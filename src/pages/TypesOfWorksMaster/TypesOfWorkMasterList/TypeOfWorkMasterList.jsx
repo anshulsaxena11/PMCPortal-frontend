@@ -34,7 +34,7 @@ const TypesOfWorkMasterList = ()=>{
             });
             const rowsWithSno = response?.data?.data.map((item, index) => ({
                 ...item,
-                id: item._id, // MUI needs `id`
+                id: item._id, 
                 sno: page * pageSize + index + 1,
             }));
             setData(rowsWithSno);
