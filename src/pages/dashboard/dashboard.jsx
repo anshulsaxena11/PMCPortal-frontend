@@ -35,26 +35,34 @@ export default function TabCardWithGrids() {
 
 
   function groupByFinancialYear(data) {
-    const yearMap = {};
-    data.forEach((project) => {
-      const { startDate, projectValue } = project;
-      const date = new Date(startDate);
-      const month = date.getMonth();
-      const year = date.getFullYear();
-      const fyStartYear = month < 3 ? year - 1 : year;
-      const fyEndYear = fyStartYear + 1;
-      const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
-      const value = parseFloat(projectValue || "0");
-      if (!yearMap[fyLabel]) {
-        yearMap[fyLabel] = { financialYear: fyLabel, Total: 0 };
-      }
-      yearMap[fyLabel].Total += value;
-    });
-    return Object.values(yearMap).map(({ financialYear, Total }) => ({
+  const yearMap = {};
+
+  data.forEach((project) => {
+    const { startDate, projectValue } = project;
+    const date = new Date(startDate);
+    const month = date.getMonth();
+    const year = date.getFullYear();
+    const fyStartYear = month < 3 ? year - 1 : year;
+    const fyEndYear = fyStartYear + 1;
+    const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
+    const value = parseFloat(projectValue || "0");
+
+    if (!yearMap[fyLabel]) {
+      yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, startYear: fyStartYear };
+    }
+    yearMap[fyLabel].Total += value;
+  });
+
+  return Object.values(yearMap)
+    .map(({ financialYear, Total, startYear }) => ({
       financialYear,
       Total: +(Total / 10000000).toFixed(2),
-    }));
-  }
+      startYear,
+    }))
+    .sort((a, b) => a.startYear - b.startYear) // 🔑 sort ascending
+    .map(({ financialYear, Total }) => ({ financialYear, Total })); // remove helper field
+}
+
   
 
   // ---- Fetch all data ----
