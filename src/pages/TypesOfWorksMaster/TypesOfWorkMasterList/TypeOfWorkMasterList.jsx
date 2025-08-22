@@ -1,5 +1,5 @@
 import React ,{useState,useEffect}from 'react'
-import {getTypeOfWork} from '../../../api/typeOfWorkAPi/typeOfWorkApi'
+import {getTypeOfWork, deleteTypeOfWork} from '../../../api/typeOfWorkAPi/typeOfWorkApi'
 import { useNavigate } from 'react-router-dom';
 import Heading from '../../../components/Heading/heading';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
@@ -14,6 +14,8 @@ import {
   IconButton
 } from '@mui/material';
 import { Visibility, Edit, Delete } from '@mui/icons-material';
+import withReactContent from 'sweetalert2-react-content';
+import Swal from 'sweetalert2'
 
 const TypesOfWorkMasterList = ()=>{
     const [loading, setLoading] = useState(false);
@@ -23,6 +25,50 @@ const TypesOfWorkMasterList = ()=>{
     const [page, setPage] = useState(0);
     const [rowCount, setRowCount] = useState(0);
     const navigate = useNavigate();
+    const MySwal = withReactContent(Swal);
+
+    const handleDeleteClick = async (data) => {
+        const result = await MySwal.fire({
+          title: 'Are you sure?',
+          text: "This action cannot be undone.",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Yes, delete it!',
+          cancelButtonText: 'Cancel',
+        });
+      
+        if (!result.isConfirmed) return;
+        try {
+          const id =data
+          const response = await deleteTypeOfWork(id);
+      
+          if (response?.data?.statusCode === 200) {
+             MySwal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: response?.data?.message,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            fetchData()
+      
+          } else {
+             MySwal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: response?.data?.message,
+            });
+          }
+        } catch (error) {
+          MySwal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: error?.message || 'Something went wrong!',
+        });
+        }
+      };
 
     const fetchData = async () => {
         setLoading(true);
@@ -69,6 +115,9 @@ const TypesOfWorkMasterList = ()=>{
                 >
                     <Edit />
                 </IconButton>
+                    <IconButton color="error" onClick={() => handleDeleteClick(params.row.id)}>
+                            <Delete />
+                    </IconButton>
             </Stack>
           ),
         },
