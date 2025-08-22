@@ -801,18 +801,13 @@ const HomePage = () => {
                         className="form-control"
                         placeholder="Enter Primary Person Mobile Number"
                         onKeyDown={(e) => {
-                          if (
-                            ["e", "E", "+", "-", ".", " "].includes(e.key) ||
-                            (!/^\d$/.test(e.key) &&
-                              !["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"].includes(e.key))
-                          ) {
+                          if (["e", "E", "+", "-", "."].includes(e.key)) {
                             e.preventDefault();
                           }
                         }}
                         onInput={(e) => {
-                          if (e.target.value.length > 10) {
-                            e.target.value = e.target.value.slice(0, 10);
-                          }
+                          e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          field.onChange(e);
                         }}
                       />
                     )}

@@ -110,7 +110,7 @@ const handleMouseEnter = () => {
       label: "Master",
       icon: <FaTools />,
       children: [
-            { role: "Admin", label: "Tools/Hardware Master", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
+        { role: "Admin", label: "Tools and Hardware", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
         { role: "Admin", label: "Type Of Work", icon: <MdSpatialTracking />, path: "/type-of-work-master-list" },
       ],
     },
@@ -210,41 +210,6 @@ const handleMouseEnter = () => {
         }}
       >
       <Toolbar />
-      {/* {userName && userRole && (
-        <Box
-          sx={{
-            textAlign: 'center',
-            px: isExpanded ? 2 : 0,  
-            py: isExpanded ? 2 : 1, 
-            borderBottom: '1px solid #34495e',
-          }}
-        >
-        <Box
-          component="img"
-          src={"/images/default_image_profile.jpg"}
-          alt="Profile"
-          sx={{
-            width: isExpanded ? 64 : 40,     
-            height: isExpanded ? 64 : 40,
-            borderRadius: '50%',
-            objectFit: 'cover',
-            margin: '0 auto 10px',
-            border: '2px solid #1abc9c',
-            transition: "all 0.3s ease-in-out",
-          }}
-        />
-        {isExpanded && (
-          <>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: '#ecf0f1' }}>
-              {userName}
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#bdc3c7' }}>
-              {userRole}
-            </Typography>
-           </>
-        )}
-      </Box>
-    )} */}
       <List>
         {menuItems
           .filter((item) => item.role === userRole)
