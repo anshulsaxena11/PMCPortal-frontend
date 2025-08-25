@@ -197,7 +197,7 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
               minHeight: "100%",
               width: "100%",
               overflowX: "auto",
-              display: loading ? "none" : "flex", // 👈 hidden while loading
+              display: loading ? "none" : "flex", 
               justifyContent: "center",
               backgroundColor: "black",
               borderRadius: "8px",
