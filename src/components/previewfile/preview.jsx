@@ -206,9 +206,6 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
       </Modal.Body>
 
       <Modal.Footer style={{ backgroundColor: "#2c3e50" }}>
-        <Button variant="danger" onClick={onHide}>
-          Close
-        </Button>
       </Modal.Footer>
     </Modal>
   );
