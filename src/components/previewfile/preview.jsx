@@ -122,8 +122,10 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
           height: "calc(100vh - 120px)",
           backgroundColor: "#000000ff",
           display: "flex",
+          flexDirection: "column", 
           justifyContent: "center",
           alignItems: "center",
+          overflow: "hidden", 
         }}
       >
         {/* Centered Loader */}
@@ -133,6 +135,7 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
               width: 300,
               textAlign: "center",
               color: "#fff",
+              margin: "auto", 
             }}
           >
             <Typography variant="body2" sx={{ mb: 1, color: "#fff" }}>
@@ -186,21 +189,17 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
           />
         )}
 
-        {/* Word DOCX Preview - always mount div so ref is never null */}
         {fileType ===
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
           <div
             ref={docxContainerRef}
             style={{
-              padding: "10px",
-              paddingTop:'400px',
-              minHeight: "100%",
+              flex: 1,                    
               width: "100%",
-              overflowX: "auto",
-              display: loading ? "none" : "flex", 
-              justifyContent: "center",
-              backgroundColor: "black",
+              overflow: "auto",           
+              display: loading ? "none" : "block",    
               borderRadius: "8px",
+              padding: "20px",
             }}
           />
         )}
