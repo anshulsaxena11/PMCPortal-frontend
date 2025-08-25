@@ -54,30 +54,38 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
 
           xhr.onload = async () => {
             if (xhr.status === 200) {
-              docxContainerRef.current.innerHTML = "";
-              await renderAsync(xhr.response, docxContainerRef.current, null, {
-                className: "docx-preview",
-                inWrapper: true,
-                ignoreWidth: false,
-                ignoreHeight: false,
-              });
+              if (docxContainerRef.current) {
+                docxContainerRef.current.innerHTML = "";
+                await renderAsync(xhr.response, docxContainerRef.current, null, {
+                  className: "docx-preview",
+                  inWrapper: true,
+                  ignoreWidth: false,
+                  ignoreHeight: false,
+                });
+              }
             } else {
-              docxContainerRef.current.innerHTML =
-                '<p style="color:red">Unable to preview Word document.</p>';
+              if (docxContainerRef.current) {
+                docxContainerRef.current.innerHTML =
+                  '<p style="color:red">Unable to preview Word document.</p>';
+              }
             }
             finishLoading();
           };
 
           xhr.onerror = () => {
-            docxContainerRef.current.innerHTML =
-              '<p style="color:red">Error loading document.</p>';
+            if (docxContainerRef.current) {
+              docxContainerRef.current.innerHTML =
+                '<p style="color:red">Error loading document.</p>';
+            }
             finishLoading();
           };
 
           xhr.send();
         } catch (error) {
-          docxContainerRef.current.innerHTML =
-            '<p style="color:red">Unable to preview Word document.</p>';
+          if (docxContainerRef.current) {
+            docxContainerRef.current.innerHTML =
+              '<p style="color:red">Unable to preview Word document.</p>';
+          }
           finishLoading();
         }
       } else {
@@ -178,24 +186,24 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
           />
         )}
 
-        {/* Word DOCX Preview */}
-        {!loading &&
-          fileType ===
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
-            <div
-              ref={docxContainerRef}
-              style={{
-                padding: "10px",
-                minHeight: "100%",
-                width: "100%",
-                overflowX: "auto",
-                display: "flex",
-                justifyContent: "center",
-                backgroundColor: "#fff",
-                borderRadius: "8px",
-              }}
-            />
-          )}
+        {/* Word DOCX Preview - always mount div so ref is never null */}
+        {fileType ===
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
+          <div
+            ref={docxContainerRef}
+            style={{
+              padding: "10px",
+              paddingTop:'400px',
+              minHeight: "100%",
+              width: "100%",
+              overflowX: "auto",
+              display: loading ? "none" : "flex", 
+              justifyContent: "center",
+              backgroundColor: "black",
+              borderRadius: "8px",
+            }}
+          />
+        )}
       </Modal.Body>
 
       <Modal.Footer style={{ backgroundColor: "#2c3e50" }}>
