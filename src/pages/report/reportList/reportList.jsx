@@ -320,7 +320,7 @@ const ReportList = () => {
 
   return (
     <div>
-      <div className='container pb-3'>
+      <div className='container-fluid pb-3'>
         <Heading title="List Of Vulnability"/>
          <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
       </div>
@@ -335,7 +335,7 @@ const ReportList = () => {
             <Button variant="contained" color="primary" disabled={loading} startIcon={!loading && <MdAssignmentAdd/>} onClick={handleAddNewClick}>ADD Vulnability</Button>
         </div>
       </Box>
-      <div className='container pt-3'>
+      <div className='container-fluid pt-3'>
         <div className='row'>
           <div className='col-sm-3 col-md-3 col-lg-3'>
             <Form.Group>
@@ -385,7 +385,7 @@ const ReportList = () => {
            </div>
         </div>
       </div> 
-      <div className='container py-5'>
+      <div className='container-fluid py-5'>
          {/* <TextField
             fullWidth
             label="Search here..."

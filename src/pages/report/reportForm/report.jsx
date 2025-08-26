@@ -7,7 +7,7 @@ import 'react-quill/dist/quill.snow.css';
 import Form from 'react-bootstrap/Form';
 import { useNavigate } from 'react-router-dom';
 import {getDeviceList} from '../../../api/deviceListAPI/decicelistApi'
-import { Button, Spinner, Table } from 'react-bootstrap';
+import {Spinner, Table } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getVulnerabilityList } from '../../../api/vulnerabilityApi/vulnerability'
@@ -18,7 +18,12 @@ import { getProjectNameList, getProjectTypeList } from '../../../api/ProjectDeta
 import {getAllRound, postAddRound} from '../../../api/roundApi/round'
 import FormComponent from '../../../components/formComponent/formcomponent'
 import PopupForm from '../../../components/PopBoxForm/PopupBoxForm'
+import { CiViewList } from "react-icons/ci";
 import { IoIosSave,IoMdAdd } from "react-icons/io";
+import { MdOutlineAddModerator } from "react-icons/md";
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import { TiArrowBack } from "react-icons/ti";
 import { FaEye } from "react-icons/fa";
 import { FcDocument } from 'react-icons/fc'; 
@@ -433,49 +438,23 @@ const handleFileChange = (index, event) => {
     navigate(`/report`) 
   }
 
-  const handleShow = () => {
-    setShowModal(true); 
-  };
-   const handleClose = () => {
-    setShowModal(false); 
-  };
 
-   const handleInputChange = (e) => {
-    setAddVulnerability(e.target.value);
-  };
-  const handleSevirity =(selected) =>{
-    setAddSevirity(selected?.label)
-  }
-  const handleDiscription=(e) =>{
-    setAddDescription(e.target.value)
-  }
-   const handleImpact=(e) =>{
-    setAddImpact(e.target.value)
+  // const handeleVulnabilitySubmit = async()=>{
+  //   const payload = {
+  //     projectName:selectedProjectNameAdd,
+  //     devices:selectDevice?.label,
+  //     vulnerabilityTypes:addVulnerability,
+  //     severity:addSevirity,
+  //     description:addDescription,
+  //     impact:addImpact,
+  //     recommendation:addRecomendation,
+  //     references:addReferance
 
-  }
-  const handleReferance=(e) =>{
-    setAddReferance(e.target.value)
-  }
-  const handleRecomendation=(e) =>{
-    setAddRecomendation(e.target.value)
-  }
+  //   }
 
-  const handeleVulnabilitySubmit = async()=>{
-    const payload = {
-      projectName:selectedProjectNameAdd,
-      devices:selectDevice?.label,
-      vulnerabilityTypes:addVulnerability,
-      severity:addSevirity,
-      description:addDescription,
-      impact:addImpact,
-      recommendation:addRecomendation,
-      references:addReferance
+  //   console.log(payload,'payload')
 
-    }
-
-    console.log(payload,'payload')
-
-  }
+  // }
  const handleShowModal = () => {
   const selectedProject = getValues("selectedProjectName");
   const selectedRound = getValues("round");
@@ -681,81 +660,38 @@ const handleDropOnIndex = (e, targetIndex) => {
           <p>No Proof of Concept available.</p>
         )}
       </PopupForm>
-     <PopupForm
-        show={showModal}
-        handleClose={handleClose}
-        title="Add Vulnerability Name/Type"   
-        showFooter={true}      
-        footerText="Close" 
-        handleAdd={handeleVulnabilitySubmit}    
-      >     
-       <FormComponent
-          label="Project Type" 
-          value={selectedProjectNameAdd} 
-          readonly
-          disabled
-        />
-         {disableDevices === "Network Devices" && (
-          <FormComponent
-            label="Devices" 
-            value={selectDevice?.label} 
-            readonly
-            disabled
-            // onChange={handleDirectrateInputChange}
-          />
-         )}
-         <FormComponent
-            label="Vulnerability Name/Type" 
-            placeholder="Add Vulnerability Name/Type"
-            value={addVulnerability} 
-            onChange={handleInputChange}
-          />
-          <Form.Group>
-            <Form.Label>Sevirity</Form.Label>
-            <Select
-              options={severityOptions}
-              placeholder="Select severity"
-              onChange={handleSevirity}
-              isClearable
-            />
-          </Form.Group>
-          <FormComponent
-            label="Description" 
-            placeholder="Add Description"
-            value={addDescription} 
-            onChange={handleDiscription}
-          />
-           <FormComponent
-            label="Impact" 
-            placeholder="Add Impact"
-            value={addImpact} 
-            onChange={handleImpact}
-          />
-          
-          <FormComponent
-            label="Referance" 
-            placeholder="Add Referance"
-            value={addReferance} 
-            onChange={handleReferance}
-          />
-          <FormComponent
-            label="Recomendation" 
-            placeholder="Add ReferaRecomendationnce"
-            value={addRecomendation} 
-            onChange={handleRecomendation}
-          />
-      </PopupForm>
      <div className='row'>
-      <div className='col-sm-10 col-md-10 col-lg-10 '>
-        <h1>Vulnerability Page</h1>
-      </div>
-      <div className='col-sm-2 col-md-2 ol-lg-2'>
-        <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
-        <TiArrowBack />BACK
-        </Button>
-      </div>
+         <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        position="relative"
+        mb={3}
+      >
+        <Box position="absolute" left={0}>
+          <Tooltip title="Back">
+            <IconButton
+              onClick={handleBackClick}
+              sx={{
+                backgroundColor: 'error.main',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: 'error.dark',
+                },
+                width: 48,
+                height: 48,
+              }}
+            >
+              <ArrowBackIcon  size={24} />
+            </IconButton>
+          </Tooltip>
+        </Box>
+        <Typography variant="h4" fontWeight="bold">
+          Vulnerability
+        </Typography>
+      </Box>
      </div>
-      <hr />
+      <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
       <div className="container-fluid">
         <div className="row">
           <Form onSubmit={handleSubmit}>
@@ -917,13 +853,54 @@ const handleDropOnIndex = (e, targetIndex) => {
               </div>
             </div>
             <div className="row">
-              <div className="d-flex justify-content-between align-items-center my-4">
-                <Button variant="primary" onClick={handleShowModalVulList}>List Of Vulnerability</Button>
+              <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    mt: 4, 
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleShowModalVulList}
+                    startIcon={<CiViewList />}
+                    sx={{
+                      paddingX: 3,
+                      paddingY: 0.5,
+                      fontWeight: 'bold',
+                      borderRadius: 3,
+                      fontSize: '1rem',
+                      letterSpacing: '0.5px',
+                      boxShadow: 3,
+                    }}
+                  >
+                   List Of Vulnerability
+                  </Button>
+  
+                  {/* SAVE Button on the right */}
+                   {!showModalVul && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleShowModal}
+                      disabled={loading}
+                      startIcon={!loading && <MdOutlineAddModerator  />}
+                      sx={{
+                        paddingX: 3,
+                        paddingY: 1,
+                        fontWeight: 'bold',
+                        borderRadius: 3,
+                        fontSize: '1rem',
+                        letterSpacing: '0.5px',
+                        boxShadow: 3,
+                      }}
+                    >
+                     Add Vulnerability
+                    </Button>
 
-                {!showModalVul && (
-                  <Button variant="primary" onClick={handleShowModal}>Add Vulnerability</Button>
-                )}
-              </div>
+                   )}
+                </Box>
             </div>
             {showModalVul && (
             <div className="row pt-5">
@@ -1170,7 +1147,7 @@ const handleDropOnIndex = (e, targetIndex) => {
                   ADD
                 </Button>
               </div>
-            </Form.Group>
+              </Form.Group>
               <Form.Group className="mb-3">
                 <Form.Label className="fs-5 fw-bolder">Recommendation<span className="text-danger">*</span></Form.Label>
                 <Controller
@@ -1187,18 +1164,56 @@ const handleDropOnIndex = (e, targetIndex) => {
               </Form.Group>
             </div>
             )}
-            <Button variant="primary" onClick={handleButtonClick} type="submit" disabled={loading}>
-              {loading ? (
-                <Spinner animation="border" size="sm" />
-              ) : (
-                <>
-                  <IoIosSave /> SAVE
-                </>
-              )}
-            </Button>
-            <Button variant="danger" className='btn btn-success mx-4' onClick={handleBackClick}>
-            <TiArrowBack /> BACK
-           </Button>
+            {showModalVul && (
+              <>
+
+  <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  mt: 4, 
+                }}
+              >
+                <Button
+                  variant="contained"
+                  color="error"
+                  onClick={handleBackClick}
+                  startIcon={<TiArrowBack />}
+                  sx={{
+                    paddingX: 3,
+                    paddingY: 1,
+                    fontWeight: 'bold',
+                    borderRadius: 3,
+                    fontSize: '1rem',
+                    letterSpacing: '0.5px',
+                    boxShadow: 3,
+                  }}
+                >
+                  BACK
+                </Button>
+
+                {/* SAVE Button on the right */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleButtonClick}
+                  disabled={loading}
+                  startIcon={!loading && <IoIosSave />}
+                  sx={{
+                    paddingX: 3,
+                    paddingY: 1,
+                    fontWeight: 'bold',
+                    borderRadius: 3,
+                    fontSize: '1rem',
+                    letterSpacing: '0.5px',
+                    boxShadow: 3,
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+                </Button>
+              </Box>
+           </>
+            )}
           </Form>
             {selectedProjectNameAdd && selectedProjectNameAdd !== "Network Devices" && (
               <h4 className="fw-bold text-danger mb-3">
