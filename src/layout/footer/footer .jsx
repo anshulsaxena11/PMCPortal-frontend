@@ -36,6 +36,17 @@ const Footer = ({ isSidebarExpanded }) => {
                 Software Technology Parks of India
             </Typography>
         </Grid>
+          <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'left', md: 'left' } }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              Support
+            </Typography>
+            <Typography variant="body2">
+                E-Mail :- pavitra@stpi.in
+            </Typography>
+            <Typography variant="body2">
+                Mobile :- +91 9899647440
+            </Typography>
+          </Grid>
           <Grid item xs={12} md={4} sx={{ textAlign: { xs: 'left', md: 'right' } }}>
             <Typography variant="body2">
               © {new Date().getFullYear()} STPI. All rights reserved.

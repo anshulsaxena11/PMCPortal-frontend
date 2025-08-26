@@ -6,7 +6,7 @@ const VaptLoader = () => {
     <div className="vapt-loader-overlay">
       <div className="vapt-loader">
         <div className="spinner"></div>
-        <div className="vapt-text">STPI NOIDA</div> {/* Animated Text */}
+        <div className="vapt-text">STPI</div> {/* Animated Text */}
       </div>
     </div>
   );
