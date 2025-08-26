@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from "react-hook-form";
-import { Button, Spinner, InputGroup  } from 'react-bootstrap';
+import { Spinner, InputGroup  } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { IoIosSave } from "react-icons/io";
 import Form from 'react-bootstrap/Form';
 import { TiArrowBack } from "react-icons/ti";
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import Select from 'react-select';
 import {postRegister} from "../../../api/loginApi/loginApi"
 import {empList} from '../../../api/syncEmp/syncEmp'
@@ -118,14 +121,35 @@ const UserLoginForm = () => {
         <div>
             <div className='container-fluid'>
                 <div className='row'>
-                    <div className='col-sm-10 col-md-10 col-lg-10'>
-                        <h1>User Registration</h1>
-                    </div>
-                    <div className='col-sm-2 col-md-2 ol-lg-2'>
-                        <Button variant="danger" className='btn btn-success ' onClick={handleBackClick}>
-                            <TiArrowBack />BACK
-                        </Button>
-                    </div>
+                   <Box
+                                       display="flex"
+                                       justifyContent="center"
+                                       alignItems="center"
+                                       position="relative"
+                                       mb={3}
+                                   >
+                                       <Box position="absolute" left={0}>
+                                       <Tooltip title="Back">
+                                           <IconButton
+                                           onClick={handleBackClick}
+                                           sx={{
+                                               backgroundColor: 'error.main',
+                                               color: 'white',
+                                               '&:hover': {
+                                               backgroundColor: 'error.dark',
+                                               },
+                                               width: 48,
+                                               height: 48,
+                                           }}
+                                           >
+                                           <ArrowBackIcon  size={24} />
+                                           </IconButton>
+                                       </Tooltip>
+                                       </Box>
+                                       <Typography variant="h4" fontWeight="bold">
+                                         User Details
+                                       </Typography>
+                                   </Box>
                 </div>
                 <hr></hr>
                 <div className="container-fluid">
@@ -227,15 +251,35 @@ const UserLoginForm = () => {
                     </Form>
                     {selectedEmp && (
                         <div className='pt-3'>
-                            <Button variant="primary" onClick={handleButtonClick} type="submit" disabled={loading}>
-                                {loading ? (
-                                    <Spinner animation="border" size="sm" />
-                                ) : (
-                                <>
-                                    <IoIosSave /> Create User
-                                </>
-                                )}
-                            </Button>
+                           <Box
+                                                      sx={{
+                                                        display: 'flex',
+                                                        justifyContent: 'flex-end',
+                                                        mt: 4, 
+                                                      }}
+                                                    >
+                                                      
+                                      
+                                                      {/* SAVE Button on the right */}
+                                                      <Button
+                                                        variant="contained"
+                                                        color="primary"
+                                                        onClick={handleButtonClick}
+                                                        disabled={loading}
+                                                        startIcon={!loading && <IoIosSave />}
+                                                        sx={{
+                                                          paddingX: 3,
+                                                          paddingY: 1,
+                                                          fontWeight: 'bold',
+                                                          borderRadius: 3,
+                                                          fontSize: '1rem',
+                                                          letterSpacing: '0.5px',
+                                                          boxShadow: 3,
+                                                        }}
+                                                      >
+                                                        {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+                                                      </Button>
+                                                    </Box>
                         </div>
                     )}
                 </div>
