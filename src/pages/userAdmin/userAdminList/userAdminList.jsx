@@ -127,7 +127,6 @@ const UserAdminList = () => {
   }
 ];
 
-
   return (
     <Box p={2}>
       <ToastContainer position="top-center" autoClose={5000} />
@@ -153,21 +152,19 @@ const UserAdminList = () => {
 
        <div style={{ height: 600, width: '100%' }}>          
       <CustomDataGrid
+        key={pageSize}
         rows={data}
         columns={gridColumns}
-         getRowId={(row) => row._id}
-        rowCount={totalCount}
-        page={page}
-        onPageChange={(newPage) => setPage(newPage)}
-        pageSize={pageSize}
-        paginationMode="server"
-        onPageSizeChange={(newSize) => setPageSize(newSize)}
-        rowsPerPageOptions={[10, 15, 25]}
         loading={loading}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
-      
+        paginationModel={{ page, pageSize }}
+        onPaginationModelChange={({ page, pageSize }) => {
+          setPage(page);
+          setPageSize(pageSize);
+        }}
+        rowCount={totalCount}
+        paginationMode="server"
+        autoHeight
+      />  
     </div>
     </Box>
     )
