@@ -70,7 +70,7 @@ const UserAdminView = ({ ID }) => {
     role: 'Role',
     edesg: 'Designation',
     taskForceMember: 'Task Force Manager',
-    StatusNoida: 'Status Noida',
+    StatusNoida: 'VAPT Team Member',
     createdAt: 'Created At',
   };
 
