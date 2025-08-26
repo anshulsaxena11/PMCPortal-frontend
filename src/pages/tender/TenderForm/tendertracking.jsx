@@ -412,27 +412,10 @@ const handleFileChange = (e) => {
          <Box
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-end',
               mt: 4, 
             }}
           >
-            <Button
-              variant="contained"
-              color="error"
-              onClick={handleBackClick}
-              startIcon={<TiArrowBack />}
-              sx={{
-                paddingX: 3,
-                paddingY: 1,
-                fontWeight: 'bold',
-                borderRadius: 3,
-                fontSize: '1rem',
-                letterSpacing: '0.5px',
-                boxShadow: 3,
-              }}
-            >
-              BACK
-            </Button>
             <Button
               variant="contained"
               color="primary"

@@ -332,7 +332,7 @@ const ReportList = () => {
         }}
       >
         <div>
-            <Button variant="contained" color="primary" disabled={loading} startIcon={!loading && <MdAssignmentAdd/>} onClick={handleAddNewClick}>ADD Vulnability</Button>
+            <Button variant="contained" color="primary" disabled={loading} onClick={handleAddNewClick}>ADD New</Button>
         </div>
       </Box>
       <div className='container-fluid pt-3'>
