@@ -56,7 +56,7 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
           xhr.responseType = "arraybuffer";
 
           xhr.onload = async () => {
-            if (xhr.status === 200) {
+            if (xhr.status === 200  && xhr.response.byteLength > 0) {
               if (docxContainerRef.current) {
                 docxContainerRef.current.innerHTML = "";
                 await renderAsync(xhr.response, docxContainerRef.current, null, {
