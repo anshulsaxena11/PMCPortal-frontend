@@ -4,15 +4,20 @@ import { renderAsync } from "docx-preview";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import './preview.css'
 
 const PreviewModal = ({ show, onHide, preview, fileType }) => {
   const docxContainerRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [imageError, setImageError] = useState(false);
+  const [docxError, setDocxError] = useState(false);
 
   useEffect(() => {
     if (!preview || !fileType) return;
+    setImageError(false);
+    setDocxError(false); 
 
     let startTime = Date.now();
     let fakeTimer;
@@ -66,8 +71,9 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
             } else {
               if (docxContainerRef.current) {
                 docxContainerRef.current.innerHTML =
-                  '<p style="color:red">Unable to preview Word document.</p>';
+                  '<p style="color:red">No data found.</p>';
               }
+              setDocxError(true);
             }
             finishLoading();
           };
@@ -75,8 +81,9 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
           xhr.onerror = () => {
             if (docxContainerRef.current) {
               docxContainerRef.current.innerHTML =
-                '<p style="color:red">Error loading document.</p>';
+                '<p style="color:red">No data found.</p>';
             }
+            setDocxError(true);
             finishLoading();
           };
 
@@ -84,8 +91,9 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
         } catch (error) {
           if (docxContainerRef.current) {
             docxContainerRef.current.innerHTML =
-              '<p style="color:red">Unable to preview Word document.</p>';
+              '<p style="color:red">No data found.</p>';
           }
+          setDocxError(true);
           finishLoading();
         }
       } else {
@@ -128,6 +136,7 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
           overflow: "hidden", 
         }}
       >
+       
         {/* Centered Loader */}
         {loading && (
           <Box
@@ -164,45 +173,113 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
             </Box>
           </Box>
         )}
-
+         {!preview || !fileType ? (
+          <Typography variant="h6" sx={{ color: "#f00505ff" }}>
+            No data available to preview.
+            </Typography>
+        ): (
+          <>
         {/* Image Preview */}
         {!loading && fileType.startsWith("image/") && (
-          <img
-            src={preview}
-            alt="File Preview"
-            style={{
-              maxWidth: "100%",
-              maxHeight: "100%",
-              objectFit: "contain",
-              borderRadius: "8px",
-            }}
-          />
+          imageError ? (
+            <Box
+              sx={{
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                gap: 1,
+              }}
+            >
+            <ErrorOutlineIcon sx={{ fontSize: 48, color: "red" }} />
+            <Typography variant="body1" sx={{ color: "red" }}>
+              No data found.
+            </Typography>
+          </Box>
+          ) : (
+            <img
+              src={preview}
+              alt="File Preview"
+              onError={() => setImageError(true)}
+              style={{
+                maxWidth: "100%",
+                maxHeight: "100%",
+                objectFit: "contain",
+                borderRadius: "8px",
+              }}
+            />
+          )
         )}
 
         {/* PDF Preview */}
         {!loading && fileType === "application/pdf" && (
-          <embed
-            src={preview}
+          <object
+            data={preview}
             type="application/pdf"
             width="100%"
             height="100%"
-          />
+            style={{ borderRadius: "8px" }}
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <ErrorOutlineIcon sx={{ fontSize: 48, color: "red" }} />
+              <Typography variant="body1" sx={{ color: "red" }}>
+                No data found
+              </Typography>
+            </Box>
+          </object>
         )}
 
-        {fileType ===
-          "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
-          <div
-            ref={docxContainerRef}
-            style={{
-              flex: 1,                    
-              width: "100%",
-              overflow: "auto",           
-              display: loading ? "none" : "block",    
-              borderRadius: "8px",
-              padding: "20px",
-            }}
-          />
+       {!loading &&
+          fileType ===
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" && (
+            docxError ? (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  textAlign: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 1,
+                }}
+              >
+              <ErrorOutlineIcon sx={{ fontSize: 48, color: "red" }} />
+              <Typography variant="body1" sx={{ color: "red" }}>
+                No data found
+              </Typography>
+            </Box>
+            ) : (
+              <div
+                ref={docxContainerRef}
+                style={{
+                  flex: 1,
+                  width: "100%",
+                  overflow: "auto",
+                  borderRadius: "8px",
+                  padding: "20px",
+                }}
+              />
+            )
         )}
+          </>
+          )}
       </Modal.Body>
 
       <Modal.Footer style={{ backgroundColor: "#2c3e50" }}>
