@@ -70,8 +70,8 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
               if (docxContainerRef.current) {
                 docxContainerRef.current.innerHTML =
                   '<p style="color:red">No Data Found.</p>';
+                }
                 setDocxError(true);
-              }
             }
             finishLoading();
           };
@@ -80,8 +80,8 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
             if (docxContainerRef.current) {
               docxContainerRef.current.innerHTML =
                 '<p style="color:red">No Data Found.</p>';
-                 setDocxError(true);
-            }
+              }
+              setDocxError(true);
             finishLoading();
           };
 
@@ -90,8 +90,8 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
           if (docxContainerRef.current) {
             docxContainerRef.current.innerHTML =
               '<p style="color:red">No Data Found.</p>';
-               setDocxError(true);
-          }
+            }
+            setDocxError(true);
           finishLoading();
         }
       } else {
