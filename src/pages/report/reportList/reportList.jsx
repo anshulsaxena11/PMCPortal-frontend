@@ -321,7 +321,7 @@ const ReportList = () => {
   return (
     <div>
       <div className='container-fluid pb-3'>
-        <Heading title="List Of Vulnability"/>
+        <Heading title="List Of Vulnerabilities"/>
          <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
       </div>
       <Box
