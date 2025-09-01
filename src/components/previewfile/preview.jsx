@@ -113,7 +113,7 @@ const PreviewModal = ({ show, onHide, preview, fileType }) => {
       onHide={onHide}
       fullscreen
       centered
-      style={{ zIndex: 2000 }}
+      style={{ zIndex: 10000 }}
     >
       <Modal.Header
         closeButton

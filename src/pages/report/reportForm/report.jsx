@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef  } from 'react';
+import React, { useState, useEffect, useRef,useCallback   } from 'react';
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import reportValidationSchema from '../../../validation/reportValidationSchema';
-import {postReport,getVulListSpecific} from '../../../api/reportApi/reportApi'
+import {postReport,getVulListSpecific,searhName } from '../../../api/reportApi/reportApi'
 import 'react-quill/dist/quill.snow.css'; 
 import Form from 'react-bootstrap/Form';
 import { useNavigate } from 'react-router-dom';
@@ -20,12 +20,15 @@ import FormComponent from '../../../components/formComponent/formcomponent'
 import PopupForm from '../../../components/PopBoxForm/PopupBoxForm'
 import { CiViewList } from "react-icons/ci";
 import { IoIosSave,IoMdAdd } from "react-icons/io";
+import { CgPlayListRemove } from "react-icons/cg";
 import { MdOutlineAddModerator } from "react-icons/md";
+import { TbPlaylistAdd } from "react-icons/tb"; 
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import { TiArrowBack } from "react-icons/ti";
 import { FaEye } from "react-icons/fa";
+import debounce from 'lodash.debounce';
 import { FcDocument } from 'react-icons/fc'; 
 import'./report.css'
 
@@ -87,9 +90,13 @@ const ReportPage = () => {
   const ipAddress = watch('ipAddress')
   const [filePreview, setFilePreview] = useState('');
   const [previewFileType, setPreviewFileType] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
  
  useEffect(() => {
   setValue("Path", ipAddress); // ← This would cause what you're describing
+  setValue("VulnerableParameter", ipAddress); // ← This would cause what you're describing
 }, [ipAddress]); 
 
   const savedSelectedProjectName = localStorage.getItem("selectedProjectName");
@@ -571,6 +578,27 @@ const handleDropOnIndex = (e, targetIndex) => {
     });
   }
 };
+
+ const fetchSuggestions = useCallback(
+    debounce(async (value) => {
+      if (!value.trim()) {
+        setSuggestions([]);
+        setShowSuggestions(false);
+        return;
+      }
+      try {
+        const results = await searhName  ({ search: value });
+        setSuggestions(results);
+        setShowSuggestions(true);
+      } catch (err) {
+        console.error(err);
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300),
+    []
+  );
+
   
   return (
     <div className="report-page">
@@ -760,13 +788,64 @@ const handleDropOnIndex = (e, targetIndex) => {
                 <Form.Group>
                     <Form.Label className="fs-5 fw-bolder">Devices Name<span className="text-danger">*</span>
                     </Form.Label>
-                     <Controller
-                        name="name"
-                        control={control}
-                        render={({field})=>(
-                          <input {...field} className="form-control"  placeholder="Enter Name"/>
-                        )}
-                      />
+                      <Controller
+                      name="name"
+                      control={control}
+                      rules={{ required: 'Device name is required' }}
+                      render={({ field }) => (
+                        <div style={{ position: 'relative' }}>
+                          <input
+                            {...field}
+                            className="form-control"
+                            placeholder="Enter Name"
+                            autoComplete="off"
+                            onChange={(e) => {
+                              field.onChange(e);
+                              fetchSuggestions(e.target.value);
+                            }}
+                            onBlur={() => {
+                              // Delay hiding suggestions so click works
+                              setTimeout(() => setShowSuggestions(false), 200);
+                            }}
+                            onFocus={() => {
+                              if (suggestions.length) setShowSuggestions(true);
+                            }}
+                          />
+
+                          {showSuggestions && suggestions.length > 0 && (
+                            <ul
+                              style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                backgroundColor: 'white',
+                                border: '1px solid #ccc',
+                                maxHeight: '150px',
+                                overflowY: 'auto',
+                                margin: 0,
+                                padding: 0,
+                                listStyle: 'none',
+                                zIndex: 9999,
+                              }}
+                            >
+                              {suggestions.map((item, idx) => (
+                                <li
+                                  key={idx}
+                                  style={{ padding: '8px', cursor: 'pointer' }}
+                                  onMouseDown={() => {
+                                    field.onChange(item.Name || item.name || ''); // adapt to your API response
+                                    setShowSuggestions(false);
+                                  }}
+                                >
+                                  {item.Name || item.name}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+                    />
                       {errors.name && <p className="text-danger">{errors.name.message}</p>}
                   </Form.Group>
                 )}
@@ -1024,15 +1103,22 @@ const handleDropOnIndex = (e, targetIndex) => {
               </Form.Group>
               <Form.Group className="mb-3" controlId="ProofOfConcept">
               <Form.Label className="fs-5 fw-bolder">Proof Of Concept<span className="text-danger">*</span></Form.Label>
-              <div className="container border py-4" style={{ maxHeight: "350px", overflowY: "auto" }}>
+              <div className="container-fluid border py-4" style={{ maxHeight: "350px", overflowY: "auto" }}>
                 {proofOfConcepts.map((proof, index) => (
                   <div className="row mb-3" key={index}>
                     <div className="col-12 d-flex justify-content-between align-items-center">
                       <Form.Label className="fs-6 fw-bolder">Step {index + 1}</Form.Label>
                       {proofOfConcepts.length > 3 && (
-                        <Button variant="danger" size="sm" onClick={() => handleRemoveStep(index)}>
-                          Remove
-                        </Button>
+
+                        <Button
+                          color="error"
+                          variant="contained"
+                          disabled={loading}
+                          size="small"
+                          startIcon={!loading && <CgPlayListRemove  />}
+                          onClick={() => handleRemoveStep(index)}
+                          className="mt-2"
+                        >Remove</Button>
                       )}
                     </div>
                     <div className="col-md-6">
@@ -1143,9 +1229,14 @@ const handleDropOnIndex = (e, targetIndex) => {
                 ))}
               </div>
               <div className="mt-3">
-                <Button variant="success" size="sm" onClick={handleAddStep}>
-                  ADD
-                </Button>
+                <Button
+                  color="success"
+                  variant="contained"
+                  size="small"
+                  onClick={handleAddStep}
+                  disabled={loading}
+                  startIcon={!loading && <TbPlaylistAdd  />}
+                >ADD</Button>
               </div>
               </Form.Group>
               <Form.Group className="mb-3">
