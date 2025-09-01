@@ -21,7 +21,7 @@ const PopupForm = ({ show, handleClose, title, children, showFooter, footerText,
   };
 
   return (
-    <Modal show={show} onHide={handleClose}  dialogClassName={`${dialogClassName || ''} ${dimmed ? 'popup-dimmed' : ''}`.trim()}>
+    <Modal show={show} onHide={handleClose}  dialogClassName={`${dialogClassName || ''} ${dimmed ? 'popup-dimmed' : ''}`.trim()} style={{ position: 'fixed',top: '60%',left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999}}>
       <Modal.Header closeButton>
         <Modal.Title>{title}</Modal.Title>
       </Modal.Header>

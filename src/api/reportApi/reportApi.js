@@ -58,3 +58,5 @@ export const getVulListSpecific = async ({ projectName, projectType, round, devi
   })).data;
 
   export const deleteReportBYId = async(id)=>await axiosInstance.put(`/user/reportDeleted/${id}`,{ withCredentials: true,}).then(response => response.data).catch(error => { throw error });
+
+  export const searhName = async({search=" "})=> axiosInstance.get('/user/searchName',{ params: { search }, withCredentials: true,}).then(response => response.data).catch(error => { throw error });
