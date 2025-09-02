@@ -95,7 +95,7 @@ const handleMouseEnter = () => {
     { role: "Admin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
     { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
-    { role: "Admin", label: "Vulnerability", icon: <BiSolidReport />, path: "/report" },
+    { role: "Admin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
     // { role: "Admin", label: "Generate File", icon: <TbReportAnalytics />, path: "/ReportPdfGenerator" },
     { role: "Admin", label: "VAPT Team Members", icon: <BsMicrosoftTeams />, path: "/admin-Emp" },
     { role: "Admin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
@@ -219,8 +219,8 @@ const handleMouseEnter = () => {
               const isOpen = openGroups[item.label] || location.pathname.includes(item.children?.map(c => c.path).join(","));
               return (
                 <React.Fragment key={index}>
-                  <ListItem button onClick={() => handleToggleGroup(item.label)} sx={{ px: 2 }}>
-                    <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
+                  <ListItem button onClick={() => handleToggleGroup(item.label)} sx={{ px: 2,  cursor: !isDrawerOpen  ? "default" : "pointer", }}>
+                    <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center", }}>
                       {item.icon}
                     </ListItemIcon>
                     {isDrawerOpen  && (
@@ -240,6 +240,7 @@ const handleMouseEnter = () => {
                             selected={location.pathname === child.path}
                             sx={{
                               pl: isDrawerOpen  ? 4 : 4,
+                              cursor: !isDrawerOpen  ? "default" : "pointer",
                               backgroundColor:
                                 location.pathname === child.path ? "rgba(255, 255, 255, 0.12)" : "inherit",
                               borderLeft:
@@ -294,8 +295,8 @@ const handleMouseEnter = () => {
           <Divider sx={{ bgcolor: "gray", my: 1 }} />
 
           {/* Logout */}
-          <Tooltip title={!isDrawerOpen  ? "Logout" : ""} placement="right">
-            <ListItem button onClick={logout} sx={{ px: 2 }}>
+          <Tooltip title={!isDrawerOpen  ? "Logout" : ""} placement="right" >
+            <ListItem button onClick={logout} sx={{ px: 2 ,  cursor: !isDrawerOpen  ? "default" : "pointer",}}>
               <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
                 <FaSignOutAlt />
               </ListItemIcon>
