@@ -74,16 +74,9 @@ const ReportPage = () => {
   const [disableDevices, setDisableDevices] = useState("")
   const fileInputRefs = useRef([]); 
   const [roundOptions, setRoundOptions] = useState([]);
-  const [addDescription,setAddDescription] = useState("")
-  const [addImpact,setAddImpact] = useState("")
-  const [addReferance,setAddReferance] = useState("")
-  const [addRecomendation,setAddRecomendation] = useState("")
-  const [addSevirity,setAddSevirity] = useState("")
-  const [showModal, setShowModal] = useState(false);
   const [showModalPoc, setShowModalPoc] = useState(false);  
   const [showModalVulList, setShowModalVulList] = useState(false); 
   const [showVulLisst,setShowVulList] = useState([])
-  const [imageSrc, setImageSrc] = useState(null);
   const roundValue = watch("round");
   const name = watch("name");
   const deviceValue = watch("device");
@@ -181,7 +174,7 @@ const ReportPage = () => {
     } else {
       setValue("Description", "");
       setValue("Impact", ""); 
-      setValue("VulnerableParameter", ""); 
+      // setValue("VulnerableParameter", ""); 
       setValue("Referance", ""); 
       setValue("Recomendation", "");  
       setValue("severity", null);
@@ -412,7 +405,7 @@ const handleFileChange = (index, event) => {
     setValue("selectedVulnerability", null);
     setValue("Description", "");
     setValue("Impact", "");
-    setValue("VulnerableParameter", "");
+    // setValue("VulnerableParameter", "");
     setValue("Referance", "");
     setValue("Recomendation", "");
     setValue("severity", null);
@@ -446,22 +439,6 @@ const handleFileChange = (index, event) => {
   }
 
 
-  // const handeleVulnabilitySubmit = async()=>{
-  //   const payload = {
-  //     projectName:selectedProjectNameAdd,
-  //     devices:selectDevice?.label,
-  //     vulnerabilityTypes:addVulnerability,
-  //     severity:addSevirity,
-  //     description:addDescription,
-  //     impact:addImpact,
-  //     recommendation:addRecomendation,
-  //     references:addReferance
-
-  //   }
-
-  //   console.log(payload,'payload')
-
-  // }
  const handleShowModal = () => {
   const selectedProject = getValues("selectedProjectName");
   const selectedRound = getValues("round");
@@ -715,7 +692,7 @@ const handleDropOnIndex = (e, targetIndex) => {
           </Tooltip>
         </Box>
         <Typography variant="h4" fontWeight="bold">
-          Vulnerability
+          Vulnerabilities
         </Typography>
       </Box>
      </div>
@@ -753,7 +730,7 @@ const handleDropOnIndex = (e, targetIndex) => {
                         setValue("ProjectType",null);
                         setValue("Description", "");
                         setValue("Impact", "");
-                        setValue("VulnerableParameter", "");
+                        // setValue("VulnerableParameter", "");
                         setValue("Referance", "");
                         setValue("Recomendation", "");
                         setValue("severity", null);
@@ -875,7 +852,7 @@ const handleDropOnIndex = (e, targetIndex) => {
                         setValue("Description", "");
                         // setValue("device",null)
                         setValue("Impact", "");
-                        setValue("VulnerableParameter", "");
+                        // setValue("VulnerableParameter", "");
                         setValue("Referance", "");
                         setValue("Recomendation", "");
                         setValue("severity", null);
@@ -1014,7 +991,7 @@ const handleDropOnIndex = (e, targetIndex) => {
                   </Form.Group>
               </div>
               <div className='col-sm-6 col-md-6 col-lg-6'>
-                  <Form.Group className="mb-3 ">
+                  <Form.Group className="mt-3">
                   <Form.Label className="fs-5 fw-bolder">Severity<span className="text-danger">*</span></Form.Label>
                   <Controller
                   name="severity"
