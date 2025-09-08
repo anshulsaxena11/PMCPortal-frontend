@@ -100,7 +100,6 @@ const handleMouseEnter = () => {
     { role: "Admin", label: "VAPT Team Members", icon: <BsMicrosoftTeams />, path: "/admin-Emp" },
     { role: "Admin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "Admin", label: "Skill Mapping", icon: <GiSkills />, path: "/skills-Mapping" },
-
     { role: "Admin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "Admin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
@@ -112,6 +111,7 @@ const handleMouseEnter = () => {
       children: [
         { role: "Admin", label: "Tools and Hardware", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
         { role: "Admin", label: "Type Of Work", icon: <MdSpatialTracking />, path: "/type-of-work-master-list" },
+        { role: "Admin", label: "Scope Of Work", icon: <MdSpatialTracking />, path: "/Scope-Of-Work-Master" },
       ],
     },
     //subadmin

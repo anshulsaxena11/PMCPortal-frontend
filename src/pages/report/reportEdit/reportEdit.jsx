@@ -78,9 +78,10 @@ const EditReportForm = () => {
     const [filePreview, setFilePreview] = useState('');
     const [previewFileType, setPreviewFileType] = useState('');
     const ipAddress = watch("ipAddress");
-
+    
     useEffect(() => {
-      setValue("path", ipAddress); 
+        setValue("path", ipAddress); 
+        setValue("vulnerableParameter", ipAddress);
     }, [ipAddress, setValue]); 
 
     const handleBackClick = () => {
@@ -466,7 +467,7 @@ const EditReportForm = () => {
         if (selectedVuln) {
             setValue('description', selectedVuln.description || ""); 
             setValue("impact",selectedVuln.impact)
-            setValue("vulnerableParameter",selectedVuln.vulnarabilityParameter)
+            // setValue("vulnerableParameter",selectedVuln.vulnarabilityParameter)
             setValue("references",selectedVuln.references)
             setValue("recomendation",selectedVuln.recommendation)
             const severityValue = sevirtyOptions.find((option) => option.value === selectedVuln.severity);
@@ -474,7 +475,7 @@ const EditReportForm = () => {
         } else {
             setValue('description', "");
             setValue("impact", ""); 
-            setValue("vulnerableParameter", ""); 
+            // setValue("vulnerableParameter", ""); 
             setValue("references", ""); 
             setValue("recomendation", "");  
             setSelectSevirity("sevirty", null);

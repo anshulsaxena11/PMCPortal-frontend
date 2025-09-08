@@ -36,6 +36,10 @@ import TypesOfWorkMasterList from "../../pages/TypesOfWorksMaster/TypesOfWorkMas
 import TypesOfWorkMasterView from "../../pages/TypesOfWorksMaster/TypeOfWorkMasterView/TypesPfWorkMasterView.jsx"
 import TypesOfWorkMasterEdit from "../../pages/TypesOfWorksMaster/TypesOfWorkMasterEdit/TypesOfWorkMasterEdit.jsx"
 import TypesOfWorkMasterForm from "../../pages/TypesOfWorksMaster/TypesOfWorkMasterForm/TypesOfWorkMasterForm.jsx"
+import ScopeOfWorkMasterList from "../../pages/scopeOfWorkMaster/ScopeOfWorkMasterList/ScopeOfWorkMasterList"
+import ScopeOfWorkMasterView from "../../pages/scopeOfWorkMaster/ScopeOfWorkMasterView/ScopeOfWorkMasterView.jsx"
+import ScopeOfWorkForm from "../../pages/scopeOfWorkMaster/ScopeOfWorkForm/ScopeOfWorkForm.jsx"
+import ScopeOfWorkEdit from "../../pages/scopeOfWorkMaster/ScopeOfWorkEdit/ScopeOfWorkEdit.jsx"
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -96,6 +100,10 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/type-of-work-master-view/:id" element ={<TypesOfWorkMasterView/>}/> 
           <Route path="/type-of-work-master-edit/:id" element ={<TypesOfWorkMasterEdit/>}/>
           <Route path="/type-of-work-master-form" element={<TypesOfWorkMasterForm/>}/>
+          <Route path="/Scope-Of-Work-Master" element={<ScopeOfWorkMasterList/>}/>
+          <Route path="/Scope-of-Work-View/:id" element={<ScopeOfWorkMasterView/>}/>
+          <Route path="/Scope-of=Work-Form" element={<ScopeOfWorkForm/>}/>
+          <Route path="/Scope-Of-Work=Edit/:id" element={<ScopeOfWorkEdit/>}/>
         </Routes>
       </div>
     </div>

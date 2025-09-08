@@ -6,3 +6,5 @@ export const editToolsAndHardware  = async (id, Payload) =>  axiosInstance.put(`
 export const postToolsAndHardware = async(payload) => axiosInstance.post('/user/toolsAndHardware', payload,{ withCredentials: true,})
 export const getToolsAndHardware = async ({ page = "", limit = "", search =" " ,directorates=""} = {}) => axiosInstance.get("/user/toolsAndHardware", { params: { page, limit, search,directorates }, withCredentials: true, }).then(response => response.data);
 export const putToolsAndHardware  = async (id, Payload) =>  axiosInstance.put(`/user/toolsAndHardware/${id}`, Payload, {withCredentials: true,});
+export const deleteToolsAndHardwareMaster = async(id) => await axiosInstance.put(`/user/toolsAndHardwareMasterDelete/${id}`,{withCredentials: true}).catch(err=>err.response ||  { status: 500, data: { message: err.message } });
+export const deleteToolsAndHardware = async(id) => await axiosInstance.put(`/user/toolsAndHardwareDelete/${id}`,{withCredentials: true}).catch(err=>err.response ||  { status: 500, data: { message: err.message } });

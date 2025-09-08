@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { DataGrid } from '@mui/x-data-grid';
-import { getToolsAndHardwareMappping } from '../../../api/toolsAndHardware/toolsAndHardware';
+import { getToolsAndHardwareMappping, deleteToolsAndHardwareMaster } from '../../../api/toolsAndHardware/toolsAndHardware';
 import { useNavigate } from 'react-router-dom';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 import Heading from '../../../components/Heading/heading';
@@ -15,6 +14,8 @@ import {
   IconButton
 } from '@mui/material';
 import { Visibility, Edit, Delete } from '@mui/icons-material';
+import withReactContent from 'sweetalert2-react-content';
+import Swal from 'sweetalert2'
 
 const ToolsAndHardwareList = () => {
   const [data, setData] = useState([]);
@@ -25,39 +26,81 @@ const ToolsAndHardwareList = () => {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const MySwal = withReactContent(Swal);
   
-
   const statusOptions = [
     { value: '', label: 'All' },
     { value: 'Software', label: 'Software' },
     { value: 'Hardware', label: 'Hardware' },
   ];
 
-
-      const fetchData = async () => {
-  setLoading(true);
-  try {
-    const response = await getToolsAndHardwareMappping({
-      page: page + 1,
-  limit: pageSize, // <-- dynamic!
-  search: searchQuery.trim(),
-  toolsAndHardwareType: selectedStatus || "",
+  const handleDeleteClick = async (data) => {
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: "This action cannot be undone.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
     });
+  
+    if (!result.isConfirmed) return;
+    try {
+      const id =data
+      const response = await deleteToolsAndHardwareMaster(id);
+  
+      if (response?.data?.statusCode === 200) {
+          MySwal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: response?.data?.message,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        fetchData()
+  
+      } else {
+          MySwal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      MySwal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: error?.message || 'Something went wrong!',
+    });
+    }
+  };
 
-    const rowsWithSno = response.data.map((item, index) => ({
-      ...item,
-      id: item._id, // MUI needs `id`
-      sno: page * pageSize + index + 1,
-    }));
 
-    setData(rowsWithSno);
-    setRowCount(response.total || 0); // total items from backend
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getToolsAndHardwareMappping({
+        page: page + 1,
+        limit: pageSize, // <-- dynamic!
+        search: searchQuery.trim(),
+        toolsAndHardwareType: selectedStatus || "",
+      });
+      const rowsWithSno = response.data.map((item, index) => ({
+        ...item,
+        id: item._id, // MUI needs `id`
+        sno: page * pageSize + index + 1,
+      }));
+
+      setData(rowsWithSno);
+      setRowCount(response.total || 0); // total items from backend
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     fetchData();
   }, [page, pageSize, searchQuery, selectedStatus]);
@@ -73,19 +116,19 @@ const ToolsAndHardwareList = () => {
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-
-
              <IconButton
-                        onClick={() => navigate(`/Tools-Hardware-Master-View/${params.row._id}`)} size="small"
-                      >
-                        <Visibility />
-                      </IconButton>
-                      <IconButton
-                        onClick={() => navigate(`/Tools-Hardware-Master-Edit/${params.row._id}`)} size="small"
-                      >
-                        <Edit />
-                      </IconButton>
-         
+                onClick={() => navigate(`/Tools-Hardware-Master-View/${params.row._id}`)} size="small"
+              >
+                <Visibility />
+              </IconButton>
+              <IconButton
+                onClick={() => navigate(`/Tools-Hardware-Master-Edit/${params.row._id}`)} size="small"
+              >
+                <Edit />
+              </IconButton>
+              <IconButton color="error" onClick={() => handleDeleteClick(params.row.id)}>
+                <Delete />
+              </IconButton>
         </Stack>
       ),
     },
@@ -93,69 +136,61 @@ const ToolsAndHardwareList = () => {
 
   return (
     <Box>
-
         <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Heading title=" Tools And Hardware Master List" />        
-          <Button variant="contained" onClick={() => navigate('/Tools-Hardware-Master')}>
-            Add New
-          </Button>
+          <Heading title=" Tools And Hardware Master List" />        
+            <Button variant="contained" onClick={() => navigate('/Tools-Hardware-Master')}>
+              Add New
+            </Button>
         </Stack>
         <hr></hr>
-      <Stack direction="row" spacing={2} mb={2}>
-        <TextField
-          label="Search"
-          variant="outlined"
-          size="small"
-          sx={{ width: '70%' }}
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setPage(0);
-          }}
-        />
-
-        <TextField
-          select
-          label="Type"
-          size="small"
-          value={selectedStatus}
-          sx={{ width: '30%' }}
-          onChange={(e) => {
-            setSelectedStatus(e.target.value);
-            setPage(0);
-          }}
-        >
-          {statusOptions.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        
-      </Stack>
-
-      <Box height={500}>
-        <CustomDataGrid
-  rows={data}
-  columns={columns}
-  page={page}
-  onPageChange={(newPage) => setPage(newPage)}
-  pageSize={pageSize}
- 
-  paginationModel={{ page, pageSize }}
-  onPaginationModelChange={({ page, pageSize }) => {
-    setPage(page);
-    setPageSize(pageSize);
-  }}
-  rowCount={rowCount}
-  paginationMode="server"
-  rowsPerPageOptions={[10, 15, 25]}
-  loading={loading}
-/>
-
+        <Stack direction="row" spacing={2} mb={2}>
+          <TextField
+            label="Search"
+            variant="outlined"
+            size="small"
+            sx={{ width: '70%' }}
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(0);
+            }}
+          />
+          <TextField
+            select
+            label="Type"
+            size="small"
+            value={selectedStatus}
+            sx={{ width: '30%' }}
+            onChange={(e) => {
+              setSelectedStatus(e.target.value);
+              setPage(0);
+            }}
+          >
+            {statusOptions.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
+        <Box height={500}>
+          <CustomDataGrid
+            rows={data}
+            columns={columns}
+            page={page}
+            onPageChange={(newPage) => setPage(newPage)}
+            pageSize={pageSize}
+            paginationModel={{ page, pageSize }}
+            onPaginationModelChange={({ page, pageSize }) => {
+              setPage(page);
+              setPageSize(pageSize);
+            }}
+            rowCount={rowCount}
+            paginationMode="server"
+            rowsPerPageOptions={[10, 15, 25]}
+            loading={loading}
+          />
       </Box>
-
       {loading && (
         <Box display="flex" justifyContent="center" mt={2}>
           <CircularProgress />

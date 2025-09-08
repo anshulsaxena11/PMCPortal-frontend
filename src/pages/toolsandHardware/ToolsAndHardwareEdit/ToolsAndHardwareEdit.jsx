@@ -3,13 +3,11 @@ import { useForm } from "react-hook-form";
 import { Form, Spinner} from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
-import { IoIosSave } from "react-icons/io";
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { putToolsAndHardware, getToolsAndHardwareMappping } from "../../../api/toolsAndHardware/toolsAndHardware"
 import { directoratesList, srpiEmpTypeListActive } from '../../../api/syncEmp/syncEmp'
-import { FaEdit } from "react-icons/fa";
-import { TiArrowBack } from "react-icons/ti";
+import EditIcon from '@mui/icons-material/Edit';
 import Select from "react-select";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -248,7 +246,7 @@ const ToolsAndHardwareEdit = ({ID}) => {
                 </Typography>
               </Box>
              </div>
-                <hr></hr>
+            <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
                 <form onSubmit={handleSubmit(onSubmit)} className="edit-project-form">
                     <div className="row pt-4" >
                         <div className="col-sm-4 col-md-4 col-lg-4">
@@ -262,7 +260,7 @@ const ToolsAndHardwareEdit = ({ID}) => {
                                     isLoading={loading}
                                 />
                             </Form.Group>
-                            <Form.Group>
+                            <Form.Group className='pt-4'>
                                 <Form.Label className="fs-5 fw-bolder">Assigned Directorates<span className="text-danger">*</span></Form.Label>
                                 <Select
                                     name="directorates"
@@ -281,7 +279,7 @@ const ToolsAndHardwareEdit = ({ID}) => {
                                     {...register("quantity")} 
                                 />
                             </Form.Group>
-                            <Form.Group>
+                            <Form.Group className='pt-4'>
                             <Form.Label className="fs-5 fw-bolder">Assigned Officer<span className="text-danger">*</span></Form.Label>
                                 <Select
                                     name="assignedTo"
@@ -326,7 +324,7 @@ const ToolsAndHardwareEdit = ({ID}) => {
                                     />
                                         </Form.Group>
                                 </div>
-                                <Form.Group>
+                                <Form.Group className='pt-2'>
                                 <Form.Label className="fs-5 fw-bolder">Purchased Order<span className="text-danger">*</span></Form.Label>
                                 <Form.Control
                                     type="text" 
@@ -335,7 +333,7 @@ const ToolsAndHardwareEdit = ({ID}) => {
                             </Form.Group>
                             </div>
                         </div>
-                            <Form.Group>
+                            <Form.Group className='pt-4'>
                                 <Form.Label className="fs-5 fw-bolder">Description<span className="text-danger">*</span></Form.Label>
                                     <Form.Control
                                     type="text" 
@@ -356,10 +354,10 @@ const ToolsAndHardwareEdit = ({ID}) => {
                                                {/* SAVE Button on the right */}
                                                <Button
                                                  variant="contained"
-                                                 color="primary"
+                                                 color="success"
                                                  onClick={onSubmit}
                                                  disabled={loading}
-                                                 startIcon={!loading && <IoIosSave />}
+                                                 startIcon={!loading && <EditIcon />}
                                                  sx={{
                                                    paddingX: 3,
                                                    paddingY: 1,
@@ -370,7 +368,7 @@ const ToolsAndHardwareEdit = ({ID}) => {
                                                    boxShadow: 3,
                                                  }}
                                                >
-                                                 {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+                                                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Update'}
                                                </Button>
                                              </Box>
                 </form>

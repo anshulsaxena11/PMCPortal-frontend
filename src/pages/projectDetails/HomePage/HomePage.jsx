@@ -6,20 +6,17 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import {getTypeOfWork} from '../../../api/typeOfWorkAPi/typeOfWorkApi'
 import DatePicker from "react-datepicker";
 import { postPerseonlData } from '../../../api/ProjectDetailsAPI/projectDetailsApi'
-import { postdirectrate, getdirectrate } from '../../../api/directrateAPI/directrate'
-import {postProjectTypeList, getProjectTypeList} from '../../../api/projectTypeListApi/projectTypeListApi'
+import { getdirectrate } from '../../../api/directrateAPI/directrate'
+import {getProjectTypeList} from '../../../api/projectTypeListApi/projectTypeListApi'
 import "react-datepicker/dist/react-datepicker.css";
 import { useForm, Controller } from "react-hook-form";
 import PreviewModal from '../../../components/previewfile/preview';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Popup from '../../../components/popupBox/PopupBox'
-import FormComponent from '../../../components/formComponent/formcomponent'
 import { PiImagesSquareBold } from "react-icons/pi";
 import { FcDocument } from "react-icons/fc";
 import { useNavigate } from 'react-router-dom';
 import Select from "react-select";
-import { TiArrowBack } from "react-icons/ti";
 import { IoIosSave } from "react-icons/io";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -43,14 +40,10 @@ const HomePage = () => {
 
   const [preview, setPreview] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
-  const [showModal, setShowModal] = useState(false);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
-  const [showDirectrateModal, setShowDirectrateModal] = useState(false);
-  const [projectTypeName, setProjectTypeName] = useState([]); 
   const [selectedTypeOfWorkOptions, setSelectedTypeOfWorkOptions] = useState([]);
   const [directrateOptions, setDirectrateOptions]= useState([])
   const [error, setError] = useState(null);
-  const [directrateName, setDirectrateName] = useState('');
   const [projectTypes, setProjectTypes] = useState([]);
   const [disableScopeOfWork,setDisableScopeOfWork] =useState()
   const [typeOfWorkOption,setTypeOfWorkOption] = useState([]);
@@ -58,7 +51,7 @@ const HomePage = () => {
   const [fileType, setFileType] = useState(''); 
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-   const inputRef = useRef(null);
+  const inputRef = useRef(null);
 
   useEffect(()=>{
     const fetchTypeOfWork = async() =>{
@@ -229,83 +222,6 @@ const HomePage = () => {
       handleSubmit(handleFormdataSubmit)();
   };
 
-  const handelProjectListFormSubmit = async() =>{
-    const payload = {
-      ProjectTypeName:projectTypeName 
-    }
-    setLoading(true);
-    try{
-      const response = await postProjectTypeList(payload);
-      if (response.statusCode === 200){
-        toast.success("Project type added successfully!",{
-           className: 'custom-toast custom-toast-success'
-      });
-        setProjectTypeName("");
-      } else if (response.statusCode === 400 && response.message.includes("Scope of work already exist")){
-        toast.error(response.message, {
-          className: "custom-toast custom-toast-error",
-        });
-      }
-    }catch(error){ 
-      toast.error(error?.message || "Failed to add Scope Of Work.", {
-        className: "custom-toast custom-toast-error",
-      });
-    }finally{
-      setLoading(false);
-    }
-  }
-
-  const handleDirectrateFormSubmit = async()=>{
-    const payload ={
-      directrate:directrateName,
-    }
-    setLoading(true);
-    try{
-      const response = await postdirectrate(payload);
-      if(response.statusCode == 200){
-        toast.success("Project type added successfully!",{
-          className: 'custom-toast custom-toast-success'
-        });
-        setDirectrateName('')
-      }else if (response.statusCode === 400 && response.message.includes("Directorates already exist")){
-        toast.error(response.message, {
-          className: "custom-toast custom-toast-error",
-        });
-      }
-    } catch(error){
-      toast.error(error?.message || "Failed to add Scope Of Work.", {
-        className: "custom-toast custom-toast-error",
-      });
-    }finally{
-      setLoading(false);
-    }
-  }
-
-  const handleInputChange = (e) => {
-    setProjectTypeName(e.target.value);
-  };
-
-  const handleDirectrateInputChange = (e) => {
-    setDirectrateName(e.target.value);
-  }
-
-  const handledirectrateshow = () =>{
-    setShowDirectrateModal(true);
-  }
-
-  const handledirectrateClose = () =>{
-    setShowDirectrateModal(false)
-  }
-
-  const handleShow = () => {
-    setShowModal(true); 
-  };
-
-
-  const handleClose = () => {
-    setShowModal(false); 
-  };
-
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setUploadedFile(file);
@@ -359,37 +275,7 @@ const HomePage = () => {
 
   return (
     <div className="home-page">
-        <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
-        <Popup
-        show={showDirectrateModal}
-        handleClose={handledirectrateClose}
-        title="ADD Directrate Name"   
-        showFooter={true}      
-        footerText="Close" 
-        handleAdd={handleDirectrateFormSubmit}   
-      >     
-      <FormComponent
-        label="Add Directorates Name" 
-        placeholder="Enter Directorates Name"
-        value={directrateName} 
-        onChange={handleDirectrateInputChange}
-      />
-      </Popup>
-      <Popup
-        show={showModal}
-        handleClose={handleClose}
-        title="ADD Scope Of Work Type"   
-        showFooter={true}      
-        footerText="Close" 
-        handleAdd={handelProjectListFormSubmit}   
-      >     
-       <FormComponent  
-        label="Add Scope Of Work" 
-        placeholder="Enter Scope of work"
-        value={projectTypeName} 
-        onChange={handleInputChange} 
-      />
-      </Popup>
+      <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
       <div className="row">
       <Box
         display="flex"

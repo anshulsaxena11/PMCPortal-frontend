@@ -6,10 +6,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import { editToolsAndHardware } from "../../../api/toolsAndHardware/toolsAndHardware"
-import { FaEdit } from "react-icons/fa";
-import { TiArrowBack } from "react-icons/ti";
+import EditIcon from '@mui/icons-material/Edit';
 import Select from "react-select";
-import { IoIosSave } from "react-icons/io";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import CircularProgress from '@mui/material/CircularProgress';
@@ -122,7 +120,7 @@ const ToolsAndHardwareMappingEdit = ({ID}) => {
                     </Typography>
                   </Box>
                  </div>
-                <hr></hr>
+                 <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
                 <form onSubmit={handleSubmit(onSubmit)} className="edit-project-form">
                     <div className="row pt-4" >
                         <div className="col-sm-6 col-md-6 col-lg-6">
@@ -157,10 +155,10 @@ const ToolsAndHardwareMappingEdit = ({ID}) => {
                                 >
                                 <Button
                                   variant="contained"
-                                 color="primary"
+                                 color="success"
                                  onClick={onSubmit}
                                   disabled={loading}
-                                 startIcon={!loading && <IoIosSave />}
+                                 startIcon={!loading && <EditIcon />}
                                   sx={{
                                   paddingX: 3,
                                   paddingY: 1,
@@ -171,7 +169,7 @@ const ToolsAndHardwareMappingEdit = ({ID}) => {
                                    boxShadow: 3,
                                    }}
                                   >
-                                 {loading ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+                                 {loading ? <CircularProgress size={24} color="inherit" /> : 'Update'}
                                   </Button>
                                   </Box>
                                   </>

@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Button, CircularProgress, MenuItem, TextField, Typography, IconButton, Stack } from '@mui/material';
+import { Box, Button, MenuItem, TextField, IconButton, Stack } from '@mui/material';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 import Heading from '../../../components/Heading/heading';
-import { getToolsAndHardware } from '../../../api/toolsAndHardware/toolsAndHardware';
+import { getToolsAndHardware,deleteToolsAndHardware } from '../../../api/toolsAndHardware/toolsAndHardware';
 import { directoratesList } from '../../../api/syncEmp/syncEmp';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import { Visibility, Edit, Delete } from '@mui/icons-material';
+import withReactContent from 'sweetalert2-react-content';
+import Swal from 'sweetalert2'
 
 const ToolsAndHardware = () => {
   const [data, setData] = useState([]);
@@ -19,6 +21,7 @@ const ToolsAndHardware = () => {
   const [loading, setLoading] = useState(false);
   const [dirOptions, setDirOptions] = useState([]);
   const navigate = useNavigate();
+  const MySwal = withReactContent(Swal);
 
   useEffect(() => {
     const role = localStorage.getItem("userRole");
@@ -32,6 +35,50 @@ const ToolsAndHardware = () => {
   useEffect(() => {
     fetchData();
   }, [page, pageSize, searchQuery, selectedDir]);
+
+  
+  const handleDeleteClick = async (data) => {
+    const result = await MySwal.fire({
+      title: 'Are you sure?',
+      text: "This action cannot be undone.",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'Cancel',
+    });
+  
+    if (!result.isConfirmed) return;
+    try {
+      const id =data
+      const response = await deleteToolsAndHardware(id);
+  
+      if (response?.data?.statusCode === 200) {
+          MySwal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: response?.data?.message,
+          timer: 1500,
+          showConfirmButton: false,
+        });
+        fetchData()
+  
+      } else {
+          MySwal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: response?.data?.message,
+        });
+      }
+    } catch (error) {
+      MySwal.fire({
+      icon: 'error',
+      title: 'Oops...',
+      text: error?.message || 'Something went wrong!',
+    });
+    }
+  };
 
   const fetchDiretoratesData = async () => {
     setLoading(true);
@@ -107,6 +154,9 @@ const ToolsAndHardware = () => {
               size="small"
               >
               <Edit />
+            </IconButton>
+            <IconButton color="error" onClick={() => handleDeleteClick(params.row.id)}>
+              <Delete />
             </IconButton>
             </>
           )}
