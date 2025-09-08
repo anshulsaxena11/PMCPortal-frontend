@@ -63,7 +63,7 @@ const ContentBody = ({ isSidebarExpanded }) => {
       )}
 
       <div className={`page-content ${loading ? "loading" : ""}`}>
-        <Routes>          
+        <Routes  key={location.key}>          
           <Route path="/" element={<Dashboard/>}/>
           <Route path="/Dashboard" element={<Dashboard/>}/>
           <Route path="/home" element={<ProjectDetailsList />} />
