@@ -149,7 +149,6 @@ const ToolsAndHardware = () => {
         description:data.description,
         quantity:data.quantity
       }
-      console.log("payload data is",payload)
           const response = await postToolsAndHardware(payload);
           if(response.data.statusCode === 200){
             reset({
@@ -210,7 +209,7 @@ const ToolsAndHardware = () => {
                 </Typography>
               </Box>
              </div>
-        <hr></hr>
+        <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
         <div className='row'>
           <Form onSubmit={handleSubmit}>
               <div className='row'>

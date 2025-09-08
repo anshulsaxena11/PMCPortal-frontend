@@ -19,6 +19,7 @@ import LoginPanel from "../pages/login/loginPannel/LoginPanel"
 import ForgotPassword from "../pages/login/forgotPasswordPannel/ForgotPanel"
 import ChangePassword from '../pages/login/changePasswordPannel/changePasswordPannel';
 import ResetPasswordVerify from "../pages/login/ResetPasswordVerification/ResetPasswordVerification"
+import ScopeOfWorkMasterList from "../pages/scopeOfWorkMaster/ScopeOfWorkMasterList/ScopeOfWorkMasterList"
 
 const AppRoutes = () => {
   return (
@@ -41,6 +42,7 @@ const AppRoutes = () => {
       <Route path="/register-list" element ={<UserLoginList/>}/>
       <Route path="/change-password" element ={<ChangePassword/>}/>
       <Route path="/reset-password" element={<ResetPasswordVerify/>}/>
+      <Route path="/Scope-Of-Work-Master" element={<ScopeOfWorkMasterList/>}/>
       
     </Routes>
   );

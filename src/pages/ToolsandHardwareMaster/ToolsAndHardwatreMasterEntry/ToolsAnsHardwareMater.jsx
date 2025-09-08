@@ -62,7 +62,7 @@ const ToolsAndHardwareMapping = () =>{
             toast.error(error, {
                 className: "custom-toast custom-toast-error",
             });
-}
+        }
         setLoading(false);
       }
     return(
@@ -99,7 +99,7 @@ const ToolsAndHardwareMapping = () =>{
                     </Typography>
                   </Box>
                  </div>
-            <hr></hr>
+           <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
             <div className='row'>
                 <Form onSubmit={handleSubmit}>
                     <div className='row'>
