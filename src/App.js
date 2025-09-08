@@ -75,7 +75,7 @@ function AppWrapper() {
               <Box sx={{ display: 'flex', flexDirection: 'column', }}>
                 <Box>
                   <Sidebar onToggle={handleSidebarToggle} />
-                  <ContentBody isSidebarExpanded={isSidebarExpanded} />
+                  <ContentBody key={location.pathname} isSidebarExpanded={isSidebarExpanded} />
                 </Box>
                 <Footer isSidebarExpanded={isSidebarExpanded}/>
               </Box>

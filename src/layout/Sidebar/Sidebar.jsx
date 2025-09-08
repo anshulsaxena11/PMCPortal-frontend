@@ -124,7 +124,7 @@ const handleMouseEnter = () => {
     //user
     { role: "User", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "User", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
-    // { role: "User", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
+    { role: "User", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "User", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "User", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "User", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
