@@ -12,14 +12,18 @@ import {
   Tooltip,
   Typography,
   Avatar,
-  Collapse
+  Collapse,
+  Menu,
+  MenuItem,
+  Badge 
 } from "@mui/material";
 import { TbReportAnalytics } from "react-icons/tb";
 import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useLocation } from "react-router-dom";
-
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import {getNotification} from '../../api/notificationApi/notificationApi'
 import {
   FaSitemap,
   FaTools,
@@ -41,6 +45,8 @@ const drawerWidth = 240;
 const miniDrawerWidth = 70;
 
 const Sidebar = ({ onToggle }) => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [notifications, setNotifications] = useState([]);
   const [isExpanded, setIsExpanded] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [openedByHamburger, setOpenedByHamburger] = useState(true);
@@ -57,6 +63,37 @@ const Sidebar = ({ onToggle }) => {
     setUserRole(role);
     setUserName(name);
   }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const response = await getNotification(); 
+        console.log(response)
+        if (response.statusCode === 200) {
+          const formatted = response.data.map(item => {
+          return {
+            ...item,
+            message: `${item.tollsName } is going to expired in ${item.daysLeft } days`,
+          };
+        });
+          setNotifications(formatted);
+        } else {
+          console.error("Failed to fetch notifications");
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
+  
+  const handleOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
 
   const toggleDrawer = () => {
     const newState = !isExpanded;
@@ -156,6 +193,56 @@ const handleMouseEnter = () => {
           </IconButton>
           <Typography variant="h6">STPI</Typography>
         </Box>
+        <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between", // STPI left, everything else right
+              alignItems: "center",
+
+            }}
+          >
+         <Box sx={{ display: "flex",  justifyContent: "flex-end",alignItems: "centre", gap:2,  mr: 20 }}>
+            <IconButton onClick={handleOpen} sx={{ color: "white",ml:-19 }}>
+              <Badge badgeContent={notifications.length} color="error">
+                <NotificationsIcon />
+              </Badge>
+          </IconButton>
+           <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleClose}
+              disableScrollLock 
+              anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+              transformOrigin={{ vertical: "top", horizontal: "right" }}
+              PaperProps={{
+                sx: {
+                  mt: 1,
+                  width: 300,
+                  maxHeight: 400,
+                  overflowY: "auto",
+                  animation: "fadeIn 0.3s",
+                  "@keyframes fadeIn": {
+                    from: { opacity: 0, transform: "translateY(-10px)" },
+                    to: { opacity: 1, transform: "translateY(0)" },
+                  },
+                },
+              }}
+            >
+          {notifications.length > 0 ? (
+            notifications.map((n) => (
+              <MenuItem key={n.id}>
+                <Typography variant="body2">{n.message}</Typography>
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem>
+              <Typography variant="body2" color="text.secondary">
+                No notifications
+              </Typography>
+            </MenuItem>
+          )}
+        </Menu>
+         </Box>
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           <Avatar
             alt="Profile"
@@ -174,6 +261,7 @@ const handleMouseEnter = () => {
               {userRole}
             </Typography>
           </Box>
+        </Box>
         </Box>
       </Box>
       <Drawer
