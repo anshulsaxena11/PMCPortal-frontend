@@ -276,7 +276,15 @@ const ToolsAndHardwareEdit = ({ID}) => {
                                 <Form.Label className="fs-5 fw-bolder">Quantity<span className="text-danger">*</span></Form.Label>
                                 <Form.Control
                                     type="text" 
-                                    {...register("quantity")} 
+                                    {...register("quantity")}
+                                    onKeyDown={(e) => {
+                                        if (
+                                            ["e", "E", "+", "-", ".", ","].includes(e.key) ||
+                                            (e.key.length === 1 && !/[0-9]/.test(e.key))
+                                        ) {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                 />
                             </Form.Group>
                             <Form.Group className='pt-4'>
