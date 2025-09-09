@@ -259,7 +259,21 @@ const ToolsAndHardware = () => {
                     <Controller
                         name="quantity"
                         control={control}
-                        render={({ field }) => <input {...field} className="form-control"  placeholder="Enter Quantity"/>}
+                        render={({ field }) => (
+                        <input 
+                          {...field} 
+                          className="form-control"
+                          inputMode="numeric"
+                          onKeyDown={(e) => {
+                            if (["e", "E", "+", "-", "."].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }} 
+                          onInput={(e) => {
+                            e.target.value = e.target.value.replace(/\D/g, '');
+                            field.onChange(e);
+                          }} 
+                          placeholder="Enter Quantity"/>)}
                     />
                       {errors.quantity && <p className="text-danger">{errors.quantity.message}</p>}
                   </Form.Group>
