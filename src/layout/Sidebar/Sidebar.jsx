@@ -52,6 +52,7 @@ const Sidebar = ({ onToggle }) => {
   const [openedByHamburger, setOpenedByHamburger] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
+  const [hasUnread, setHasUnread] = useState(true);
   const [openGroups, setOpenGroups] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
@@ -90,6 +91,7 @@ const Sidebar = ({ onToggle }) => {
   
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
+    setHasUnread(false);
   };
   const handleClose = () => {
     setAnchorEl(null);
@@ -104,14 +106,14 @@ const Sidebar = ({ onToggle }) => {
 
 
 const handleMouseEnter = () => {
-  if (!openedByHamburger) {   // only allow hover expand if NOT controlled by hamburger
+  if (!openedByHamburger) {   
     setIsHovered(true);
     onToggle(true);
   }
 };
 
   const handleMouseLeave = () => {
-  if (!openedByHamburger) {   // only collapse on hover if not hamburger-expanded
+  if (!openedByHamburger) {  
     setIsHovered(false);
     onToggle(false);
   }
@@ -196,14 +198,13 @@ const handleMouseEnter = () => {
         <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between", // STPI left, everything else right
+              justifyContent: "space-between", 
               alignItems: "center",
-
             }}
           >
          <Box sx={{ display: "flex",  justifyContent: "flex-end",alignItems: "centre", gap:2,  mr: 20 }}>
             <IconButton onClick={handleOpen} sx={{ color: "white",ml:-19 }}>
-              <Badge badgeContent={notifications.length} color="error">
+              <Badge badgeContent={hasUnread ? notifications.length : 0} color="error">
                 <NotificationsIcon />
               </Badge>
           </IconButton>
@@ -230,7 +231,7 @@ const handleMouseEnter = () => {
             >
           {notifications.length > 0 ? (
             notifications.map((n) => (
-              <MenuItem key={n.id}>
+              <MenuItem key={n.id} onClick={()=>{navigate(`/Tools-Hardware-View/${n._id}`); handleClose()}}>
                 <Typography variant="body2">{n.message}</Typography>
               </MenuItem>
             ))

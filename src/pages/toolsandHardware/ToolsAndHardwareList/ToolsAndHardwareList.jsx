@@ -97,13 +97,19 @@ const ToolsAndHardware = () => {
     setLoading(true);
     try {
       const response = await getToolsAndHardware({
-        page: page + 1, // Your API is 1-indexed
+        page: page + 1, 
         limit: pageSize,
         search: searchQuery.trim(),
         directorates: selectedDir || '',
       });
 
-      const formattedData = response.data.map((item, index) => ({
+    const today = dayjs();
+
+    const formattedData = response.data.map((item, index) => {
+      const end = item.endDate ? dayjs(item.endDate) : null;
+      const isExpiringSoon =
+        end && end.isAfter(today, 'day') && end.diff(today, 'day') <= 30;
+      return {
         id: item._id,
         sno: page * pageSize + index + 1,
         purchasedOrder: item.purchasedOrder,
@@ -113,7 +119,9 @@ const ToolsAndHardware = () => {
         directorates: item.directorates,
         startDate: item.startDate ? dayjs(item.startDate).format('DD/MM/YYYY') : '',
         endDate: item.endDate ? dayjs(item.endDate).format('DD/MM/YYYY') : '',
-      }));
+        isExpiringSoon,
+      };
+    });
 
       setData(formattedData);
       setTotalCount(response.total || 0);
@@ -218,7 +226,10 @@ const ToolsAndHardware = () => {
         <CustomDataGrid
           rows={data}
           columns={columns}
-           rowCount={totalCount}
+          rowCount={totalCount}
+          getRowClassName={(params) =>
+            params.row.isExpiringSoon ? "row-expiring-soon" : ""
+          }
           page={page}
           onPageChange={(newPage) => setPage(newPage)}
           pageSize={pageSize}        
