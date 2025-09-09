@@ -16,6 +16,7 @@ const CustomDataGrid = ({
   noRowsLabel="No Data Found",
   rowCount,
   checkboxSelection = false,
+  getRowClassName,
   paginationMode = "server", // or "client"
 }) => {
   return (
@@ -39,15 +40,23 @@ const CustomDataGrid = ({
         localeText={{
           noRowsLabel 
         }}
-         getRowClassName={(params) =>
-            params.indexRelativeToCurrentPage % 2 === 0 ? 'even-row' : 'odd-row'
+        getRowClassName={(params) => {
+          let baseClass =
+            params.indexRelativeToCurrentPage % 2 === 0 ? "even-row" : "odd-row";
+          if (getRowClassName) {
+            return `${baseClass} ${getRowClassName(params)}`;
           }
+          return baseClass;
+        }}
         sx={{
           '& .even-row': {
             backgroundColor: '#f5f5f5',
           },
           '& .odd-row': {
             backgroundColor: '#ffffff',
+          },
+            "& .row-expiring-soon": {
+            backgroundColor: "#96842385 !important", 
           },
           '& .MuiDataGrid-columnHeader': {
             backgroundColor: '#AAC9D5', 
