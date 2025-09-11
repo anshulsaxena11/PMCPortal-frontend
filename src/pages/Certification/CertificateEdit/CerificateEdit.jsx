@@ -201,7 +201,6 @@ const CerificateEdit = ({ID}) => {
                                         <div className='col-sm-11 col-md-11 col-lg-11'>
                                             <Form.Control
                                                 type="date" 
-                                                min={new Date().toISOString().split("T")[0]}
                                                 {...register("issuedDate", {required: "Issued Date is required",})} 
                                                 isInvalid={!!errors.issuedDate}
                                             />
