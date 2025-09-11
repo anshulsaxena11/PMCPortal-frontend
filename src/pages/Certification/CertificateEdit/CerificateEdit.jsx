@@ -10,7 +10,7 @@ import PreviewModal from '../../../components/previewfile/preview';
 import CircularProgress from '@mui/material/CircularProgress';
 import EditIcon from '@mui/icons-material/Edit' 
 import { PiImagesSquareBold } from "react-icons/pi";
-import {getCertificateDetailsById} from '../../../api/certificateApi/certificate'
+import {getCertificateDetailsById, updateCertificate} from '../../../api/certificateApi/certificate'
 
 const CerificateEdit = ({ID}) => {
     const { register, handleSubmit, setValue, reset, getValues, control, formState: { errors }, } = useForm();
@@ -105,7 +105,44 @@ const CerificateEdit = ({ID}) => {
       }
     };
 
-     const onSubmit = async (formData) => {}
+     const onSubmit = async (formData) => {
+        setLoading(true);
+        try{
+            const formDataToSubmit = new FormData();
+            const certificateName = formData.certificateName || getValues("certificateName");
+            const assignedPerson = formData.assignedPerson || getValues("assignedPerson");
+            const issuedDate = formData.issuedDate || getValues("issuedDate");
+            const validUpto = formData.validUpto || getValues("validUpto");
+
+            formDataToSubmit.append("certificateName", certificateName);
+            formDataToSubmit.append("assignedPerson", assignedPerson);
+            formDataToSubmit.append("issuedDate", issuedDate);
+            formDataToSubmit.append("validUpto", validUpto);
+
+            if (file && file instanceof Blob) {
+                formDataToSubmit.append("uploadeCertificate", file, file.name);
+            }
+
+            const response = await updateCertificate(certificateId,formDataToSubmit)
+            console.log(response)
+            if (response?.data?.statusCode ===200){
+                toast.success(response?.data?.message, {
+                    className: 'custom-toast custom-toast-success',
+                });
+            } else {
+                toast.error(response?.data?.message, {
+                    className: 'custom-toast custom-toast-error',
+                });
+            }
+
+        }catch(error){
+            toast.error(error, {
+                className: 'custom-toast custom-toast-error',
+            });
+        }finally{
+           setLoading(false);  
+        }
+     }
 
     return(
        <div className='comntainer-fluid'>
