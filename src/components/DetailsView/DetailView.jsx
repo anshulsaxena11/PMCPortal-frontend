@@ -106,6 +106,36 @@ const DetailViewTable = ({ title, data, loading, fields, labels, onBackClick, up
                   </tr>
                 );
               }
+
+               if (field === 'certificateUrl' && data?.certificateUrl) {
+                return (
+                  <tr key={index}>
+                    <td><strong>{labels?.certificateUrl || 'Certificate Preview'}:</strong></td>
+                    <td>
+                      <a
+                        href="#"
+                        onClick={(e) => { e.preventDefault(); handlePreviewClick(data.certificateUrl); }}
+                        className="btn btn-link"
+                      >
+                        {uploadedFile ? (
+                          fileType.startsWith('image/') ? (
+                            <>
+                              <PiImagesSquareBold style={{ marginRight: '8px' }} />
+                              Preview Image
+                            </>
+                          ) : (
+                            <>
+                              <FcDocument style={{ marginRight: '8px' }} />
+                              Preview Document
+                            </>
+                          )
+                        ) : 'Preview File'}
+                      </a>
+                    </td>
+                  </tr>
+                );
+              }
+              
               //tenderDocument
                if (field === 'tenderDocument' && data?.tenderDocument) {
                 return (

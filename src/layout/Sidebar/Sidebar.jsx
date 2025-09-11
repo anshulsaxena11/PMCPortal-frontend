@@ -142,7 +142,7 @@ const handleMouseEnter = () => {
     { role: "Admin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "Admin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
-    
+    { role: "Admin", label: "Certificates", icon: <MdSpatialTracking />, path: "/certificate" }, 
     {
       role: "Admin",
       label: "Master",

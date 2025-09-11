@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { Form, Spinner} from "react-bootstrap";
+import { Form,} from "react-bootstrap";
 import { useParams } from "react-router-dom";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -122,7 +122,6 @@ const TenderTrackingEdit =({ID}) =>{
         try {
             const response = await getTrackingById(trackingId);
             const fetchedData = response.data;
-            console.log(fetchedData)
             setValueINR(new Intl.NumberFormat("en-IN").format(fetchedData.valueINR || ''));
             if (fetchedData) {
                 const formattedLastDate = fetchedData.lastDate
