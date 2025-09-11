@@ -40,6 +40,10 @@ import ScopeOfWorkMasterList from "../../pages/scopeOfWorkMaster/ScopeOfWorkMast
 import ScopeOfWorkMasterView from "../../pages/scopeOfWorkMaster/ScopeOfWorkMasterView/ScopeOfWorkMasterView.jsx"
 import ScopeOfWorkForm from "../../pages/scopeOfWorkMaster/ScopeOfWorkForm/ScopeOfWorkForm.jsx"
 import ScopeOfWorkEdit from "../../pages/scopeOfWorkMaster/ScopeOfWorkEdit/ScopeOfWorkEdit.jsx"
+import CertificateList from "../../pages/Certification/CertificationList/CertificationList.jsx";
+import CertificateForm from "../../pages/Certification/CertificationEntry/CertificationEntry.jsx";
+import CertificateView from "../../pages/Certification/CertificateView/CertificateView.jsx";
+import CerificateEdit from "../../pages/Certification/CertificateEdit/CerificateEdit.jsx";
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -104,6 +108,10 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Scope-of-Work-View/:id" element={<ScopeOfWorkMasterView/>}/>
           <Route path="/Scope-of=Work-Form" element={<ScopeOfWorkForm/>}/>
           <Route path="/Scope-Of-Work=Edit/:id" element={<ScopeOfWorkEdit/>}/>
+          <Route path="/certificate" element={<CertificateList/>}/>
+          <Route path="/certificate-form" element={<CertificateForm/>}/>
+          <Route path="/certificate-view/:id" element={<CertificateView/>}/>
+          <Route path="/certificate-Edit/:id" element={<CerificateEdit/>}/>
         </Routes>
       </div>
     </div>
