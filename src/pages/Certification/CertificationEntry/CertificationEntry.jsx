@@ -278,7 +278,7 @@ const CertificateForm = () => {
                                                 {...field}
                                                 options={option}
                                                 isLoading={loading}
-                                                value={option.find(opt => opt.raw.ename === field.value) || null}
+                                                value={option.find(opt => opt.value === field.value) || null}
                                                 placeholder="Search By EmpId or Name"
                                                 filterOption={handleFilter}
                                                 onChange={(selected) => handleChange(selected, field.onChange)}
