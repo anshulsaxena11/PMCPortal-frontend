@@ -16,6 +16,7 @@ import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import { getEmpList } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
 import withReactContent from 'sweetalert2-react-content';
 import CircularProgress from '@mui/material/CircularProgress';
+import Table from "react-bootstrap/Table";
 import EditIcon from '@mui/icons-material/Edit'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2'
@@ -24,6 +25,7 @@ const TenderTrackingEdit =({ID}) =>{
     const { register, handleSubmit, setValue, reset, getValues, control, formState: { errors }, } = useForm();
     const [loading, setLoading] = useState(false); 
     const [stateOption,setStateOption] =useState([])
+    const [comments,setComments] = useState([])
     const [selectedStateOption, setSelectedStateOption] = useState([])
     const [empListOption, setEmpListOption] =useState([])
     const [selectedEmpList, setSelectedEmpList] =useState([])
@@ -122,6 +124,7 @@ const TenderTrackingEdit =({ID}) =>{
         try {
             const response = await getTrackingById(trackingId);
             const fetchedData = response.data;
+            console.log(fetchedData)
             setValueINR(new Intl.NumberFormat("en-IN").format(fetchedData.valueINR || ''));
             if (fetchedData) {
                 const formattedLastDate = fetchedData.lastDate
@@ -161,6 +164,14 @@ const TenderTrackingEdit =({ID}) =>{
                 }
                 if (fetchedData.status && StatusOption.length > 0) {
                     handleSelectField(fetchedData.status, StatusOption, setSelectedStatus, "status");
+                }
+                if (fetchedData.comment && fetchedData.comment.length > 0) {
+                  const sortedComments = [...fetchedData.comment].sort(
+                      (a, b) => new Date(b.commentedOn) - new Date(a.commentedOn)
+                    );
+                    setComments(sortedComments);
+                } else {
+                  setComments([]);
                 }
                 setOneTimeFull(false);
             }
@@ -206,6 +217,7 @@ const TenderTrackingEdit =({ID}) =>{
     const valueINR = formData.valueINR || getValues("valueINR");
     const status = formData.status || getValues("status");
     const lastDate = formData.lastDate || getValues("lastDate");
+    const comments = formData.comments
     const tenderid = getValues("_id");
 
     formDataToSubmit.append("tenderName", tenderName);
@@ -215,6 +227,7 @@ const TenderTrackingEdit =({ID}) =>{
     formDataToSubmit.append("valueINR", valueINR);
     formDataToSubmit.append("status", status);
     formDataToSubmit.append("lastDate", lastDate);
+    formDataToSubmit.append("comments", comments);
 
     if (file && file instanceof Blob) {
       formDataToSubmit.append("tenderDocument", file, file.name);
@@ -459,6 +472,15 @@ const TenderTrackingEdit =({ID}) =>{
                                 <div className="invalid-feedback d-block">{taskForceError}</div>
                               )}
                         </Form.Group>
+                        <Form.Group className="pt-3">
+                            <Form.Label className="fs-5 fw-bolder">New Comments</Form.Label>
+                            <Form.Control
+                                as="textarea"
+                                rows={5}
+                                placeholder="Enter your comments here..."
+                                {...register("comments")} 
+                            />
+                        </Form.Group>
                     </div>
                     <div className="col-sm-6 col-md-6 col-lg-6">
                         <Form.Group className="pt-4">
@@ -592,6 +614,35 @@ const TenderTrackingEdit =({ID}) =>{
                                 {errors.lastDate?.message}
                               </Form.Control.Feedback>
                         </Form.Group>
+                        <Form.Group className="pt-3">
+                          <Form.Label className="fs-5 fw-bolder">Old Comments</Form.Label>
+                           <div style={{ overflowX: "auto", height:'130px' }}>
+                            {comments && comments.length > 0 ? (
+                              <Table striped bordered hover responsive>
+                                <thead>
+                                  <tr>
+                                    <th>S.NO</th>
+                                    <th>Comment</th>
+                                    <th>Commented By</th>
+                                    <th>Commented On</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {comments.map((c, index) => (
+                                    <tr key={c._id || index}>
+                                      <td>{index + 1}</td>
+                                      <td>{c.comments}</td>
+                                      <td>{c.displayName}</td>
+                                      <td>{new Date(c.commentedOn).toLocaleString()}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </Table>
+                            ) : (
+                              <p className="mt-3 text-muted">No comments available</p>
+                            )}
+                          </div>
+                    </Form.Group>
                     </div>
                 </div>
                
