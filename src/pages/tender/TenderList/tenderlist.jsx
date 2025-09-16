@@ -69,11 +69,11 @@ const TenderDetailsList = () => {
   }, [page, searchQuery]);
 
   const handleViewClick = (id) => {
-    navigate(`/tender-View/${id}`);
+    navigate(`/tender-View`, { state: { id } });
   };
 
   const handleEditClick = (id) => {
-    navigate(`/tender-Edit/${id}`);
+    navigate('/tender-Edit', { state: { id } });
   };
 
   const handleDeleteClick = async (id) => {
@@ -205,7 +205,7 @@ const TenderDetailsList = () => {
     <Box p={2}>
       <ToastContainer position="top-center" autoClose={5000} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Heading title="Tender Tracking" />
+        <Heading title="Sales Tracking" />
           {(userRole !== 'User') && (
             <Button variant="contained" onClick={() => navigate('/Tender-Tracking')}>
               Add New

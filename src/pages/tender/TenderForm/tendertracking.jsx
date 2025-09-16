@@ -283,7 +283,7 @@ const handleFileChange = (e) => {
             </Tooltip>
             </Box>
             <Typography variant="h4" fontWeight="bold">
-            Tender Tracking
+            Sales Tracking
             </Typography>
         </Box>
       </div>
