@@ -11,6 +11,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import EditIcon from '@mui/icons-material/Edit' 
 import { PiImagesSquareBold } from "react-icons/pi";
 import {getCertificateDetailsById, updateCertificate} from '../../../api/certificateApi/certificate'
+import {empList} from '../../../api/syncEmp/syncEmp'
+import Select from 'react-select';
+import {getCertificateMasterList} from '../../../api/certificateMaster/certificateMaster'
 
 const CerificateEdit = ({ID}) => {
     const { register, handleSubmit, setValue, reset, getValues, control, formState: { errors }, } = useForm();
@@ -18,6 +21,10 @@ const CerificateEdit = ({ID}) => {
     const [fileUrl, setFileUrl] = useState(null);
     const [filePreviewUrl, setFilePreviewUrl] = useState("");
     const [previewFileType, setPreviewFileType] = useState("");
+    const [selectedEmp, setSelectedEmp] = useState(null);
+    const [certificateOption , setCertificateOption] = useState([])
+    const [option, setOption] = useState([])
+    const [selectedCertificateOption, setSelectedCertificateOption] = useState([])
     const [fileError, setFileError] = useState("");
     const [file, setFile] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -28,21 +35,69 @@ const CerificateEdit = ({ID}) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const fetchEmpList = async() =>{
+            setLoading(true);
+            try{
+                const response = await empList()
+                const fetchList = response?.data
+                if(fetchList && Array.isArray(fetchList) ){
+                    const option = fetchList.map((emp)=>({
+                            label: `${emp.empid} - ${emp.ename}`,
+                            value:emp._id,
+                            raw:emp
+                        }))
+                    setOption(option)
+                }
+                }catch(error){
+                    console.error('Failed to fetch employee list:');
+                }
+                    setLoading(false);
+            }
+            fetchEmpList()
+    }, []); 
+
+    useEffect(() => {
+        const fetchCertificateList = async() =>{
+            setLoading(true);
+                try{
+                const response = await getCertificateMasterList()
+                const fetchList = response?.data
+                if(fetchList && Array.isArray(fetchList) ){
+                    const option = fetchList.map((emp)=>({
+                            label: emp.certificateName,
+                            value:emp._id,
+                        }))
+                    setCertificateOption(option)
+                }
+            }catch(error){
+                console.error('Failed to fetch employee list:');
+            }
+                setLoading(false);
+        }
+        fetchCertificateList()
+    }, []); 
+
+    useEffect(() => {
         fetchCertificate();
-    }, []);
+    }, [option]);
 
     const fetchCertificate = async () => {
         try {
             const response = await getCertificateDetailsById(certificateId);
             const fetchData = response?.data
-            console.log("data",fetchData)
             if(fetchData){
                 const formattedIssuedDate = fetchData.issuedDate? fetchData.issuedDate.split("T")[0]: "";
                 const formattedValidUpto = fetchData.validUpto? fetchData.validUpto.split("T")[0]: "";
+                const matchedCertificate = certificateOption.find(opt => opt.label === fetchData.certificateName);
+                const certificateNameId = matchedCertificate ? matchedCertificate.value : "";
+                const matchedEmp = option.find(opt => opt.raw?.ename === fetchData.assignedPerson);
+                const assignedPersonId = matchedEmp ? matchedEmp.value : "";
                  reset({
                     ...fetchData,
                     issuedDate: formattedIssuedDate,
-                    validUpto:formattedValidUpto
+                    validUpto:formattedValidUpto,
+                    certificateName: certificateNameId,
+                    assignedPerson: assignedPersonId
                 });
                 if (oneTimeFull && fetchData.certificateUrl) {
                     const isAbsolute = fetchData.certificateUrl.startsWith("http");
@@ -52,6 +107,10 @@ const CerificateEdit = ({ID}) => {
                     setFileUrl(fullUrl);
                     setFilePreviewUrl(fullUrl);
                 }
+                   setSelectedCertificateOption(matchedCertificate || null);
+                    setSelectedEmp(matchedEmp || null);
+                    
+
                 setOneTimeFull(false);
             }
         } catch (error) {
@@ -144,6 +203,24 @@ const CerificateEdit = ({ID}) => {
         }
      }
 
+     const handleCertificate = (selected) =>{
+        setSelectedCertificateOption(selected)
+        const selectedString = selected && selected.value ? String(selected.value) : '';
+        setValue('certificateName',selectedString)
+    }
+
+    const handleFilter = (option, inputValue) => {
+        const { empid = "", ename = "" } = option.data.raw || {};
+        const search = inputValue.toLowerCase();
+        return empid.toLowerCase().includes(search) || ename.toLowerCase().includes(search);
+    };
+
+    const handleEmp=(selected)=>{
+        setSelectedEmp(selected);
+        setValue("assignedPerson", selected?.raw?._id || "");
+        
+    }
+
     return(
        <div className='comntainer-fluid'>
           <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
@@ -184,14 +261,14 @@ const CerificateEdit = ({ID}) => {
                     <div className="col-sm-6 col-md-6 col-lg-6">
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Certificate Name<span className="text-danger">*</span></Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register("certificateName", { required: "Certificate Name is required" })}
-                                isInvalid={!!errors.certificateName}
+                             <Select
+                                name="certificateName"
+                                options={certificateOption}
+                                value={selectedCertificateOption}
+                                isLoading={loading} 
+                                onChange={handleCertificate}
+                                isDisabled={loading} 
                             />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.certificateName?.message}
-                            </Form.Control.Feedback>
                         </Form.Group>
                         <div className="row">
                             <div className="col-sm-6 col-md-6 col-lg-6">
@@ -234,14 +311,15 @@ const CerificateEdit = ({ID}) => {
                     <div className="col-sm-6 col-md-6 col-lg-6">
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Assigned Person Name<span className="text-danger">*</span></Form.Label>
-                            <Form.Control
-                                type="text"
-                                {...register("assignedPerson", { required: "Assigned Person Name is required" })}
-                                isInvalid={!!errors.assignedPerson}
+                             <Select
+                                name="assignedPerson"
+                                options={option}
+                                value={selectedEmp}
+                                isLoading={loading} 
+                                onChange={handleEmp}
+                                isDisabled={loading} 
+                                filterOption={handleFilter}
                             />
-                            <Form.Control.Feedback type="invalid">
-                                {errors.assignedPerson?.message}
-                            </Form.Control.Feedback>
                         </Form.Group>
                          <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Certificate Upload (PDF, Image)<span className="text-danger">*</span></Form.Label>

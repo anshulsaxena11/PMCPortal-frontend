@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -7,8 +7,11 @@ import Form from "react-bootstrap/Form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import certificateValidation from '../../../validation/certificatevalidation'
 import { FcDocument } from "react-icons/fc";
+import {empList} from '../../../api/syncEmp/syncEmp'
 import PreviewModal from '../../../components/previewfile/preview';
 import { PiImagesSquareBold } from "react-icons/pi";
+import Select from 'react-select';
+import {getCertificateMasterList} from '../../../api/certificateMaster/certificateMaster'
 import { useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
 import { IoIosSave } from "react-icons/io";
@@ -25,6 +28,10 @@ const CertificateForm = () => {
     const [uploadedFile, setUploadedFile] = useState(null);
     const [fileType, setFileType] = useState(''); 
     const [preview, setPreview] = useState(null);
+    const [selectedEmp, setSelectedEmp] = useState(null);
+    const [certificateOption , setCertificateOption] = useState([])
+    const [option, setOption] = useState([])
+    const [selectedCertificateOption, setSelectedCertificateOption] = useState([])
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false); 
     const navigate = useNavigate();
@@ -82,13 +89,14 @@ const CertificateForm = () => {
                     assignedPerson:'',
                     issuedDate:null,
                     validUpto:null,
-                    uploadeCertificate:null
+                    uploadeCertificate:null,
                 })
                 if (fileInputRef.current) {
                     fileInputRef.current.value = "";
                 }
                 setPreview(null);
                 setUploadedFile(null);
+                setSelectedCertificateOption([])
                 setFileType("");
                 toast.success(response.message, {
                     className: 'custom-toast custom-toast-success',
@@ -106,6 +114,68 @@ const CertificateForm = () => {
         }
         setLoading(false);
     }
+    useEffect(() => {
+        const fetchEmpList = async() =>{
+            setLoading(true);
+            try{
+                const response = await empList()
+                const fetchList = response?.data
+                if(fetchList && Array.isArray(fetchList) ){
+                    const option = fetchList.map((emp)=>({
+                            label: `${emp.empid} - ${emp.ename}`,
+                            value:emp._id,
+                            raw:emp
+                        }))
+                    setOption(option)
+                }
+                }catch(error){
+                    console.error('Failed to fetch employee list:');
+                }
+                 setLoading(false);
+            }
+            fetchEmpList()
+        }, []); 
+
+        const handleChange = (selectedOption, fieldOnChange) => {
+            setSelectedEmp(selectedOption?.raw || null);
+            fieldOnChange(selectedOption?.raw?._id);
+        }
+
+        const handleFilter = (option, inputValue) => {
+            const { empid = "", ename = "" } = option.data.raw || {};
+            const search = inputValue.toLowerCase();
+            return empid.toLowerCase().includes(search) || ename.toLowerCase().includes(search);
+        };
+
+        useEffect(() => {
+            const fetchCertificateList = async() =>{
+                setLoading(true);
+                 try{
+                    const response = await getCertificateMasterList()
+                    const fetchList = response?.data
+                    console.log(fetchList)
+                    if(fetchList && Array.isArray(fetchList) ){
+                        const option = fetchList.map((emp)=>({
+                                label: emp.certificateName,
+                                value:emp._id,
+                            }))
+                        setCertificateOption(option)
+                    }
+                }catch(error){
+                    console.error('Failed to fetch employee list:');
+                }
+                 setLoading(false);
+            }
+            fetchCertificateList()
+        }, []); 
+
+        const handleCertificate = (selected) =>{
+            setSelectedCertificateOption(selected)
+            const selectedString = selected?.value || '';
+            setValue('certificateName',selectedString)
+            trigger('certificateName');
+        }
+
     return(
         <div>
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
@@ -148,10 +218,19 @@ const CertificateForm = () => {
                             <div className='col-sm-6 col-md-6 col-lg-6'>
                                 <Form.Group className="mb-3">
                                     <Form.Label className="fs-5 fw-bolder">Certificate Name<span className="text-danger">*</span></Form.Label>
-                                    <Controller
+                                     <Controller
                                         name="certificateName"
                                         control={control}
-                                        render={({ field }) => <input {...field} className="form-control"  placeholder="Enter Certificate Name"/>}
+                                        render={({ field }) => (
+                                            <Select
+                                                {...field}
+                                                options={certificateOption}
+                                                isLoading={loading}
+                                                value={selectedCertificateOption}
+                                                placeholder="Search Certificate Name"
+                                                onChange={handleCertificate}
+                                            />
+                                        )}
                                     />
                                     {errors.certificateName && <p className="text-danger">{errors.certificateName.message}</p>}
                                 </Form.Group>
@@ -194,7 +273,18 @@ const CertificateForm = () => {
                                     <Controller
                                         name="assignedPerson"
                                         control={control}
-                                        render={({ field }) => <input {...field} className="form-control"  placeholder="Assigned Person Name"/>}
+                                        render={({ field }) => (
+                                            <Select
+                                                {...field}
+                                                options={option}
+                                                isLoading={loading}
+                                                value={option.find(opt => opt.value === field.value) || null}
+                                                placeholder="Search By EmpId or Name"
+                                                filterOption={handleFilter}
+                                                onChange={(selected) => handleChange(selected, field.onChange)}
+                                                isClearable
+                                            />
+                                        )}
                                     />
                                     {errors.assignedPerson && <p className="text-danger">{errors.assignedPerson.message}</p>}
                                 </Form.Group>
