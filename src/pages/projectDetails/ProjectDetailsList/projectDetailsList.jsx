@@ -88,7 +88,17 @@ const ProjectDetailsList = () => {
 
     try {
       const response = await deleteProjectsById(id);
-      if (response.data.message) {
+      if (response.data.statuscode==401) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Warning!',
+          text: response.data.message,
+          timer: 2500,
+          showConfirmButton: false
+        });
+        fetchData();
+      }
+      if (response.data.statuscode==200) {
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',
