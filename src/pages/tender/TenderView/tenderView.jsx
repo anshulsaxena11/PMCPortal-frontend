@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DetailView from '../../../components/DetailsView/DetailView'; 
 import { getTrackingById } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
+import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const TenderTrackingView = ({ ID }) => {
   const { id } = useParams();
-  const trackingId = ID || id;
+  const location = useLocation();
   const navigate = useNavigate();
+  const trackingId = ID || location.state?.id;
 
   const [data,setData]=useState({})
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,6 @@ const TenderTrackingView = ({ ID }) => {
       try {
         const data = await getTrackingById(trackingId);
         const fetchedData = data.data;
-        console.log(fetchedData)
         setData(fetchedData)
       } catch (error) {
         console.error("Error fetching project details:", error);
@@ -52,6 +53,7 @@ const fields = [
     status: 'Status',
     lastDate: 'Last Date',
     tenderDocument: 'Tender Document',
+    comment:'Comment'
   };
 
   const formattedlastDate = data.lastDate ? dayjs(data.lastDate).format('DD/MM/YYYY') : '';
@@ -59,7 +61,7 @@ const fields = [
   return (
     <div>
         <DetailView 
-          title={`Tender Tracking`} 
+          title={`Sales Tracking`} 
           data={{ 
             ...data, 
             lastDate: formattedlastDate, 

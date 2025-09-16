@@ -18,6 +18,7 @@ import withReactContent from 'sweetalert2-react-content';
 import CircularProgress from '@mui/material/CircularProgress';
 import Table from "react-bootstrap/Table";
 import EditIcon from '@mui/icons-material/Edit'
+import { useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2'
 
@@ -46,6 +47,7 @@ const TenderTrackingEdit =({ID}) =>{
     const [statusError, setStatusError] = useState("");
     const [stateError, setStateError] = useState("");
     const MySwal = withReactContent(Swal);
+    const location = useLocation();
     const StatusOption =[
         {value:"Upload",label:"Upload"},
         {value:"Bidding",label:"Bidding"},
@@ -53,7 +55,7 @@ const TenderTrackingEdit =({ID}) =>{
     ]
 
     const { id } = useParams();
-    const trackingId = ID || id;
+    const trackingId = ID || location.state?.id;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -124,7 +126,6 @@ const TenderTrackingEdit =({ID}) =>{
         try {
             const response = await getTrackingById(trackingId);
             const fetchedData = response.data;
-            console.log(fetchedData)
             setValueINR(new Intl.NumberFormat("en-IN").format(fetchedData.valueINR || ''));
             if (fetchedData) {
                 const formattedLastDate = fetchedData.lastDate
@@ -412,7 +413,7 @@ const TenderTrackingEdit =({ID}) =>{
                 </Tooltip>
                 </Box>
                 <Typography variant="h4" fontWeight="bold">
-                Tender Tracking
+                Sales Tracking
                 </Typography>
               </Box>
             </div>

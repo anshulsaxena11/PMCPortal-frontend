@@ -94,8 +94,8 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Timeline" element={<TimelineEvent/>}/>
           <Route path="/Tender-Tracking" element={<TenderTracking/>}/>
           <Route path="/tender-list" element={<TenderList/>}/>
-          <Route path="/tender-Edit/:id" element={<TenderTrackingEdit/>}/>
-          <Route path="/tender-View/:id" element={<TenderTrackingView/>}/>
+          <Route path="/tender-Edit" element={<TenderTrackingEdit/>}/>
+          <Route path="/tender-View" element={<TenderTrackingView/>}/>
           <Route path="/register" element ={<UserLoginForm/>}/> 
           <Route path="/register-list" element ={<UserLoginList/>}/>
           <Route path="/register-view/:id" element = {<UserAdminView/>}/>
