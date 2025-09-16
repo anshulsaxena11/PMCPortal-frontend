@@ -90,7 +90,10 @@ const ProjectDetailView = () => {
         ...project, 
         startDate: formattedStartDate, 
         endDate: formattedEndDate, 
-        projectValue: project.projectValue ? `${new Intl.NumberFormat('en-IN').format(project.projectValue)}₹`: '',     
+        projectValue: project.projectValue ? `${new Intl.NumberFormat('en-IN').format(project.projectValue)}₹`: '',
+        projectType: Array.isArray(project.projectType) 
+                ? project.projectType.map(pt => pt.ProjectTypeName).join(', ') 
+                : 'N/A',      
       }} 
       loading={loading} 
       fields={fields} 

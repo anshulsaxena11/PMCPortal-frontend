@@ -39,8 +39,8 @@ const fields = [
     'valueINR',
     'status',
     'lastDate',
-    'tenderDocument'
-  
+    'tenderDocument', 
+    'comment'
   ];
 
   const labels = {
@@ -65,6 +65,11 @@ const fields = [
             lastDate: formattedlastDate, 
             valueINR: data.valueINR ? `${new Intl.NumberFormat('en-IN').format(data.valueINR)}₹`: '',  
           }} 
+          nestedFields={{
+            comment: ['comments','displayName','commentedOn'],
+            commentLabels: { comments: 'Comment', displayName: 'Commented By', commentedOn: 'Commented On' }
+          }}
+          comments={data.comments || []}
           loading={loading} 
           fields={fields} 
           labels={labels}

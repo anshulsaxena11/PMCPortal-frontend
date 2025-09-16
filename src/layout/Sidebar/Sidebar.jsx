@@ -141,7 +141,7 @@ const handleMouseEnter = () => {
     { role: "Admin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "Admin", label: "Skill Mapping", icon: <GiSkills />, path: "/skills-Mapping" },
     { role: "Admin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
-    { role: "Admin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
+    { role: "Admin", label: "Sales Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
     { role: "Admin", label: "Certificates", icon: <PiCertificateBold  />, path: "/certificate" }, 
     {
@@ -160,7 +160,7 @@ const handleMouseEnter = () => {
     { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "SubAdmin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "SubAdmin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
-    { role: "SubAdmin", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
+    { role: "SubAdmin", label: "Sales Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "SubAdmin", label: "Certificates", icon: <PiCertificateBold  />, path: "/certificate" },
     //user
     { role: "User", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
