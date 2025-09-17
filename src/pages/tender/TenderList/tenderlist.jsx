@@ -91,53 +91,54 @@ const TenderDetailsList = () => {
     if (!result.isConfirmed) return;
 
     try {
-      const statusResult = await Swal.fire({
-        title: 'Set Tender Status',
-        text: `Tender is Success or Failure ?`,
-        icon: 'question',
-        showCancelButton: false,
-        showDenyButton: true,
-        confirmButtonText: 'Success',
-        denyButtonText: 'Failure',
-      });
-      let tenderStatus = '';
-      if (statusResult.isConfirmed) tenderStatus = 'success';
-      else if (statusResult.isDenied) tenderStatus = 'failure';
+      if(data?.status === 'Not Bidding'){
+        const statusResult = await Swal.fire({
+          title: 'Set Tender Status',
+          text: `Tender is Success or Failure ?`,
+          icon: 'question',
+          showCancelButton: false,
+          showDenyButton: true,
+          confirmButtonText: 'Success',
+          denyButtonText: 'Failure',
+        });
+        let tenderStatus = '';
+        if (statusResult.isConfirmed) tenderStatus = 'success';
+        else if (statusResult.isDenied) tenderStatus = 'failure';
+        if (!tenderStatus) return;
 
-      if (!tenderStatus) return;
-      const messageResult = await Swal.fire({
-        title: 'Submit your message',
-        input: 'text',
-        inputAttributes: {
-          autocapitalize: 'off',
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Submit',
-        showLoaderOnConfirm: true,
-        preConfirm: async (message) => {
-          if (!message || message.trim() === '') {
-            Swal.showValidationMessage('Message is required');
-            return false;
-          }
-          try {
-            const response = await updatetendermessage(id, message, tenderStatus);
-            if (response.status !== 200 && response.status !== 201) {
-              Swal.showValidationMessage(`Error: ${response.statusText}`);
+        const messageResult = await Swal.fire({
+          title: 'Submit your message',
+          input: 'text',
+          inputAttributes: {
+            autocapitalize: 'off',
+          },
+          showCancelButton: true,
+          confirmButtonText: 'Submit',
+          showLoaderOnConfirm: true,
+          preConfirm: async (message) => {
+            if (!message || message.trim() === '') {
+              Swal.showValidationMessage('Message is required');
               return false;
             }
-            return response.data;
-          } catch (error) {
-            Swal.showValidationMessage(
-              `Request failed: ${error?.response?.data?.message || error.message}`
-            );
-            return false;
-          }
-        },
-        allowOutsideClick: () => !Swal.isLoading(),
-      });
-
-      if (messageResult.isDismissed) return;
-
+            try {
+              const response = await updatetendermessage(id, message, tenderStatus);
+              if (response.status !== 200 && response.status !== 201) {
+                Swal.showValidationMessage(`Error: ${response.statusText}`);
+                return false;
+              }
+              return response.data;
+            } catch (error) {
+              Swal.showValidationMessage(
+                `Request failed: ${error?.response?.data?.message || error.message}`
+              );
+              return false;
+            }
+          },
+          allowOutsideClick: () => !Swal.isLoading(),
+        });
+  
+        if (messageResult.isDismissed) return;
+      }
       await deleteTenderById(id);
       toast.success('Tender deleted successfully!');
       fetchData();
@@ -258,22 +259,22 @@ const TenderDetailsList = () => {
 
       <div style={{ height: 600, width: '100%' }}>
         <CustomDataGrid
-                  rows={data}
-                  columns={columns}
-                  rowCount={totalCount}
-                  page={page}
-                  onPageChange={(newPage) => setPage(newPage)}
-                  pageSize={pageSize}        
-                  paginationModel={{ page, pageSize }}
-                  paginationMode="server"
-                  onPageSizeChange={(newSize) => setPageSize(newSize)}
-                  onPaginationModelChange={({ page, pageSize }) => {
-                    setPage(page);
-                    setPageSize(pageSize);
-                  }}
-                rowsPerPageOptions={[10, 15, 25]}
-                loading={loading}
-                />
+            rows={data}
+            columns={columns}
+            rowCount={totalCount}
+            page={page}
+            onPageChange={(newPage) => setPage(newPage)}
+            pageSize={pageSize}        
+            paginationModel={{ page, pageSize }}
+            paginationMode="server"
+            onPageSizeChange={(newSize) => setPageSize(newSize)}
+            onPaginationModelChange={({ page, pageSize }) => {
+              setPage(page);
+              setPageSize(pageSize);
+            }}
+          rowsPerPageOptions={[10, 15, 25]}
+          loading={loading}
+        />
       </div>
     </Box>
   );
