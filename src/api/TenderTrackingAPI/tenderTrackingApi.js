@@ -34,7 +34,7 @@ export const postTenderTrackingData = async (payload) => {
   }
 };
 
-export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",isDeleted = "false" }) => {
+export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",isDeleted = "" }) => {
   try {
     const response = await axiosInstance.get("/user/Tender", {
       params: { page, limit, search, isDeleted:isDeleted.toString() }, withCredentials: true,
