@@ -113,15 +113,18 @@ const DetailViewTable = ({
                     <td><strong>{label}:</strong></td>
                     <td>
                       {value.length > 0 ? (
+                          <div style={{ maxHeight: "200px", maxWidth: "100%", overflowX: "auto", overflowY: "auto" }}>
                         <Table striped bordered hover size="sm">
                           <thead>
                             <tr>
+                              <th>S.No</th>
                               {showFields.map((f) => <th key={f}>{showLabels[f] || f}</th>)}
                             </tr>
                           </thead>
                           <tbody>
                             {value.map((item, idx) => (
                               <tr key={item._id || idx}>
+                                <td>{idx + 1}</td>
                                 {showFields.map((f) => (
                                   <td key={f}>
                                     {f === 'commentedOn'
@@ -133,6 +136,7 @@ const DetailViewTable = ({
                             ))}
                           </tbody>
                         </Table>
+                        </div>
                       ) : (
                         <span>No {label} available</span>
                       )}

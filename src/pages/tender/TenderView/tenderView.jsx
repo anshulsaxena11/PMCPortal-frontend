@@ -18,6 +18,7 @@ const TenderTrackingView = ({ ID }) => {
     const fetchTrackingTenderDetails = async () => {
       try {
         const data = await getTrackingById(trackingId);
+        console.log(data)
         const fetchedData = data.data;
         setData(fetchedData)
       } catch (error) {
@@ -39,6 +40,7 @@ const fields = [
     'taskForce', 
     'valueINR',
     'status',
+    'message',
     'lastDate',
     'tenderDocument', 
     'comment'
@@ -51,12 +53,25 @@ const fields = [
     taskForce: 'Task Force Member',
     valueINR: 'Value INR (GST)',
     status: 'Status',
+    message:'message',
     lastDate: 'Last Date',
     tenderDocument: 'Tender Document',
     comment:'Comment'
   };
 
   const formattedlastDate = data.lastDate ? dayjs(data.lastDate).format('DD/MM/YYYY') : '';
+  const formattedStatus = data.status ? (
+    <>
+      {data.status}
+      {data.messageStatus && (
+        <span
+          className={`fw-bold ${data.messageStatus.toLowerCase() === 'success' ? 'text-success' : 'text-danger'}`}
+        >
+          {" - "}{data.messageStatus}
+        </span>
+      )}
+    </>
+  ) : (data.messageStatus || 'N/A');
 
   return (
     <div>
@@ -65,7 +80,8 @@ const fields = [
           data={{ 
             ...data, 
             lastDate: formattedlastDate, 
-            valueINR: data.valueINR ? `${new Intl.NumberFormat('en-IN').format(data.valueINR)}₹`: '',  
+            valueINR: data.valueINR ? `₹${new Intl.NumberFormat('en-IN').format(data.valueINR)}`: '', 
+            status: formattedStatus
           }} 
           nestedFields={{
             comment: ['comments','displayName','commentedOn'],
