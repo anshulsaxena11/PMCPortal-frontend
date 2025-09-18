@@ -15,6 +15,7 @@ const ReadMoreLess = ({ text, limit = 100 }) => {
       {text.length > limit && (
         <div style={{ textAlign: "right" }}>
           <button
+            type="button"
             onClick={toggle}
             className="btn btn-link p-0"
             style={{ fontSize: "0.9rem" }}
