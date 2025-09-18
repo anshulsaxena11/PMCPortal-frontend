@@ -65,7 +65,7 @@ const fields = [
       {data.status}
       {data.messageStatus && (
         <span
-          className={`fw-bold ${data.messageStatus.toLowerCase() === 'success' ? 'text-success' : 'text-danger'}`}
+          className={`fw-bold ${data.messageStatus.toLowerCase() === 'won' ? 'text-success' : 'text-danger'}`}
         >
           {" - "}{data.messageStatus}
         </span>
@@ -87,7 +87,11 @@ const fields = [
             comment: ['comments','displayName','commentedOn'],
             commentLabels: { comments: 'Comment', displayName: 'Commented By', commentedOn: 'Commented On' }
           }}
-          comments={data.comments || []}
+           comments={
+              (data.comments || []).sort(
+                (a, b) => new Date(b.commentedOn) - new Date(a.commentedOn)
+              )
+            }
           loading={loading} 
           fields={fields} 
           labels={labels}

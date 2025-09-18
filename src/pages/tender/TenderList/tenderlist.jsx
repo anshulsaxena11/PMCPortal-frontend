@@ -91,19 +91,20 @@ const TenderDetailsList = () => {
     if (!result.isConfirmed) return;
 
     try {
-      if(data?.status === 'Not Bidding'){
+        const tender = data.find((item) => item.id === id);
+      if(tender?.status !== 'Not Bidding'){
         const statusResult = await Swal.fire({
           title: 'Set Tender Status',
           text: `Tender is Success or Failure ?`,
           icon: 'question',
           showCancelButton: false,
           showDenyButton: true,
-          confirmButtonText: 'Success',
-          denyButtonText: 'Failure',
+          confirmButtonText: 'WON',
+          denyButtonText: 'LOST',
         });
         let tenderStatus = '';
-        if (statusResult.isConfirmed) tenderStatus = 'success';
-        else if (statusResult.isDenied) tenderStatus = 'failure';
+        if (statusResult.isConfirmed) tenderStatus = 'WON';
+        else if (statusResult.isDenied) tenderStatus = 'LOST';
         if (!tenderStatus) return;
 
         const messageResult = await Swal.fire({
