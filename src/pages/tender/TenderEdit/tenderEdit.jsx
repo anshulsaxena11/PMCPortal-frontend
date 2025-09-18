@@ -18,6 +18,7 @@ import withReactContent from 'sweetalert2-react-content';
 import CircularProgress from '@mui/material/CircularProgress';
 import Table from "react-bootstrap/Table";
 import EditIcon from '@mui/icons-material/Edit'
+import ReadMoreLess from '../../../components/ReadMoreAndLess/ReadMoreLess'
 import { useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2'
@@ -617,24 +618,37 @@ const TenderTrackingEdit =({ID}) =>{
                         </Form.Group>
                         <Form.Group className="pt-3">
                           <Form.Label className="fs-5 fw-bolder">Old Comments</Form.Label>
-                           <div style={{ overflowX: "auto", height:'130px' }}>
+                          <div style={{ overflowY: "auto", height: "130px" }}>
                             {comments && comments.length > 0 ? (
                               <Table striped bordered hover responsive>
                                 <thead>
                                   <tr>
-                                    <th>S.NO</th>
+                                    <th style={{ width: "80px" }}>S.NO</th>
                                     <th>Comment</th>
-                                    <th>Commented By</th>
-                                    <th>Commented On</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {comments.map((c, index) => (
                                     <tr key={c._id || index}>
                                       <td>{index + 1}</td>
-                                      <td>{c.comments}</td>
-                                      <td>{c.displayName}</td>
-                                      <td>{new Date(c.commentedOn).toLocaleString()}</td>
+                                      <td
+                                        style={{
+                                          textAlign: "justify",
+                                          whiteSpace: "pre-wrap",
+                                          wordBreak: "break-word",
+                                          overflowWrap: "break-word",
+                                        }}
+                                      >
+                                        <div className="fw-bold">
+                                          {c.displayName}{" "}
+                                          <small className="text-muted">
+                                            ({new Date(c.commentedOn).toLocaleString()})
+                                          </small>
+                                        </div>
+                                        <div>
+                                         <ReadMoreLess text={c.comments} limit={80} />
+                                        </div>
+                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -643,10 +657,9 @@ const TenderTrackingEdit =({ID}) =>{
                               <p className="mt-3 text-muted">No comments available</p>
                             )}
                           </div>
-                    </Form.Group>
+                        </Form.Group>
+                      </div>
                     </div>
-                </div>
-               
                   <Box
                     sx={{
                       display: 'flex',
