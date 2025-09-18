@@ -22,6 +22,7 @@ import ReadMoreLess from '../../../components/ReadMoreAndLess/ReadMoreLess'
 import { useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2'
+import dayjs from "dayjs";
 
 const TenderTrackingEdit =({ID}) =>{
     const { register, handleSubmit, setValue, reset, getValues, control, formState: { errors }, } = useForm();
@@ -639,11 +640,13 @@ const TenderTrackingEdit =({ID}) =>{
                                           overflowWrap: "break-word",
                                         }}
                                       >
-                                        <div className="fw-bold">
-                                          {c.displayName}{" "}
-                                          <small className="text-muted">
-                                            ({new Date(c.commentedOn).toLocaleString()})
-                                          </small>
+                                        <div>
+                                          By <span className="fw-bold">{c.displayName}</span>{" "} on {" "}
+                                          <small>
+                                            <span className="fw-bold">{dayjs(c.commentedOn).format("D MMMM YYYY")}</span>{" "}
+                                              at{" "}
+                                            <span className="fw-bold">{dayjs(c.commentedOn).format("h:mm A")}</span>
+                                        </small>
                                         </div>
                                         <div>
                                          <ReadMoreLess text={c.comments} limit={80} />

@@ -6,6 +6,7 @@ import { Box, Typography, IconButton, Tooltip, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import ReadMoreLess  from '../../components/ReadMoreAndLess/ReadMoreLess'
 import PreviewModal from '../previewfile/preview';
+import dayjs from 'dayjs'
 
 const DetailViewTable = ({
   title,
@@ -136,12 +137,21 @@ const DetailViewTable = ({
                                   {idx + 1}
                                 </td>
                                 <td style={{ textAlign: "justify" }}>
-                                  <div className="fw-bold">
-                                    {item.displayName || "Unknown"} (
-                                    {item.commentedOn
-                                      ? new Date(item.commentedOn).toLocaleString()
-                                      : "N/A"}
-                                    )
+                                 <div>
+                                    By{" "}<span className="fw-bold">{item.displayName || "Unknown"}</span>{" "} on {" "}
+                                    {item.commentedOn ? (
+                                      <>
+                                       <span className="fw-bold">
+                                          {dayjs(item.commentedOn).format("D MMMM YYYY")}
+                                        </span>{" "}
+                                        at{" "}
+                                        <span className="fw-bold">
+                                          {dayjs(item.commentedOn).format("h:mm A")}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      "N/A"
+                                    )}
                                   </div>
                                   <div>
                                     <ReadMoreLess
