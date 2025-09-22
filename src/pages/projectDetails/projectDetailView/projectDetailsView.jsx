@@ -14,6 +14,7 @@ const ProjectDetailView = () => {
   const fetchProjectDetails = async () => {
     try {
       const response = await getProjectDetailsById(id); 
+      console.log(response)
       setProject(response.data);
     } catch (error) {
       console.error('Error fetching project details:',);
@@ -48,7 +49,10 @@ const ProjectDetailView = () => {
     'secondaryPrsonPhoneNo',
     'secondaryPersonEmail',
     'secondaryRoleAndDesignation',
-    'workOrderUrl', 
+    'workOrderUrl',
+    'completetionCertificateUrl', 
+    'clientFeedbackUrl',
+    'anyOtherDocumentUrl'
   ];
 
 
@@ -75,6 +79,9 @@ const ProjectDetailView = () => {
     secondaryPersonEmail: 'Secondary Person E-mail',
     secondaryRoleAndDesignation: 'Secondary Person Role/Designation',
     workOrder: 'Work Order', 
+    completetionCertificateUrl:'Completition Certificate',
+    clientFeedbackUrl:'Client Feedback',
+    anyOtherDocumentUrl:'Any Other Document'
   };
   const formattedStartDate = project.startDate ? dayjs(project.startDate).format('DD/MM/YYYY') : '';
   const formattedEndDate = project.endDate ? dayjs(project.endDate).format('DD/MM/YYYY') : '';

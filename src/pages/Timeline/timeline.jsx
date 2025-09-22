@@ -13,14 +13,13 @@ import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material'
 import { CiViewList } from "react-icons/ci";
 import { TbPlaylistAdd } from "react-icons/tb";
 import { CgPlayListRemove } from "react-icons/cg";
-import { FaRegCheckCircle } from "react-icons/fa";
 import CircularProgress from '@mui/material/CircularProgress';
 import { IoIosSave } from "react-icons/io";
-import { Timeline, TimelineEvent } from '@mailtop/horizontal-timeline';
+import Swal from "sweetalert2";
 import './timeline.css'
 
 const Timelines = () => {
-    const { register, setValue, reset, getValues  } = useForm();
+    const { register, reset } = useForm();
     const [loading, setLoading] = useState(false);
     const [ProjectName, setProjectName] = useState([]);
     const [SelectedProjectName, setselectedProjectName] = useState();
@@ -50,7 +49,6 @@ const Timelines = () => {
 
     const [selectStatus,setSelectStatus]= useState([]);
     const [valueStatus,setValueStaus] = useState()
-    const formValues = getValues();
 
     useEffect(() => {
         const role = localStorage.getItem("userRole");
@@ -103,6 +101,8 @@ const Timelines = () => {
                         (item) => item.value === fetchPhase.amountStatus
                     );
                     setSelectStatus(matchedStatus || null);
+                } else {
+                    setSelectStatus([])
                 }
                 setProjectCreatedAt(formatedcreatedAt);
                 setResourceMapping(fetchedData.resourseMapping || []);
@@ -282,32 +282,136 @@ const Timelines = () => {
             return { [index]: true };
         })
     };
+    const validateFiles = (files) => {
+        const allowedTypes = [
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ];
+        const maxSize = 10 * 1024 * 1024; 
+
+        const errors = [];
+
+        if (files.doc1 && !allowedTypes.includes(files.doc1.type))
+            errors.push("Completion Certificate must be PDF, JPG, JPEG, PNG, or DOC/DOCX");
+        if (files.doc1 && files.doc1.size > maxSize)
+            errors.push("Completion Certificate must be less than 10 MB");
+
+        if (files.doc2 && !allowedTypes.includes(files.doc2.type))
+            errors.push("Client Feedback must be PDF, JPG, JPEG, PNG, or DOC/DOCX");
+        if (files.doc2 && files.doc2.size > maxSize)
+            errors.push("Client Feedback must be less than 10 MB");
+
+        if (files.doc3 && !allowedTypes.includes(files.doc3.type))
+            errors.push("Any Other Document must be PDF, JPG, JPEG, PNG, or DOC/DOCX");
+        if (files.doc3 && files.doc3.size > maxSize)
+            errors.push("Any Other Document must be less than 10 MB");
+
+        return errors;
+    };
 
     const handleSubmitAllPhases = async () => {
         if (!SelectedProjectName?.value) {
             toast.error("Please select a project first");
             return;
         }
-        const payload = {
-            amountStatus:valueStatus,
-            invoiceGenerated: invoiceGenerate.map((item,index)=>({
-                ...item,
-                noOfInvoice: `Invoice ${index + 1}`,
-            })),
-            phase: Phase.map((item, index) => ({
-                ...item,
-                noOfPhases: `Phase ${index + 1}`,
-            })), 
-        };
+        const { value: formValues, isConfirmed } = await Swal.fire({
+            title: "Documents",
+            width: "700px", 
+            html: `
+                <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
+                <div style="text-align:left; font-size:20px; line-height:1.6;">
+                    <div style="margin-bottom:12px;">
+                        <label for="doc1" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
+                            Completion Certificate
+                        </label>
+                        <input type="file" id="doc1" class="swal2-file"
+                            style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
+                        </div>
+                        <div style="margin-bottom:12px;">
+                            <label for="doc2" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
+                                Client Feedback
+                            </label>
+                            <input type="file" id="doc2" class="swal2-file"
+                                style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
+                        </div>
+                        <div style="margin-bottom:8px;">
+                            <label for="doc3" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
+                                Any Other Document
+                            </label>
+                            <input type="file" id="doc3" class="swal2-file"
+                                style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
+                        </div>
+                    </div>
+                `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: "Save",
+            cancelButtonText: "Cancel",
+            preConfirm: () => {
+            const files = {
+                doc1: document.getElementById("doc1")?.files[0] || null,
+                doc2: document.getElementById("doc2")?.files[0] || null,
+                doc3: document.getElementById("doc3")?.files[0] || null,
+            };
+
+            const errors = validateFiles(files);
+            if (errors.length > 0) {
+                Swal.showValidationMessage(errors.join("<br/>"));
+                return false;
+            }
+
+            return files;
+            },
+        });
+        if (!isConfirmed) return;
+
+        if (!formValues.doc1 && !formValues.doc2 && !formValues.doc3) {
+            const confirmNoDocs = await Swal.fire({
+            title: "No Documents Uploaded",
+            text: "You are not uploading any document. Do you still want to save?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Yes, Save",
+            cancelButtonText: "Cancel",
+            });
+
+            if (!confirmNoDocs.isConfirmed) return;
+        }
+       
+        const formData = new FormData();
+        formData.append("amountStatus", valueStatus);
+
+        Phase.forEach((phase, index) => {
+            formData.append(`phase[${index}][noOfPhases]`, `Phase ${index + 1}`);
+            formData.append(`phase[${index}][projectStartDate]`, phase.projectStartDate || "");
+            formData.append(`phase[${index}][testCompletedEndDate]`, phase.testCompletedEndDate || "");
+            formData.append(`phase[${index}][reportSubmissionEndDate]`, phase.reportSubmissionEndDate || "");
+            formData.append(`phase[${index}][comments]`, phase.comments || "");
+        });
+
+        invoiceGenerate.forEach((invoice, index) => {
+            formData.append(`invoiceGenerated[${index}][noOfInvoice]`, `Invoice ${index + 1}`);
+            formData.append(`invoiceGenerated[${index}][invoiceDate]`, invoice.invoiceDate || "");
+            formData.append(`invoiceGenerated[${index}][invoiceValue]`, invoice.invoiceValue || "");
+            formData.append(`invoiceGenerated[${index}][amountRaised]`, invoice.amountRaised || "");
+        });
+
+        if (formValues.doc1) formData.append("completetionCertificate", formValues.doc1);
+        if (formValues.doc2) formData.append("clientFeedback", formValues.doc2);
+        if (formValues.doc3) formData.append("anyOtherDocument", formValues.doc3);
 
         try {
-            const response = await putProjectDetailsTimelineById(SelectedProjectName.value, payload);
+            const response = await putProjectDetailsTimelineById(SelectedProjectName.value, formData);
 
             if (response.statuscode === 200) {
                 toast.success("All phases submitted successfully!", {
                     className: 'custom-toast custom-toast-success',
                 });;
-                const formattedPhases = response.data.phase.map((p, i) => ({
+                const phases = Array.isArray(response.data.phase) ? response.data.phase : [];
+                const formattedPhases = phases.map((p, i) => ({
                     noOfPhases: `Phase ${i + 1}`,
                     projectStartDate: p.projectStartDate?.split('T')[0] || '',
                     testCompletedEndDate: p.testCompletedEndDate?.split('T')[0] || '',
@@ -321,13 +425,14 @@ const Timelines = () => {
                     expandedInit[idx] = true;
                 });
                 setExpandedPhases(expandedInit);
-                const formattedInvoice = response.data.invoiceGenerated.map((p, i) => ({
+                const invoices = Array.isArray(response.data.invoiceGenerated) ? response.data.invoiceGenerated : [];
+                const formattedInvoice = invoices.map((p, i) => ({
                     noOfInvoice: `Invoice ${i + 1}`,
                     invoiceDate: p.invoiceDate?.split('T')[0] || '',
                     invoiceValue: p.invoiceValue || '',
                     amountRaised: p.amountRaised || '',
                 }));
-                setInvoiceGenerate(formattedInvoice)
+                setInvoiceGenerate(formattedInvoice);
                 const expandedInitInvoice = {};
                     formattedInvoice.forEach((_, idx) => {
                     expandedInitInvoice[idx] = true;
@@ -412,7 +517,6 @@ const Timelines = () => {
                     value={SelectedProjectName}
                     onChange={handleProjectName}
                     placeholder="Select Project Name"
-                    isClearable
                 />
                 
                 {SelectedProjectName && (
