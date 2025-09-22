@@ -67,7 +67,7 @@ const DetailViewTable = ({
               const value = data[field];
 
               // File preview handling
-              if (['tenderDocument', 'workOrderUrl', 'certificateUrl'].includes(field) && value) {
+              if (['tenderDocument', 'workOrderUrl', 'certificateUrl','completetionCertificateUrl','clientFeedbackUrl','anyOtherDocumentUrl'].includes(field) && value) {
                 return (
                   <tr key={index}>
                     <td><strong>{label}:</strong></td>
