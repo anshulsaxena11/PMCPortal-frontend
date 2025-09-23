@@ -44,6 +44,9 @@ import CertificateList from "../../pages/Certification/CertificationList/Certifi
 import CertificateForm from "../../pages/Certification/CertificationEntry/CertificationEntry.jsx";
 import CertificateView from "../../pages/Certification/CertificateView/CertificateView.jsx";
 import CerificateEdit from "../../pages/Certification/CertificateEdit/CerificateEdit.jsx";
+import TaskForceMemberList from "../../pages/taskForceMember/TaskForceMemberList/TaskForceMemberList.jsx"
+import TaskForceMemberViewDetails from "../../pages/taskForceMember/TaskForceMemberView/TaskForceMemberViewDetails.jsx"
+import TaskForceMemberEdit from "../../pages/taskForceMember/TaskForceMemberEdit/TaskForceMemberEdit.jsx"
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -112,6 +115,9 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/certificate-form" element={<CertificateForm/>}/>
           <Route path="/certificate-view/:id" element={<CertificateView/>}/>
           <Route path="/certificate-Edit/:id" element={<CerificateEdit/>}/>
+          <Route path="/Task-Force-member" element={<TaskForceMemberList/>}/>
+          <Route path="/Task-Force-member-View" element={<TaskForceMemberViewDetails/>}/>
+          <Route path="/Task-Force-member-Edit" element={<TaskForceMemberEdit/>}/>
         </Routes>
       </div>
     </div>
