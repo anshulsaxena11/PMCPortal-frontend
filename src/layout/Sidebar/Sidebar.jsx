@@ -41,6 +41,7 @@ import { BsMicrosoftTeams } from "react-icons/bs";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { logoutUser } from "../../api/loginApi/loginApi";
 import { PiCertificateBold } from "react-icons/pi";
+import { MdOutlineRememberMe } from "react-icons/md";
 
 const drawerWidth = 240;
 const miniDrawerWidth = 70;
@@ -152,6 +153,7 @@ const handleMouseEnter = () => {
         { role: "Admin", label: "Tools and Hardware", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
         { role: "Admin", label: "Type Of Work", icon: <MdSpatialTracking />, path: "/type-of-work-master-list" },
         { role: "Admin", label: "Scope Of Work", icon: <MdSpatialTracking />, path: "/Scope-Of-Work-Master" },
+        { role: "Admin", label: "Task force Member", icon: <MdOutlineRememberMe  />, path: "/Task-Force-member" },
       ],
     },
     //subadmin
