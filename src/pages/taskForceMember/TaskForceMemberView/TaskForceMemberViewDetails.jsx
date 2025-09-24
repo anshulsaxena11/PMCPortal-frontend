@@ -46,7 +46,7 @@ const TaskForceMemberViewDetails = () => {
 
     return (
         <DetailView 
-        title={`Task Force Member Details`} 
+        title={`State Assigment Details`} 
         data={{ 
             ...TaskForce, 
         }} 

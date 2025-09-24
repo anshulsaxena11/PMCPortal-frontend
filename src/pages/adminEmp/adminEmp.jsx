@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { syncEmpData, empList, updateEmpStatus,centreList,srpiEmpTypeList,directoratesList } from '../../api/syncEmp/syncEmp'
+import { syncEmpData, empList, updateEmpStatus,centreList,srpiEmpTypeList,directoratesList,updateStateCordinator } from '../../api/syncEmp/syncEmp'
 import { ToastContainer, toast } from 'react-toastify';
-import { FaCheck } from "react-icons/fa";
-import { IoClose } from "react-icons/io5";
-import { Table, Pagination, InputGroup, FormControl, Button, Spinner } from 'react-bootstrap';
-import { CircularProgress, TextField, Typography, IconButton, Stack } from '@mui/material';
+import {  InputGroup, FormControl, Button, Spinner } from 'react-bootstrap';
 import 'react-toastify/dist/ReactToastify.css';
 import {postTaskManagerUpdate} from '../../api/TaskMember/taskMemberApi';
 import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
 import Heading from '../../components/Heading/heading';
+import Switch from "@mui/material/Switch";
 import Select from 'react-select';
 import Swal from 'sweetalert2';
                                                                                 
@@ -23,107 +21,128 @@ const AdminSyncEmploy = () =>{
     const [selecteddir, setSelectedDir] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState(null);
     const [selectedType, setSelectedType] = useState(null);
-     const [page, setPage] = useState(0); 
-      const [pageSize, setPageSize] = useState(10);
-      const [totalCount, setTotalCount] = useState(0);
-      const [searchQuery, setSearchQuery] = useState('');
-      const [loading, setLoading] = useState(false);
+    const [page, setPage] = useState(0); 
+    const [pageSize, setPageSize] = useState(10);
+    const [totalCount, setTotalCount] = useState(0);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [loading, setLoading] = useState(false);
     const statusOptions = [
       { value: true, label: "Active" },
       { value: false, label: "Not Active" },
     ];
-    const [rowsPerPage, setRowsPerPage] = useState(10); // default page size
     useEffect(() => {
       fetchEmpList();
-  }, [page, pageSize, searchQuery, selectedCentre,selectedStatus,selectedType,selecteddir]);
+    }, [page, pageSize, searchQuery, selectedCentre,selectedStatus,selectedType,selecteddir]);
 
 
-     // ✅ Move this block to the top (before `columns`)
-const columnNames = {
-  empid: 'Employee ID',
-  ename: 'Employee Name',
-  centre: 'Centre',
-  dir: 'Directorates',
-  etpe: 'Employee Type',
-  StatusNoida: 'VAPT Team Member',
-  taskForceMember: 'Task Force Member Status',
-};
+    const columnNames = {
+      empid: 'Employee ID',
+      ename: 'Employee Name',
+      centre: 'Centre',
+      dir: 'Directorates',
+      etpe: 'Employee Type',
+      StatusNoida: 'VAPT Team Member',
+      taskForceMember: 'Task Force Member',
+      StateCordinator: 'State Coordinator'
+    };
 
-// ✅ Now define columns
-const columns = [
-  {
-    field: 'serial',
-    headerName: 'S.No',
-    width: 60,
-    sortable: false,
-  },
-  { field: 'empid', headerName: columnNames.empid, width: 100 },
-  { field: 'ename', headerName: columnNames.ename, width: 140 },
-  { field: 'centre', headerName: columnNames.centre, width: 100 },
-  { field: 'dir', headerName: columnNames.dir, width: 140 },
-  { field: 'etpe', headerName: columnNames.etpe, width: 140 },
-  {
-    field: 'StatusNoida',
-    headerName: columnNames.StatusNoida,
-    width: 140,
-    renderCell: (params) => (
-      <span className={`fw-bold ${params.row.rawStatusNoida ? 'text-success' : 'text-danger'}`}>
-        {params.row.rawStatusNoida ? 'Active' : 'Inactive'}
-      </span>
-    ),
-  },
-  {
-    field: 'statusAction',
-    headerName: 'Action',
-    width: 90,
-    sortable: false,
-    renderCell: (params) =>
-      params.row.rawStatusNoida === false ? (
-        <FaCheck
-          className="text-success fs-4"
-          style={{ cursor: 'pointer' }}
-          onClick={() => handleActivate(params.row)}
+
+    const columns = [
+      {
+        field: 'serial',
+        headerName: 'S.No',
+        width: 60,
+        sortable: false,
+      },
+      { field: 'empid', headerName: columnNames.empid, width: 100 },
+      { field: 'ename', headerName: columnNames.ename, width: 140 },
+      { field: 'centre', headerName: columnNames.centre, width: 100 },
+      { field: 'dir', headerName: columnNames.dir, width: 140 },
+      { field: 'etpe', headerName: columnNames.etpe, width: 140 },
+      {
+        field: 'StatusNoida',
+        headerName: columnNames.StatusNoida,
+        width: 140,
+        sortable: false,
+        renderCell: (params) => (
+        <Switch
+          checked={params.row.rawStatusNoida}
+          onChange={() =>
+            params.row.rawStatusNoida
+              ? handleDeactivate(params.row)
+              : handleActivate(params.row)
+          }
+          color={params.row.rawStatusNoida ? "success" : "error"}
+          sx={{
+            "& .MuiSwitch-switchBase.Mui-checked": {
+              color: "green",
+            },
+            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+              backgroundColor: "green",
+            },
+            "& .MuiSwitch-switchBase:not(.Mui-checked)": {
+              color: "red",
+            },
+            "& .MuiSwitch-switchBase:not(.Mui-checked) + .MuiSwitch-track": {
+              backgroundColor: "red",
+            },
+          }}
         />
-      ) : (
-        <IoClose
-          className="text-danger fs-4"
-          style={{ cursor: 'pointer' }}
-          onClick={() => handleDeactivate(params.row)}
-        />
-      ),
-  },
-  {
-    field: 'taskForceMember',
-    headerName: columnNames.taskForceMember,
-    width: 150,
-    renderCell: (params) => (
-      <span className={`fw-bold ${params.row.rawtaskForceMember === 'Yes' ? 'text-success' : 'text-danger'}`}>
-        {params.row.rawtaskForceMember === 'Yes' ? 'Yes' : 'No'}
-      </span>
-    ),
-  },
-  {
-    field: 'memberAction',
-    headerName: 'Member Status',
-    width: 120,
-    sortable: false,
-    renderCell: (params) =>
-      params.row.rawtaskForceMember === 'No' ? (
-        <FaCheck
-          className="text-success fs-4"
-          style={{ cursor: 'pointer' }}
-          onClick={() => handleTeamMember(params.row)}
-        />
-      ) : (
-        <IoClose
-          className="text-danger fs-4"
-          style={{ cursor: 'pointer' }}
-          onClick={() => handleTeamMember(params.row)}
+      )
+      },
+      {
+        field: 'taskForceMember',
+        headerName: columnNames.taskForceMember,
+        width: 120,
+        sortable: false,
+        renderCell: (params) => (
+        <Switch
+          checked={params.row.rawtaskForceMember !== "No"} // ✅ checked if not "No"
+          onChange={() => handleTeamMember(params.row)}
+          sx={{
+            "& .MuiSwitch-switchBase.Mui-checked": {
+              color: "green",
+            },
+            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+              backgroundColor: "green",
+            },
+            "& .MuiSwitch-switchBase:not(.Mui-checked)": {
+              color: "red",
+            },
+            "& .MuiSwitch-switchBase:not(.Mui-checked) + .MuiSwitch-track": {
+              backgroundColor: "red",
+            },
+          }}
         />
       ),
-  },
-];
-
+      },
+       {
+        field: 'StateCordinator',
+        headerName: columnNames.StateCordinator,
+        width: 140,
+        sortable: false,
+        renderCell: (params) => (
+        <Switch
+          checked={params.row.rawStateCordinator !== false}
+          onChange={() => handleDeactivateStateCordinator(params.row)}
+           sx={{
+            "& .MuiSwitch-switchBase.Mui-checked": {
+              color: "green",
+            },
+            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+              backgroundColor: "green",
+            },
+            "& .MuiSwitch-switchBase:not(.Mui-checked)": {
+              color: "red",
+            },
+            "& .MuiSwitch-switchBase:not(.Mui-checked) + .MuiSwitch-track": {
+              backgroundColor: "red",
+            },
+          }}
+        />
+      )
+      },
+    ];
 
     const handleSync = async() =>{
         setLoader(true);
@@ -158,26 +177,16 @@ const columns = [
     const fetchEmpList = async() =>{
         setLoader(true);
         try{
-          const response = await empList({page: page + 1, // ✅ Convert 0-based to 1-based
-  limit: pageSize,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
+          const response = await empList({page: page + 1, limit: pageSize,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
+          console.log(response)
           const transformedData = response.data.map((item, index) => ({
             ...item,
-            id: item._id, // Required by DataGrid
-           serial: page * pageSize + index + 1,
+            id: item._id, 
+            serial: page * pageSize + index + 1,
             rawStatusNoida: item.StatusNoida,
             rawtaskForceMember: item.taskForceMember,
-            StatusNoida: item.StatusNoida ? (
-              <span className="text-success fw-bold">Active</span>
-            ) : (
-              <span className="text-danger fw-bold">Inactive</span>
-            ),
-            taskForceMember: item.taskForceMember === 'Yes' ? (
-              <span className="text-success fw-bold">Yes</span>
-            ) : (
-              <span className="text-danger fw-bold">No</span>
-            )
+            rawStateCordinator: item.StateCordinator,
           }));
-
 
           setData(transformedData)
           setTotalCount(response.total);
@@ -208,11 +217,6 @@ const columns = [
       setPage(1);
     }
 
-    const handleStausChange = (selectedOption) => {
-      setSelectedStatus(selectedOption);
-      setPage(1);
-    };
-
     useEffect(() => {
         fetchEmpList();
         fetchDiretoratesData();
@@ -220,17 +224,13 @@ const columns = [
         fetchTypeData();
     }, [page, searchQuery]); 
 
-    const handlePageChange = (newPage) => {
-    setPage(newPage);
-    };
-
     const handleActivate = async (empid) => {
         try {
             const payload = {
                     id:empid._id,
                     StatusNoida:true
                 }
-          await updateEmpStatus(payload);
+          await updateStateCordinator(payload);
           Swal.fire({
             icon: 'success',
             title: 'VAPT Team Member Updated',
@@ -268,6 +268,28 @@ const columns = [
             showConfirmButton: true,
           });
           
+        }
+      };
+
+      const handleDeactivateStateCordinator = async (empid) => {
+        try{
+          const payload ={
+            id:empid._id,
+          }
+          await updateStateCordinator(payload)
+          Swal.fire({
+                icon: 'success',
+                title: 'State Coordinator has been Updated',
+                showConfirmButton: false,
+                timer: 2000,
+              });
+          fetchEmpList();
+        }catch(error){
+          Swal.fire({
+              icon: 'error',
+              title: 'Failed to update State Coordinator',
+              showConfirmButton: true,
+            }); 
         }
       };
 
