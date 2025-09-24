@@ -43,6 +43,7 @@ import { logoutUser } from "../../api/loginApi/loginApi";
 import { PiCertificateBold } from "react-icons/pi";
 import { MdOutlineRememberMe } from "react-icons/md";
 import { VscRepo } from "react-icons/vsc";
+import { IoMdPeople } from "react-icons/io";
 
 const drawerWidth = 240;
 const miniDrawerWidth = 70;
@@ -158,7 +159,8 @@ const handleMouseEnter = () => {
         { role: "Admin", label: "Tools and Hardware", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
         { role: "Admin", label: "Type Of Work", icon: <MdSpatialTracking />, path: "/type-of-work-master-list" },
         { role: "Admin", label: "Scope Of Work", icon: <MdSpatialTracking />, path: "/Scope-Of-Work-Master" },
-        { role: "Admin", label: "State Assigment", icon: <MdOutlineRememberMe  />, path: "/Task-Force-member" },
+        { role: "Admin", label: "State Assigment", icon: <MdOutlineRememberMe/>, path: "/Task-Force-member" },
+        { role: "Admin", label: "Client Sector", icon: <IoMdPeople/>, path: "/Client-Sector-Master" },
       ],
     },
     //subadmin

@@ -1,8 +1,7 @@
-import React, { useState, useRef,useEffect } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
 import DetailView from '../../../components/DetailsView/DetailView'; 
 import {getTaskForceDetailsById} from '../../../api/taskForceMemberApi/taskForceMemberApi'
-import dayjs from 'dayjs';
 
 const TaskForceMemberViewDetails = () => {
     const [TaskForce, setTaskForce] = useState({});
@@ -14,7 +13,6 @@ const TaskForceMemberViewDetails = () => {
     const fetchTaskForceMember = async () => {
         try {
         const response = await getTaskForceDetailsById(id);
-        console.log(response) 
         setTaskForce(response.data);
         } catch (error) {
         console.error('Error fetching project details:',);
