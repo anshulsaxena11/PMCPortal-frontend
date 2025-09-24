@@ -22,6 +22,7 @@ import ResetPasswordVerify from "../pages/login/ResetPasswordVerification/ResetP
 import ScopeOfWorkMasterList from "../pages/scopeOfWorkMaster/ScopeOfWorkMasterList/ScopeOfWorkMasterList"
 import CertificateList from "../pages/Certification/CertificationList/CertificationList";
 import TaskForceMemberList from "../pages/taskForceMember/TaskForceMemberList/TaskForceMemberList"
+import DocumentRepository from "../pages/documentRepository/documentRepository";
 
 const AppRoutes = () => {
   return (
@@ -47,6 +48,7 @@ const AppRoutes = () => {
       <Route path="/Scope-Of-Work-Master" element={<ScopeOfWorkMasterList/>}/>
       <Route path="/certificate" element={<CertificateList/>}/>
       <Route path="/Task-Force-member" element={<TaskForceMemberList/>}/>
+      <Route path="/Document-Reprositary" element={<DocumentRepository/>}/>
     </Routes>
   );
 };

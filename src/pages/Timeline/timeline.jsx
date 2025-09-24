@@ -101,8 +101,10 @@ const Timelines = () => {
                         (item) => item.value === fetchPhase.amountStatus
                     );
                     setSelectStatus(matchedStatus || null);
+                    setValueStaus(matchedStatus?.value || "");
                 } else {
                     setSelectStatus([])
+                    setValueStaus("");
                 }
                 setProjectCreatedAt(formatedcreatedAt);
                 setResourceMapping(fetchedData.resourseMapping || []);
@@ -317,68 +319,71 @@ const Timelines = () => {
             toast.error("Please select a project first");
             return;
         }
-        const { value: formValues, isConfirmed } = await Swal.fire({
-            title: "Documents",
-            width: "700px", 
-            html: `
-                <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
-                <div style="text-align:left; font-size:20px; line-height:1.6;">
-                    <div style="margin-bottom:12px;">
-                        <label for="doc1" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
-                            Completion Certificate
-                        </label>
-                        <input type="file" id="doc1" class="swal2-file"
-                            style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
-                        </div>
+        let formValues = { doc1: null, doc2: null, doc3: null }
+        if(valueStatus === "Complete" || valueStatus==="Closed"){
+            const { value: formValues, isConfirmed } = await Swal.fire({
+                title: "Documents",
+                width: "700px", 
+                html: `
+                    <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}/>
+                    <div style="text-align:left; font-size:20px; line-height:1.6;">
                         <div style="margin-bottom:12px;">
-                            <label for="doc2" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
-                                Client Feedback
+                            <label for="doc1" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
+                                Completion Certificate
                             </label>
-                            <input type="file" id="doc2" class="swal2-file"
+                            <input type="file" id="doc1" class="swal2-file"
                                 style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
+                            </div>
+                            <div style="margin-bottom:12px;">
+                                <label for="doc2" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
+                                    Client Feedback
+                                </label>
+                                <input type="file" id="doc2" class="swal2-file"
+                                    style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
+                            </div>
+                            <div style="margin-bottom:8px;">
+                                <label for="doc3" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
+                                    Any Other Document
+                                </label>
+                                <input type="file" id="doc3" class="swal2-file"
+                                    style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
+                            </div>
                         </div>
-                        <div style="margin-bottom:8px;">
-                            <label for="doc3" style="display:block; font-weight:600; color:#333; margin-bottom:6px;">
-                                Any Other Document
-                            </label>
-                            <input type="file" id="doc3" class="swal2-file"
-                                style="width:100%; padding:6px; border:1px solid #ccc; border-radius:6px;" />
-                        </div>
-                    </div>
-                `,
-            focusConfirm: false,
-            showCancelButton: true,
-            confirmButtonText: "Save",
-            cancelButtonText: "Cancel",
-            preConfirm: () => {
-            const files = {
-                doc1: document.getElementById("doc1")?.files[0] || null,
-                doc2: document.getElementById("doc2")?.files[0] || null,
-                doc3: document.getElementById("doc3")?.files[0] || null,
-            };
+                    `,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: "Save",
+                cancelButtonText: "Cancel",
+                preConfirm: () => {
+                const files = {
+                    doc1: document.getElementById("doc1")?.files[0] || null,
+                    doc2: document.getElementById("doc2")?.files[0] || null,
+                    doc3: document.getElementById("doc3")?.files[0] || null,
+                };
 
-            const errors = validateFiles(files);
-            if (errors.length > 0) {
-                Swal.showValidationMessage(errors.join("<br/>"));
-                return false;
-            }
+                const errors = validateFiles(files);
+                if (errors.length > 0) {
+                    Swal.showValidationMessage(errors.join("<br/>"));
+                    return false;
+                }
 
-            return files;
-            },
-        });
-        if (!isConfirmed) return;
-
-        if (!formValues.doc1 && !formValues.doc2 && !formValues.doc3) {
-            const confirmNoDocs = await Swal.fire({
-            title: "No Documents Uploaded",
-            text: "You are not uploading any document. Do you still want to save?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "Yes, Save",
-            cancelButtonText: "Cancel",
+                return files;
+                },
             });
+            if (!isConfirmed) return;
 
-            if (!confirmNoDocs.isConfirmed) return;
+            if (!formValues.doc1 && !formValues.doc2 && !formValues.doc3) {
+                const confirmNoDocs = await Swal.fire({
+                title: "No Documents Uploaded",
+                text: "You are not uploading any document. Do you still want to save?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Yes, Save",
+                cancelButtonText: "Cancel",
+                });
+
+                if (!confirmNoDocs.isConfirmed) return;
+            }
         }
        
         const formData = new FormData();
@@ -562,7 +567,6 @@ const Timelines = () => {
                                         value={selectStatus}
                                         onChange={handleStatusChange}
                                         placeholder="Select Status"
-                                        isClearable
                                     />
                                 </Form.Group>
                             </div>

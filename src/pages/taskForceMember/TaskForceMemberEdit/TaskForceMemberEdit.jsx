@@ -1,8 +1,9 @@
 import React, { useState, useRef,useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
 import { useForm } from "react-hook-form";
-import {getTaskForceDetailsById, updateTaskForceMember} from '../../../api/taskForceMemberApi/taskForceMemberApi'
+import {getTaskForceDetailsById, updateTaskForceMember, getEmpListSC} from '../../../api/taskForceMemberApi/taskForceMemberApi'
 import { ToastContainer, toast } from 'react-toastify';
+import { getEmpList } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
 import { Form,} from "react-bootstrap";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -16,6 +17,7 @@ const TaskForceMemberEdit = () =>{
     const location = useLocation();
     const navigate = useNavigate();
     const [option, setOption] = useState([])
+    const [optionSC, setOptionSC] = useState([])
     const [selectedEmp, setSelectedEmp] = useState(null);
     const [stateCordinator, setStateCordinator]= useState(null);
     const [loading, setLoading] = useState(true);
@@ -31,7 +33,7 @@ const TaskForceMemberEdit = () =>{
                 (opt) => opt.raw?.ename === fetchData.taskForceMember
             );
             const taskForceMemberId = matchedTaskForceMember ? matchedTaskForceMember.value : "";
-              const matchedStateCoordinator = option.find(
+              const matchedStateCoordinator = optionSC.find(
                 (opt) => opt.raw?.ename === fetchData.stateCordinator
             );
             const stateCoordinatorId = matchedStateCoordinator ? matchedStateCoordinator.value : "";
@@ -55,8 +57,8 @@ const TaskForceMemberEdit = () =>{
         const fetchEmpList = async() =>{
             setLoading(true);
             try{
-                const response = await empList()
-                const fetchList = response?.data
+                const response = await getEmpList()
+                const fetchList = response?.data?.data
                 if(fetchList && Array.isArray(fetchList) ){
                     const option = fetchList.map((emp)=>({
                             label: `${emp.empid} - ${emp.ename}`,
@@ -74,8 +76,30 @@ const TaskForceMemberEdit = () =>{
     }, []); 
 
     useEffect(() => {
+        const fetchEmpListSC = async() =>{
+            setLoading(true);
+            try{
+                const response = await getEmpListSC()
+                const fetchList = response?.data?.data
+                if(fetchList && Array.isArray(fetchList) ){
+                    const option = fetchList.map((emp)=>({
+                            label: `${emp.empid} - ${emp.ename}`,
+                            value:emp._id,
+                            raw:emp
+                        }))
+                    setOptionSC(option)
+                }
+                }catch(error){
+                    console.error('Failed to fetch employee list:');
+                }
+                    setLoading(false);
+            }
+        fetchEmpListSC()
+    }, []); 
+
+    useEffect(() => {
         fetchTaskForceMember();
-    }, [id,option]);
+    }, [id,option,optionSC]);
 
     const handleBackClick = ()=>{
        navigate(`/Task-Force-member`); 
@@ -164,7 +188,7 @@ const TaskForceMemberEdit = () =>{
                         </Tooltip>
                     </Box>
                     <Typography variant="h4" fontWeight="bold">
-                        Task Force Member
+                        State Assigment
                     </Typography>
                 </Box>
             </div>
@@ -185,7 +209,7 @@ const TaskForceMemberEdit = () =>{
                             <Form.Label className="fs-5 fw-bolder">State Coordinator<span className="text-danger">*</span></Form.Label>
                             <Select
                                 name="stateCordinator"
-                                options={option}
+                                options={optionSC}
                                 value={stateCordinator}
                                 isLoading={loading} 
                                 onChange={handleStateCoordinator}

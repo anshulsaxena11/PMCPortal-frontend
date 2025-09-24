@@ -104,7 +104,7 @@ const TaskForceMemberList = () =>{
         <div>
             <Box sx={{ width: '100%' }}>
                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Heading title="Task Force Member"/> 
+                        <Heading title="State Assigment"/> 
                    </Stack>
                    <hr></hr>
                    <TextField
