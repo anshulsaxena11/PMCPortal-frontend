@@ -1,3 +1,7 @@
 import axiosInstance from '../axiosconfig'
 
-export const getStateList = async()=> await axiosInstance.get('/user/state',{ withCredentials: true,})
+export const getStateList = async ({ page = "", limit = "", search = ""}) =>
+  axiosInstance.get("/user/state", {
+    params: { page, limit, search },
+    withCredentials: true,
+  }).then(response => response.data);

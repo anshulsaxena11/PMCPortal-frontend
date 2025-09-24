@@ -8,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Tooltip } from '@mui/material';
 import { Visibility, Edit, Delete } from '@mui/icons-material';
+import { RestoreFromTrash } from '@mui/icons-material';
 
 
 import { getTenderDetailsList, deleteTenderById, updatetendermessage } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
@@ -20,6 +21,7 @@ const TenderDetailsList = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showDeleted, setShowDeleted] = useState(false); 
   const navigate = useNavigate();
 
   
@@ -35,9 +37,8 @@ const TenderDetailsList = () => {
         page: page + 1,
         search: searchQuery.trim(),
         limit: pageSize,
-        isDeleted: true,
+        isDeleted: showDeleted,
       });
-
       const transformedData = (response?.data || []).map((item, index) => ({
         id: item?._id,
         sno: page * pageSize + index + 1,
@@ -66,14 +67,14 @@ const TenderDetailsList = () => {
 
   useEffect(() => {
     fetchData();
-  }, [page, searchQuery]);
+  }, [page, searchQuery,showDeleted]);
 
   const handleViewClick = (id) => {
-    navigate(`/tender-View/${id}`);
+    navigate(`/tender-View`, { state: { id } });
   };
 
   const handleEditClick = (id) => {
-    navigate(`/tender-Edit/${id}`);
+    navigate('/tender-Edit', { state: { id } });
   };
 
   const handleDeleteClick = async (id) => {
@@ -90,39 +91,55 @@ const TenderDetailsList = () => {
     if (!result.isConfirmed) return;
 
     try {
-      const messageResult = await Swal.fire({
-        title: 'Submit your message',
-        input: 'text',
-        inputAttributes: {
-          autocapitalize: 'off',
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Submit',
-        showLoaderOnConfirm: true,
-        preConfirm: async (message) => {
-          if (!message || message.trim() === '') {
-            Swal.showValidationMessage('Message is required');
-            return false;
-          }
-          try {
-            const response = await updatetendermessage(id, message);
-            if (response.status !== 200 && response.status !== 201) {
-              Swal.showValidationMessage(`Error: ${response.statusText}`);
+        const tender = data.find((item) => item.id === id);
+      if(tender?.status !== 'Not Bidding'){
+        const statusResult = await Swal.fire({
+          title: 'Set Tender Status',
+          text: `Tender is Success or Failure ?`,
+          icon: 'question',
+          showCancelButton: false,
+          showDenyButton: true,
+          confirmButtonText: 'WON',
+          denyButtonText: 'LOST',
+        });
+        let tenderStatus = '';
+        if (statusResult.isConfirmed) tenderStatus = 'WON';
+        else if (statusResult.isDenied) tenderStatus = 'LOST';
+        if (!tenderStatus) return;
+
+        const messageResult = await Swal.fire({
+          title: 'Submit your message',
+          input: 'text',
+          inputAttributes: {
+            autocapitalize: 'off',
+          },
+          showCancelButton: true,
+          confirmButtonText: 'Submit',
+          showLoaderOnConfirm: true,
+          preConfirm: async (message) => {
+            if (!message || message.trim() === '') {
+              Swal.showValidationMessage('Message is required');
               return false;
             }
-            return response.data;
-          } catch (error) {
-            Swal.showValidationMessage(
-              `Request failed: ${error?.response?.data?.message || error.message}`
-            );
-            return false;
-          }
-        },
-        allowOutsideClick: () => !Swal.isLoading(),
-      });
-
-      if (messageResult.isDismissed) return;
-
+            try {
+              const response = await updatetendermessage(id, message, tenderStatus);
+              if (response.status !== 200 && response.status !== 201) {
+                Swal.showValidationMessage(`Error: ${response.statusText}`);
+                return false;
+              }
+              return response.data;
+            } catch (error) {
+              Swal.showValidationMessage(
+                `Request failed: ${error?.response?.data?.message || error.message}`
+              );
+              return false;
+            }
+          },
+          allowOutsideClick: () => !Swal.isLoading(),
+        });
+  
+        if (messageResult.isDismissed) return;
+      }
       await deleteTenderById(id);
       toast.success('Tender deleted successfully!');
       fetchData();
@@ -182,7 +199,7 @@ const TenderDetailsList = () => {
            >
           <Visibility />
               </IconButton>
-                {(userRole !== 'User') && (
+                {(!showDeleted && userRole !== 'User') && (
                 <>
                   <IconButton 
                     onClick={() => handleEditClick(params.row.id)} 
@@ -205,13 +222,27 @@ const TenderDetailsList = () => {
     <Box p={2}>
       <ToastContainer position="top-center" autoClose={5000} />
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Heading title="Tender Tracking" />
-          {(userRole !== 'User') && (
-            <Button variant="contained" onClick={() => navigate('/Tender-Tracking')}>
-              Add New
-            </Button>
-          )}
+        <Heading title="Sales Tracking" />
       </Box>
+      <hr></hr>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<RestoreFromTrash />}
+              onClick={() => {
+              setShowDeleted(!showDeleted);
+              setPage(0);
+            }}
+            >
+            {showDeleted ? "Back to Active" : "Recycle Bin"}
+          </Button>
+            {(userRole !== 'User') && (
+              <Button variant="contained" onClick={() => navigate('/Tender-Tracking')}>
+                Add New
+              </Button>
+            )}
+        </Box>
 
       <Box display="flex" gap={2} mb={2}>
         <TextField
@@ -229,22 +260,22 @@ const TenderDetailsList = () => {
 
       <div style={{ height: 600, width: '100%' }}>
         <CustomDataGrid
-                  rows={data}
-                  columns={columns}
-                  rowCount={totalCount}
-                  page={page}
-                  onPageChange={(newPage) => setPage(newPage)}
-                  pageSize={pageSize}        
-                  paginationModel={{ page, pageSize }}
-                  paginationMode="server"
-                  onPageSizeChange={(newSize) => setPageSize(newSize)}
-                  onPaginationModelChange={({ page, pageSize }) => {
-                    setPage(page);
-                    setPageSize(pageSize);
-                  }}
-                rowsPerPageOptions={[10, 15, 25]}
-                loading={loading}
-                />
+            rows={data}
+            columns={columns}
+            rowCount={totalCount}
+            page={page}
+            onPageChange={(newPage) => setPage(newPage)}
+            pageSize={pageSize}        
+            paginationModel={{ page, pageSize }}
+            paginationMode="server"
+            onPageSizeChange={(newSize) => setPageSize(newSize)}
+            onPaginationModelChange={({ page, pageSize }) => {
+              setPage(page);
+              setPageSize(pageSize);
+            }}
+          rowsPerPageOptions={[10, 15, 25]}
+          loading={loading}
+        />
       </div>
     </Box>
   );

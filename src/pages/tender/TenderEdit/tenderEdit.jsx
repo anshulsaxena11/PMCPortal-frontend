@@ -18,8 +18,11 @@ import withReactContent from 'sweetalert2-react-content';
 import CircularProgress from '@mui/material/CircularProgress';
 import Table from "react-bootstrap/Table";
 import EditIcon from '@mui/icons-material/Edit'
+import ReadMoreLess from '../../../components/ReadMoreAndLess/ReadMoreLess'
+import { useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2'
+import dayjs from "dayjs";
 
 const TenderTrackingEdit =({ID}) =>{
     const { register, handleSubmit, setValue, reset, getValues, control, formState: { errors }, } = useForm();
@@ -46,6 +49,7 @@ const TenderTrackingEdit =({ID}) =>{
     const [statusError, setStatusError] = useState("");
     const [stateError, setStateError] = useState("");
     const MySwal = withReactContent(Swal);
+    const location = useLocation();
     const StatusOption =[
         {value:"Upload",label:"Upload"},
         {value:"Bidding",label:"Bidding"},
@@ -53,7 +57,7 @@ const TenderTrackingEdit =({ID}) =>{
     ]
 
     const { id } = useParams();
-    const trackingId = ID || id;
+    const trackingId = ID || location.state?.id;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -96,9 +100,9 @@ const TenderTrackingEdit =({ID}) =>{
         const fetchStateList = async() =>{
         setLoading(true);
         try{
-            const response = await getStateList();
-            if(response.data && Array.isArray(response.data.data)){
-            const option = response.data.data.map((state)=>({
+            const response = await getStateList({});
+            if(response.data && Array.isArray(response?.data)){
+            const option = response?.data.map((state)=>({
                 value:state._id,
                 label:state.stateName
             }))
@@ -124,7 +128,6 @@ const TenderTrackingEdit =({ID}) =>{
         try {
             const response = await getTrackingById(trackingId);
             const fetchedData = response.data;
-            console.log(fetchedData)
             setValueINR(new Intl.NumberFormat("en-IN").format(fetchedData.valueINR || ''));
             if (fetchedData) {
                 const formattedLastDate = fetchedData.lastDate
@@ -412,7 +415,7 @@ const TenderTrackingEdit =({ID}) =>{
                 </Tooltip>
                 </Box>
                 <Typography variant="h4" fontWeight="bold">
-                Tender Tracking
+                Sales Tracking
                 </Typography>
               </Box>
             </div>
@@ -616,24 +619,39 @@ const TenderTrackingEdit =({ID}) =>{
                         </Form.Group>
                         <Form.Group className="pt-3">
                           <Form.Label className="fs-5 fw-bolder">Old Comments</Form.Label>
-                           <div style={{ overflowX: "auto", height:'130px' }}>
+                          <div style={{ overflowY: "auto", height: "130px" }}>
                             {comments && comments.length > 0 ? (
                               <Table striped bordered hover responsive>
                                 <thead>
                                   <tr>
-                                    <th>S.NO</th>
+                                    <th style={{ width: "80px" }}>S.NO</th>
                                     <th>Comment</th>
-                                    <th>Commented By</th>
-                                    <th>Commented On</th>
                                   </tr>
                                 </thead>
                                 <tbody>
                                   {comments.map((c, index) => (
                                     <tr key={c._id || index}>
                                       <td>{index + 1}</td>
-                                      <td>{c.comments}</td>
-                                      <td>{c.displayName}</td>
-                                      <td>{new Date(c.commentedOn).toLocaleString()}</td>
+                                      <td
+                                        style={{
+                                          textAlign: "justify",
+                                          whiteSpace: "pre-wrap",
+                                          wordBreak: "break-word",
+                                          overflowWrap: "break-word",
+                                        }}
+                                      >
+                                        <div>
+                                          By <span className="fw-bold">{c.displayName}</span>{" "} on {" "}
+                                          <small>
+                                            <span className="fw-bold">{dayjs(c.commentedOn).format("D MMMM YYYY")}</span>{" "}
+                                              at{" "}
+                                            <span className="fw-bold">{dayjs(c.commentedOn).format("h:mm A")}</span>
+                                        </small>
+                                        </div>
+                                        <div>
+                                         <ReadMoreLess text={c.comments} limit={80} />
+                                        </div>
+                                      </td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -642,10 +660,9 @@ const TenderTrackingEdit =({ID}) =>{
                               <p className="mt-3 text-muted">No comments available</p>
                             )}
                           </div>
-                    </Form.Group>
+                        </Form.Group>
+                      </div>
                     </div>
-                </div>
-               
                   <Box
                     sx={{
                       display: 'flex',

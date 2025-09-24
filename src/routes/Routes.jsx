@@ -21,6 +21,8 @@ import ChangePassword from '../pages/login/changePasswordPannel/changePasswordPa
 import ResetPasswordVerify from "../pages/login/ResetPasswordVerification/ResetPasswordVerification"
 import ScopeOfWorkMasterList from "../pages/scopeOfWorkMaster/ScopeOfWorkMasterList/ScopeOfWorkMasterList"
 import CertificateList from "../pages/Certification/CertificationList/CertificationList";
+import TaskForceMemberList from "../pages/taskForceMember/TaskForceMemberList/TaskForceMemberList"
+import DocumentRepository from "../pages/documentRepository/documentRepository";
 import Profile from "../pages/profile/Profile";
 
 const AppRoutes = () => {
@@ -46,6 +48,8 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPasswordVerify/>}/>
       <Route path="/Scope-Of-Work-Master" element={<ScopeOfWorkMasterList/>}/>
       <Route path="/certificate" element={<CertificateList/>}/>
+      <Route path="/Task-Force-member" element={<TaskForceMemberList/>}/>
+      <Route path="/Document-Reprositary" element={<DocumentRepository/>}/>
       <Route path="/profile" element={<Profile/>}/>
     </Routes>
   );

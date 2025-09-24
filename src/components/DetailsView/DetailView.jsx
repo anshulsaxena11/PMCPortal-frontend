@@ -4,7 +4,9 @@ import { PiImagesSquareBold } from 'react-icons/pi';
 import { FcDocument } from 'react-icons/fc'; 
 import { Box, Typography, IconButton, Tooltip, Paper } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
+import ReadMoreLess  from '../../components/ReadMoreAndLess/ReadMoreLess'
 import PreviewModal from '../previewfile/preview';
+import dayjs from 'dayjs'
 
 const DetailViewTable = ({
   title,
@@ -65,7 +67,7 @@ const DetailViewTable = ({
               const value = data[field];
 
               // File preview handling
-              if (['tenderDocument', 'workOrderUrl', 'certificateUrl'].includes(field) && value) {
+              if (['tenderDocument', 'workOrderUrl', 'certificateUrl','completetionCertificateUrl','clientFeedbackUrl','anyOtherDocumentUrl'].includes(field) && value) {
                 return (
                   <tr key={index}>
                     <td><strong>{label}:</strong></td>
@@ -95,51 +97,81 @@ const DetailViewTable = ({
               }
 
               // Nested array fields
-              if (Array.isArray(value)) {
-                const showFields = nestedFields[field] || [];
-                const showLabels = nestedFields[`${field}Labels`] || {};
+          if (Array.isArray(value)) {
+              const showFields = nestedFields[field] || [];
+              const showLabels = nestedFields[`${field}Labels`] || {};
 
-                if (showFields.length === 0) {
-                  return (
-                    <tr key={index}>
-                      <td><strong>{label}:</strong></td>
-                      <td>No fields defined to display</td>
-                    </tr>
-                  );
-                }
-
+              if (showFields.length === 0) {
                 return (
                   <tr key={index}>
                     <td><strong>{label}:</strong></td>
-                    <td>
-                      {value.length > 0 ? (
+                    <td>No fields defined to display</td>
+                  </tr>
+                );
+              }
+
+              return (
+                <tr key={index}>
+                  <td><strong>{label}:</strong></td>
+                  <td>
+                    {value.length > 0 ? (
+                      <div
+                        style={{
+                          maxHeight: "200px",
+                          maxWidth: "100%",
+                          overflowX: "auto",
+                          overflowY: "auto",
+                        }}
+                      >
                         <Table striped bordered hover size="sm">
                           <thead>
                             <tr>
-                              {showFields.map((f) => <th key={f}>{showLabels[f] || f}</th>)}
+                              <th>S.No</th>
+                              <th>{label}</th>
                             </tr>
                           </thead>
                           <tbody>
-                            {value.map((item, idx) => (
+                            {value.sort((a, b) => new Date(b.commentedOn) - new Date(a.commentedOn)).map((item, idx) => (
                               <tr key={item._id || idx}>
-                                {showFields.map((f) => (
-                                  <td key={f}>
-                                    {f === 'commentedOn'
-                                      ? new Date(item[f]).toLocaleString()
-                                      : item[f] ?? 'N/A'}
-                                  </td>
-                                ))}
+                                <td style={{ verticalAlign: "top", width: "60px" }}>
+                                  {idx + 1}
+                                </td>
+                                <td style={{ textAlign: "justify" }}>
+                                 <div>
+                                    By{" "}<span className="fw-bold">{item.displayName || "Unknown"}</span>{" "} on {" "}
+                                    {item.commentedOn ? (
+                                      <>
+                                       <span className="fw-bold">
+                                          {dayjs(item.commentedOn).format("D MMMM YYYY")}
+                                        </span>{" "}
+                                        at{" "}
+                                        <span className="fw-bold">
+                                          {dayjs(item.commentedOn).format("h:mm A")}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      "N/A"
+                                    )}
+                                  </div>
+                                  <div>
+                                    <ReadMoreLess
+                                      text={item.comments ?? "N/A"}
+                                      limit={120}
+                                    />
+                                  </div>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
                         </Table>
-                      ) : (
-                        <span>No {label} available</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              }
+                      </div>
+                    ) : (
+                      <span>No {label} available</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            }
 
               // Default simple fields
               return (

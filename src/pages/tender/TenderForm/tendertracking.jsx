@@ -152,9 +152,9 @@ const TenderTracking = () => {
       const fetchStateList = async() =>{
         setLoading(true);
         try{
-          const response = await getStateList();
-          if(response.data && Array.isArray(response.data.data)){
-            const option = response.data.data.map((state)=>({
+          const response = await getStateList({});
+          if(response.data && Array.isArray(response?.data)){
+            const option = response?.data.map((state)=>({
               value:state._id,
               label:state.stateName
             }))
@@ -283,7 +283,7 @@ const handleFileChange = (e) => {
             </Tooltip>
             </Box>
             <Typography variant="h4" fontWeight="bold">
-            Tender Tracking
+            Sales Tracking
             </Typography>
         </Box>
       </div>

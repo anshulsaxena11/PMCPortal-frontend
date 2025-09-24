@@ -44,6 +44,10 @@ import CertificateList from "../../pages/Certification/CertificationList/Certifi
 import CertificateForm from "../../pages/Certification/CertificationEntry/CertificationEntry.jsx";
 import CertificateView from "../../pages/Certification/CertificateView/CertificateView.jsx";
 import CerificateEdit from "../../pages/Certification/CertificateEdit/CerificateEdit.jsx";
+import TaskForceMemberList from "../../pages/taskForceMember/TaskForceMemberList/TaskForceMemberList.jsx"
+import TaskForceMemberViewDetails from "../../pages/taskForceMember/TaskForceMemberView/TaskForceMemberViewDetails.jsx"
+import TaskForceMemberEdit from "../../pages/taskForceMember/TaskForceMemberEdit/TaskForceMemberEdit.jsx"
+import DocumentRepository from "../../pages/documentRepository/documentRepository.jsx"
 import Profile from "../../pages/profile/Profile.jsx";
 import './contentBody.css'
 
@@ -95,8 +99,8 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Timeline" element={<TimelineEvent/>}/>
           <Route path="/Tender-Tracking" element={<TenderTracking/>}/>
           <Route path="/tender-list" element={<TenderList/>}/>
-          <Route path="/tender-Edit/:id" element={<TenderTrackingEdit/>}/>
-          <Route path="/tender-View/:id" element={<TenderTrackingView/>}/>
+          <Route path="/tender-Edit" element={<TenderTrackingEdit/>}/>
+          <Route path="/tender-View" element={<TenderTrackingView/>}/>
           <Route path="/register" element ={<UserLoginForm/>}/> 
           <Route path="/register-list" element ={<UserLoginList/>}/>
           <Route path="/register-view/:id" element = {<UserAdminView/>}/>
@@ -113,7 +117,6 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/certificate-form" element={<CertificateForm/>}/>
           <Route path="/certificate-view/:id" element={<CertificateView/>}/>profile
           <Route path="/certificate-Edit/:id" element={<CerificateEdit/>}/>
-          \<Route path="/profile" element={<Profile/>}/>
         </Routes>
       </div>
     </div>

@@ -41,6 +41,8 @@ import { BsMicrosoftTeams } from "react-icons/bs";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { logoutUser } from "../../api/loginApi/loginApi";
 import { PiCertificateBold } from "react-icons/pi";
+import { MdOutlineRememberMe } from "react-icons/md";
+import { VscRepo } from "react-icons/vsc";
 
 const drawerWidth = 240;
 const miniDrawerWidth = 70;
@@ -136,6 +138,7 @@ const handleMouseEnter = () => {
 
   const menuItems = [
     { role: "Admin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
+    { role: "Admin", label: "Document Repositary", icon: <VscRepo  />, path: "/Document-Reprositary" },
     { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
     { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
@@ -155,6 +158,7 @@ const handleMouseEnter = () => {
         { role: "Admin", label: "Tools and Hardware", icon: <IoHardwareChipOutline />, path: "/Tools-Hardware-Master-List" },
         { role: "Admin", label: "Type Of Work", icon: <MdSpatialTracking />, path: "/type-of-work-master-list" },
         { role: "Admin", label: "Scope Of Work", icon: <MdSpatialTracking />, path: "/Scope-Of-Work-Master" },
+        { role: "Admin", label: "State Assigment", icon: <MdOutlineRememberMe  />, path: "/Task-Force-member" },
       ],
     },
     //subadmin
