@@ -127,7 +127,8 @@ const UserProfile = ({ ID }) => {
 
               <div className="row g-3">
                 <h5 className="mb-1">Skills Rating</h5>
-                {userDetails?.skills?.map((skill, index) => (
+                {userDetails?.skills && userDetails.skills.length > 0 ? (
+                userDetails?.skills?.map((skill, index) => (
                   <div className="col-md-3" key={index}>
                     <label className="form-label">{skill.ProjectTypeName}</label>
                     <input
@@ -137,7 +138,10 @@ const UserProfile = ({ ID }) => {
                       readOnly
                     />
                   </div>
-                ))}
+                ))
+                ) : (
+                  <p className="text-muted">No skills rating available</p>
+                )}
               </div>
             </div>
           </div>
