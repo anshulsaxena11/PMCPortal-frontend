@@ -44,6 +44,7 @@ import CertificateList from "../../pages/Certification/CertificationList/Certifi
 import CertificateForm from "../../pages/Certification/CertificationEntry/CertificationEntry.jsx";
 import CertificateView from "../../pages/Certification/CertificateView/CertificateView.jsx";
 import CerificateEdit from "../../pages/Certification/CertificateEdit/CerificateEdit.jsx";
+import Profile from "../../pages/profile/Profile.jsx";
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -110,8 +111,9 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Scope-Of-Work=Edit/:id" element={<ScopeOfWorkEdit/>}/>
           <Route path="/certificate" element={<CertificateList/>}/>
           <Route path="/certificate-form" element={<CertificateForm/>}/>
-          <Route path="/certificate-view/:id" element={<CertificateView/>}/>
+          <Route path="/certificate-view/:id" element={<CertificateView/>}/>profile
           <Route path="/certificate-Edit/:id" element={<CerificateEdit/>}/>
+          \<Route path="/profile" element={<Profile/>}/>
         </Routes>
       </div>
     </div>

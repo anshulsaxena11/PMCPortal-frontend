@@ -21,6 +21,7 @@ import ChangePassword from '../pages/login/changePasswordPannel/changePasswordPa
 import ResetPasswordVerify from "../pages/login/ResetPasswordVerification/ResetPasswordVerification"
 import ScopeOfWorkMasterList from "../pages/scopeOfWorkMaster/ScopeOfWorkMasterList/ScopeOfWorkMasterList"
 import CertificateList from "../pages/Certification/CertificationList/CertificationList";
+import Profile from "../pages/profile/Profile";
 
 const AppRoutes = () => {
   return (
@@ -45,6 +46,7 @@ const AppRoutes = () => {
       <Route path="/reset-password" element={<ResetPasswordVerify/>}/>
       <Route path="/Scope-Of-Work-Master" element={<ScopeOfWorkMasterList/>}/>
       <Route path="/certificate" element={<CertificateList/>}/>
+      <Route path="/profile" element={<Profile/>}/>
     </Routes>
   );
 };

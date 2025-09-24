@@ -35,6 +35,17 @@ const CertificateForm = () => {
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false); 
     const navigate = useNavigate();
+    const [userId, setUserId] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    // Get current user ID and role from localStorage/sessionStorage
+    const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
+    const currentUserRole = localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
+
+    setUserId(currentUserId);
+    setUserRole(currentUserRole);
+  }, []);
 
     const handleCloseModal = () => {
         setShowPreviewModal(false); 
@@ -271,20 +282,31 @@ const CertificateForm = () => {
                                 <Form.Group className="mb-3">
                                     <Form.Label className="fs-5 fw-bolder">Assigned Person Name<span className="text-danger">*</span></Form.Label>
                                     <Controller
-                                        name="assignedPerson"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                {...field}
-                                                options={option}
-                                                isLoading={loading}
-                                                value={option.find(opt => opt.value === field.value) || null}
-                                                placeholder="Search By EmpId or Name"
-                                                filterOption={handleFilter}
-                                                onChange={(selected) => handleChange(selected, field.onChange)}
-                                                isClearable
-                                            />
-                                        )}
+                                    name="assignedPerson"
+                                    control={control}
+                                    rules={{ required: "Assigned person is required" }}
+                                    render={({ field }) => {
+                                        const selectedOption =
+                                        userRole === "SubAdmin"
+                                            ? option.find((opt) => opt.value === userId) || null
+                                            : option.find((opt) => opt.value === field.value) || null;
+                                        if (userRole === "SubAdmin" && selectedOption && field.value !== userId) {
+                                        field.onChange(selectedOption.value);
+                                        }
+                                        return (
+                                        <Select
+                                            {...field}
+                                            options={option}
+                                            isLoading={loading}
+                                            value={selectedOption}
+                                            placeholder="Search By EmpId or Name"
+                                            filterOption={handleFilter}
+                                            onChange={(selected) => field.onChange(selected ? selected.value : null)}
+                                            isClearable={userRole !== "SubAdmin"}
+                                            isDisabled={userRole === "SubAdmin"}
+                                        />
+                                        );
+                                    }}
                                     />
                                     {errors.assignedPerson && <p className="text-danger">{errors.assignedPerson.message}</p>}
                                 </Form.Group>

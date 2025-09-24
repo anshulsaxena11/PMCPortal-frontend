@@ -9,3 +9,6 @@ export const srpiEmpTypeListActive = async({ page, limit, search =" " ,centre=""
 export const resourseMapping = async(payload) => axiosInstance.post('/user/project-mapping', payload, {withCredentials: true,})
 export const directoratesList = async() => axiosInstance.get('/admin/stpiDirectorates',{ withCredentials: true,})
 export const skillsMapping = async(payload) => axiosInstance.post('/user/skills', payload,{ withCredentials: true,})
+export const getEmpDataById = async(id) => axiosInstance.get(`/user/EmpData/${id}`,{ withCredentials: true,}).then(response => response.data).catch(error => { throw error });
+export const getEmployeeProjects = async(id) => axiosInstance.get(`/user/EmployeeProjects/${id}`,{ withCredentials: true,}).then(response => response.data).catch(error => { throw error });
+
