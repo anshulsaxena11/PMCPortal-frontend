@@ -23,6 +23,7 @@ import ScopeOfWorkMasterList from "../pages/scopeOfWorkMaster/ScopeOfWorkMasterL
 import CertificateList from "../pages/Certification/CertificationList/CertificationList";
 import TaskForceMemberList from "../pages/taskForceMember/TaskForceMemberList/TaskForceMemberList"
 import DocumentRepository from "../pages/documentRepository/documentRepository";
+import Profile from "../pages/profile/Profile";
 
 const AppRoutes = () => {
   return (
@@ -49,6 +50,7 @@ const AppRoutes = () => {
       <Route path="/certificate" element={<CertificateList/>}/>
       <Route path="/Task-Force-member" element={<TaskForceMemberList/>}/>
       <Route path="/Document-Reprositary" element={<DocumentRepository/>}/>
+      <Route path="/profile" element={<Profile/>}/>
     </Routes>
   );
 };

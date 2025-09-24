@@ -48,6 +48,7 @@ import TaskForceMemberList from "../../pages/taskForceMember/TaskForceMemberList
 import TaskForceMemberViewDetails from "../../pages/taskForceMember/TaskForceMemberView/TaskForceMemberViewDetails.jsx"
 import TaskForceMemberEdit from "../../pages/taskForceMember/TaskForceMemberEdit/TaskForceMemberEdit.jsx"
 import DocumentRepository from "../../pages/documentRepository/documentRepository.jsx"
+import Profile from "../../pages/profile/Profile.jsx";
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -120,6 +121,7 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Task-Force-member-View" element={<TaskForceMemberViewDetails/>}/>
           <Route path="/Task-Force-member-Edit" element={<TaskForceMemberEdit/>}/>
           <Route path="/Document-Reprositary" element={<DocumentRepository/>}/>
+          <Route path="/profile" element={<Profile/>}/>
         </Routes>
       </div>
     </div>

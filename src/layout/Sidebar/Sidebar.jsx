@@ -107,6 +107,9 @@ const Sidebar = ({ onToggle }) => {
     onToggle(newState);
   };
 
+const handleNavigate = () => {
+    navigate('/profile');
+  };
 
 const handleMouseEnter = () => {
   if (!openedByHamburger) {   
@@ -259,13 +262,14 @@ const handleMouseEnter = () => {
               height: 40,
               border: "2px solid #1abc9c",
             }}
+            onClick={handleNavigate}
           />
           <Box textAlign="left"sx={{ pr: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "white" }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "white" }}  onClick={handleNavigate}>
               {userName}
             </Typography>
-            <Typography variant="caption" sx={{ color: "#bdc3c7" }}>
-              {userRole}
+            <Typography variant="caption" sx={{ color: "#bdc3c7" }}  onClick={handleNavigate}>
+              {userRole }
             </Typography>
           </Box>
         </Box>
