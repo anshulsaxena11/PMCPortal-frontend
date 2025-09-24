@@ -27,12 +27,17 @@ const LoginPanel = () =>{
                 password: data.password,
             };
         const response = await postLogin(payload)
+        console.log(response);
         if(response?.data?.statusCode === 200){
             const userRole = response?.data?.user?.role;
             const userName = response?.data?.user?.name;
+            const userId = response?.data?.user?.userId;
+
             localStorage.setItem('isAuthenticated', 'true');
             localStorage.setItem('userRole', userRole);
             localStorage.setItem('userName', userName);
+            localStorage.setItem('userId', userId);
+            
              Swal.fire({
                 icon: 'success',
                 title: 'Login Successful',

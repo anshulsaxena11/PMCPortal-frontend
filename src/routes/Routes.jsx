@@ -24,6 +24,7 @@ import CertificateList from "../pages/Certification/CertificationList/Certificat
 import TaskForceMemberList from "../pages/taskForceMember/TaskForceMemberList/TaskForceMemberList"
 import DocumentRepository from "../pages/documentRepository/documentRepository";
 import ClienSectortMasterList from "../pages/clientSectorMaster/clientSectorMasterList/ClientSectorMasterList"
+import Profile from "../pages/profile/Profile";
 
 const AppRoutes = () => {
   return (
@@ -51,6 +52,7 @@ const AppRoutes = () => {
       <Route path="/Task-Force-member" element={<TaskForceMemberList/>}/>
       <Route path="/Document-Reprositary" element={<DocumentRepository/>}/>
       <Route path="/Client-Sector-Master" element={<ClienSectortMasterList/>}/>
+      <Route path="/profile" element={<Profile/>}/>
     </Routes>
   );
 };
