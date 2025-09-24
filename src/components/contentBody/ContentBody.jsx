@@ -115,8 +115,13 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Scope-Of-Work=Edit/:id" element={<ScopeOfWorkEdit/>}/>
           <Route path="/certificate" element={<CertificateList/>}/>
           <Route path="/certificate-form" element={<CertificateForm/>}/>
-          <Route path="/certificate-view/:id" element={<CertificateView/>}/>profile
+          <Route path="/certificate-view/:id" element={<CertificateView/>}/>
           <Route path="/certificate-Edit/:id" element={<CerificateEdit/>}/>
+          <Route path="/Task-Force-member" element={<TaskForceMemberList/>}/>
+          <Route path="/Task-Force-member-View" element={<TaskForceMemberViewDetails/>}/>
+          <Route path="/Task-Force-member-Edit" element={<TaskForceMemberEdit/>}/>
+          <Route path="/Document-Reprositary" element={<DocumentRepository/>}/>
+          <Route path="/profile" element={<Profile/>}/>
         </Routes>
       </div>
     </div>
