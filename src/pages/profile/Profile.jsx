@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Modal, Button, Form } from "react-bootstrap";
+import { Button } from "react-bootstrap";
+import PreviewModal from "../../components/previewfile/preview";
 import { getEmpDataById, getEmployeeProjects } from "../../api/syncEmp/syncEmp";
-import {getCertificateByUserId} from '../../api/certificateApi/certificate';
+import { getCertificateByUserId } from "../../api/certificateApi/certificate";
 
 const UserProfile = ({ ID }) => {
   const navigate = useNavigate();
@@ -17,11 +18,17 @@ const UserProfile = ({ ID }) => {
   const [certificates, setCertificates] = useState([]);
   const [error, setError] = useState(null);
 
+  // Preview modal states
+  const [showModal, setShowModal] = useState(false);
+  const [filePreview, setFilePreview] = useState("");
+  const [previewFileType, setPreviewFileType] = useState("");
+
   useEffect(() => {
     const storedUserId = localStorage.getItem("userId");
     if (storedUserId) setUserId(storedUserId);
   }, []);
 
+  // Fetch user details
   useEffect(() => {
     if (!userId) return;
 
@@ -56,6 +63,7 @@ const UserProfile = ({ ID }) => {
     fetchUserDetails();
   }, [userId]);
 
+  // Fetch projects
   useEffect(() => {
     if (!userId) return;
 
@@ -63,7 +71,6 @@ const UserProfile = ({ ID }) => {
       try {
         const res = await getEmployeeProjects(userId);
         setProjects(res?.data || []);
-
       } catch (err) {
         console.error("Error fetching projects:", err);
       }
@@ -72,29 +79,44 @@ const UserProfile = ({ ID }) => {
     fetchProjects();
   }, [userId]);
 
- 
-   useEffect(() => {
+  // Fetch certificates
+  useEffect(() => {
     if (!userId) return;
-        console.log(userId);
-     const fetchCertificates = async () => {
+
+    const fetchCertificates = async () => {
       try {
         const response = await getCertificateByUserId(userId);
-        console.log('erhrtrtjtyhyt');
-        console.log(response);
-        setCertificates(response.data); 
-        console.log('sfegegewgegggggggg');
-        console.log(response);
+        setCertificates(response.data || []);
       } catch (err) {
-        setError('Failed to fetch certificates.');
+        setError("Failed to fetch certificates.");
         console.error(err);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchCertificates();
   }, [userId]);
 
+  // Detect file type
+  const getFileTypeFromUrl = (url) => {
+    const extension = url?.split(".").pop()?.toLowerCase();
+    if (["jpg", "jpeg", "png", "gif", "bmp", "webp"].includes(extension))
+      return "image/";
+    if (extension === "pdf") return "application/pdf";
+    if (extension === "docx")
+      return "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    return "unknown";
+  };
+
+  // Handle preview
+  const handlePreviewClick = (url) => {
+    const isAbsolute = url.startsWith("http");
+    const fullUrl = isAbsolute ? url : `${window.location.origin}${url}`;
+    const type = getFileTypeFromUrl(fullUrl);
+
+    setFilePreview(fullUrl);
+    setPreviewFileType(type);
+    setShowModal(true);
+  };
 
   return (
     <div className="container mt-4">
@@ -128,17 +150,19 @@ const UserProfile = ({ ID }) => {
               <div className="row g-3">
                 <h5 className="mb-1">Skills Rating</h5>
                 {userDetails?.skills && userDetails.skills.length > 0 ? (
-                userDetails?.skills?.map((skill, index) => (
-                  <div className="col-md-3" key={index}>
-                    <label className="form-label">{skill.ProjectTypeName}</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={skill.rating}
-                      readOnly
-                    />
-                  </div>
-                ))
+                  userDetails.skills.map((skill, index) => (
+                    <div className="col-md-3" key={index}>
+                      <label className="form-label">
+                        {skill.ProjectTypeName}
+                      </label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        value={skill.rating}
+                        readOnly
+                      />
+                    </div>
+                  ))
                 ) : (
                   <p className="text-muted">No skills rating available</p>
                 )}
@@ -149,64 +173,91 @@ const UserProfile = ({ ID }) => {
           <div className="row">
             {/* Projects */}
             <div className="col-md-6 mb-4">
-    <div className="card">
-        <div className="card-header fw-bold">Projects</div>
-        <div className="card-body">
-            {projects.length ? (
-                projects.map((project, index) => {
-                    // Determine badge color
-                    let badgeClass = "bg-secondary"; // default
-                    if (project.amountStatus?.toLowerCase() === "completed") {
+              <div className="card">
+                <div className="card-header fw-bold">Projects</div>
+                <div className="card-body">
+                  {projects.length ? (
+                    projects.map((project, index) => {
+                      let badgeClass = "bg-secondary"; // default
+                      if (project.amountStatus?.toLowerCase() === "completed") {
                         badgeClass = "bg-success";
-                    } else if (project.amountStatus?.toLowerCase() === "on going") {
+                      } else if (
+                        project.amountStatus?.toLowerCase() === "on going"
+                      ) {
                         badgeClass = "bg-warning";
-                    }
+                      }
 
-                    return (
-                        <div key={project._id} className="d-flex justify-content-between align-items-center mb-2">
-                            <label className="form-label mb-0">
-                                {index + 1}. {project.projectName}
-                            </label>
-                            <span className={`badge ${badgeClass} text-white`}>
-                                {project.amountStatus || "No status"}
-                            </span>
+                      return (
+                        <div
+                          key={project._id}
+                          className="d-flex justify-content-between align-items-center mb-2"
+                        >
+                          <label className="form-label mb-0">
+                            {index + 1}. {project.projectName}
+                          </label>
+                          <span className={`badge ${badgeClass} text-white`}>
+                            {project.amountStatus || "No status"}
+                          </span>
                         </div>
-                    );
-                })
-            ) : (
-                <div className="col-12">
-                    <p>No projects found</p>
+                      );
+                    })
+                  ) : (
+                    <div className="col-12">
+                      <p>No projects found</p>
+                    </div>
+                  )}
                 </div>
-            )}
-        </div>
-    </div>
-</div>
+              </div>
+            </div>
 
             {/* Certificates */}
             <div className="col-md-6 mb-4">
-  <div className="card">
-    <div className="card-header d-flex justify-content-between align-items-center fw-bold">
-      <span>Certificates</span>
-      <Button variant="primary" size="sm" onClick={handleNavigate}>
-        Add New
-      </Button>
-    </div>
-    <div className="card-body">
-      <ol className="list-group list-group-numbered">
-        {certificates.map((certificate, index) => (
-          <li key={certificate._id} className="list-group-item d-flex justify-content-between align-items-center">
-            {certificate.certificateName.certificateName}
-            <a href={certificate.certificateUrl} target="_blank" rel="noopener noreferrer" className="btn btn-link btn-sm">
-              View Certificate
-            </a>
-          </li>
-        ))}
-      </ol>
-    </div>
-  </div>
-</div>
+              <div className="card">
+                <div className="card-header d-flex justify-content-between align-items-center fw-bold">
+                  <span>Certificates</span>
+                  <Button variant="primary" size="sm" onClick={handleNavigate}>
+                    Add New
+                  </Button>
+                </div>
+                <div className="card-body">
+                  {certificates.length ? (
+                    <ol className="list-group list-group-numbered">
+                      {certificates.map((certificate, index) => (
+                        <li
+                          key={certificate._id || index}
+                          className="list-group-item d-flex justify-content-between align-items-center"
+                        >
+                          <span>{certificate.certificateName.certificateName || "No Name"}</span>
 
+                          {certificate.certificateUrl && (
+                            <Button
+                              variant="outline-info"
+                              size="sm"
+                              onClick={() =>
+                                handlePreviewClick(certificate.certificateUrl)
+                              }
+                            >
+                              Preview
+                            </Button>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p>No certificates found</p>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
+
+          {/* Preview Modal (rendered once) */}
+          <PreviewModal
+            show={showModal}
+            onHide={() => setShowModal(false)}
+            preview={filePreview}
+            fileType={previewFileType}
+          />
         </>
       ) : (
         <p>No user details found</p>

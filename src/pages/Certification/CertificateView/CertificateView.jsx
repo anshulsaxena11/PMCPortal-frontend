@@ -13,8 +13,7 @@ const CertificateView = () => {
 
     const fetchCertificate = async () => {
         try {
-        const response = await getCertificateDetailsById(id);
-        console.log(response) 
+        const response = await getCertificateDetailsById(id); 
         setCertificate(response.data);
         } catch (error) {
         console.error('Error fetching project details:',);
