@@ -476,22 +476,26 @@ const TenderTrackingEdit =({ID}) =>{
                               )}
                         </Form.Group>
                         <Form.Group className="pt-3">
-                            <Form.Label className="fs-5 fw-bolder">New Comments</Form.Label>
+                          <Form.Label className="fs-5 fw-bolder">New Comments</Form.Label>
                             <Form.Control
-                                as="textarea"
-                                rows={5}
-                                placeholder="Enter your comments here..."
-                                {...register("comments",{
-                                  validate: (value) =>
-                                  slectedStatus[0]?.value  === "Not Bidding"
-                                  ? (value || "").trim() !== "" || "Comments are required when status is Not Bidding"
-                                     : true,
-                                  })}
-                                  isInvalid={!!errors.comments}
-                                />
-                                <Form.Control.Feedback type="invalid">
-                                  {errors.comments?.message}
-                                </Form.Control.Feedback>
+                              as="textarea"
+                              rows={5}
+                              placeholder="Enter your comments here..."
+                              {...register("comments", {
+                                validate: (value) => {
+                                  const statusValue = Array.isArray(slectedStatus)
+                                    ? slectedStatus[0]?.value
+                                    : slectedStatus?.value;
+                                  return statusValue === "Not Bidding"
+                                    ? (value || "").trim() !== "" || "Comments are required when status is Not Bidding"
+                                    : true;
+                                },
+                              })}
+                              isInvalid={!!errors.comments}
+                            />
+                            <Form.Control.Feedback type="invalid">
+                              {errors.comments?.message}
+                            </Form.Control.Feedback>
                         </Form.Group>
                     </div>
                     <div className="col-sm-6 col-md-6 col-lg-6">
