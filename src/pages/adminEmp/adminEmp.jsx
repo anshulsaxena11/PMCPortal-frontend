@@ -230,7 +230,7 @@ const AdminSyncEmploy = () =>{
                     id:empid._id,
                     StatusNoida:true
                 }
-          await updateStateCordinator(payload);
+          await updateEmpStatus(payload);
           Swal.fire({
             icon: 'success',
             title: 'VAPT Team Member Updated',

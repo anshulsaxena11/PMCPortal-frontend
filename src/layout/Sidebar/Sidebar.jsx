@@ -177,7 +177,7 @@ const handleMouseEnter = () => {
     { role: "User", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "User", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "User", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
-    { role: "User", label: "Tender Tracking", icon: <CgListTree />, path: "/tender-list" },
+    { role: "User", label: "sALES Tracking", icon: <CgListTree />, path: "/tender-list" },
   ];
 
   const handleToggleGroup = (label) => {
