@@ -88,7 +88,7 @@ const ClienSectortMasterList = () =>{
                 >
                 <Visibility />
                 </IconButton>
-                {/* {(userRole !== 'User') && (
+                {(userRole !== 'User') && (
                 <>
                     <IconButton
                         onClick={() => handleEditClick(params.row.id)} size="small"
@@ -96,7 +96,7 @@ const ClienSectortMasterList = () =>{
                     <Edit />
                     </IconButton>
                 </>
-                )} */}
+                )}
             </Stack>
             )
         }
