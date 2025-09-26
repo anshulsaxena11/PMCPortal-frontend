@@ -53,6 +53,8 @@ import ClentSectorMasterForm from "../../pages/clientSectorMaster/clientSectorMa
 import ClientSectorMasterView from "../../pages/clientSectorMaster/clientSectorMasterView/clientSectorMasterView.jsx"
 import ClientSectorMasterEdit from "../../pages/clientSectorMaster/clientSectorMasterEdit/clientSectorMasterEdit.jsx"
 import Profile from "../../pages/profile/Profile.jsx";
+import UserList from "../../pages/profile/UserList.jsx";
+import UserProfile from "../../pages/profile/UserProfile.jsx";
 import './contentBody.css'
 
 const ContentBody = ({ isSidebarExpanded }) => {
@@ -130,6 +132,8 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Client-Sector-Master-View" element={<ClientSectorMasterView/>}/>
           <Route path="/Client-Sector-Master-Edit" element={<ClientSectorMasterEdit/>}/>
           <Route path="/profile" element={<Profile/>}/>
+          <Route path="/user-list" element={<UserList/>}/>
+          <Route path="/user-profile/:id" element={<UserProfile/>}/>
         </Routes>
       </div>
     </div>

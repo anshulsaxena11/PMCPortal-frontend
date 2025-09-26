@@ -287,10 +287,10 @@ const CertificateForm = () => {
                                     rules={{ required: "Assigned person is required" }}
                                     render={({ field }) => {
                                         const selectedOption =
-                                        userRole === "SubAdmin"
+                                        userRole === "SubAdmin" || userRole === "User"
                                             ? option.find((opt) => opt.value === userId) || null
                                             : option.find((opt) => opt.value === field.value) || null;
-                                        if (userRole === "SubAdmin" && selectedOption && field.value !== userId) {
+                                        if ((userRole === "SubAdmin" || userRole === "User") && selectedOption && field.value !== userId) {
                                         field.onChange(selectedOption.value);
                                         }
                                         return (
@@ -302,8 +302,8 @@ const CertificateForm = () => {
                                             placeholder="Search By EmpId or Name"
                                             filterOption={handleFilter}
                                             onChange={(selected) => field.onChange(selected ? selected.value : null)}
-                                            isClearable={userRole !== "SubAdmin"}
-                                            isDisabled={userRole === "SubAdmin"}
+                                            isClearable={userRole !== "SubAdmin" || userRole !== "User"}
+                                            isDisabled={userRole === "SubAdmin" || userRole === "User"}
                                         />
                                         );
                                     }}

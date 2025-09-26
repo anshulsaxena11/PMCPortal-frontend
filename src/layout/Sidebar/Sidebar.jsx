@@ -30,12 +30,12 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { FaTimeline } from "react-icons/fa6";
-import { RiDashboard3Fill } from "react-icons/ri";
+import { RiDashboard3Fill,RiAlignItemBottomLine } from "react-icons/ri";
 import { BiSolidReport } from "react-icons/bi";
 import { GiSkills } from "react-icons/gi";
 import { IoHardwareChipOutline } from "react-icons/io5";
 import { MdSpatialTracking } from "react-icons/md";
-import { CgListTree } from "react-icons/cg";
+import { CgListTree, CgProfile } from "react-icons/cg";
 import { GoProjectSymlink } from "react-icons/go";
 import { BsMicrosoftTeams } from "react-icons/bs";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
@@ -149,8 +149,17 @@ const handleMouseEnter = () => {
     { role: "Admin", label: "Skill Mapping", icon: <GiSkills />, path: "/skills-Mapping" },
     { role: "Admin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "Admin", label: "Sales Tracking", icon: <CgListTree />, path: "/tender-list" },
-    { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
     { role: "Admin", label: "Certificates", icon: <PiCertificateBold  />, path: "/certificate" }, 
+    {
+      role: "Admin",
+      label: "User Specific  Items",
+      icon: <RiAlignItemBottomLine />,
+      children: [
+        { role: "Admin", label: "User Registration", icon: <MdSpatialTracking />, path: "/register-list" },
+        { role:  "Admin", label: "User Profile", icon: <CgProfile />, path: "/user-list" },
+        
+      ],
+    },
     {
       role: "Admin",
       label: "Master",
@@ -163,6 +172,8 @@ const handleMouseEnter = () => {
         { role: "Admin", label: "Client Sector", icon: <IoMdPeople/>, path: "/Client-Sector-Master" },
       ],
     },
+
+    
     //subadmin
     { role: "SubAdmin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
