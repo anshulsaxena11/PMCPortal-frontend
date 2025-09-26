@@ -202,7 +202,7 @@ export default function TabCardWithGrids() {
     { field: 'projectName', headerName: 'Project Name', flex: 1 },
     { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
     { field: 'amountStatus', headerName: 'Status', flex: 1 },
-    { field: 'directrate', headerName: 'Directrate', flex: 1 },
+    { field: 'directrate', headerName: 'Directorate', flex: 1 },
     {
       field: 'projectValue',
       headerName: 'Project Value (Cr INR)',
