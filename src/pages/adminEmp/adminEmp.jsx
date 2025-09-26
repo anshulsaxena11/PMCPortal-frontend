@@ -20,6 +20,8 @@ const AdminSyncEmploy = () =>{
     const [selectedCentre, setSelectedCentre] = useState(null);
     const [selecteddir, setSelectedDir] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState(null);
+    const [selectedTaskForceMember, setSelectedTaskForceMember] = useState(null);
+    const [selectedStateCoordinationMember, setSelectedStateCoordinator] = useState(null);
     const [selectedType, setSelectedType] = useState(null);
     const [page, setPage] = useState(0); 
     const [pageSize, setPageSize] = useState(10);
@@ -30,9 +32,17 @@ const AdminSyncEmploy = () =>{
       { value: true, label: "Active" },
       { value: false, label: "Not Active" },
     ];
+    const stateCoordinatorOptions = [
+      { value: true, label: "Active" },
+      { value: false, label: "Not Active" },
+    ];
+    const TaskForceOptions = [
+      { value: 'Yes', label: "Active" },
+      { value: 'No', label: "Not Active" },
+    ];
     useEffect(() => {
       fetchEmpList();
-    }, [page, pageSize, searchQuery, selectedCentre,selectedStatus,selectedType,selecteddir]);
+    }, [page, pageSize, searchQuery, selectedCentre,selectedStatus,selectedType,selecteddir,selectedTaskForceMember,selectedStateCoordinationMember]);
 
 
     const columnNames = {
@@ -51,14 +61,14 @@ const AdminSyncEmploy = () =>{
       {
         field: 'serial',
         headerName: 'S.No',
-        width: 60,
+        width: 70,
         sortable: false,
       },
-      { field: 'empid', headerName: columnNames.empid, width: 100 },
-      { field: 'ename', headerName: columnNames.ename, width: 140 },
-      { field: 'centre', headerName: columnNames.centre, width: 100 },
-      { field: 'dir', headerName: columnNames.dir, width: 140 },
-      { field: 'etpe', headerName: columnNames.etpe, width: 140 },
+      { field: 'empid', headerName: columnNames.empid, flex: 1.5, minWidth: 200 },
+      { field: 'ename', headerName: columnNames.ename, flex: 1.5, minWidth: 200  },
+      { field: 'centre', headerName: columnNames.centre, flex: 1.5, minWidth: 200  },
+      { field: 'dir', headerName: columnNames.dir, flex: 1.5, minWidth: 200 },
+      { field: 'etpe', headerName: columnNames.etpe, flex: 1.5, minWidth: 200 },
       {
         field: 'StatusNoida',
         headerName: columnNames.StatusNoida,
@@ -177,8 +187,7 @@ const AdminSyncEmploy = () =>{
     const fetchEmpList = async() =>{
         setLoader(true);
         try{
-          const response = await empList({page: page + 1, limit: pageSize,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value})
-          console.log(response)
+          const response = await empList({page: page + 1, limit: pageSize,search:searchQuery.trim(),centre:selectedCentre?.value,StatusNoida:selectedStatus?.value,etpe:selectedType?.value,dir:selecteddir?.value,taskForceMember:selectedTaskForceMember?.value,StateCordinator:selectedStateCoordinationMember?.value})
           const transformedData = response.data.map((item, index) => ({
             ...item,
             id: item._id, 
@@ -204,17 +213,17 @@ const AdminSyncEmploy = () =>{
 
     const handleCentreChange = (selectedOption) => {
       setSelectedCentre(selectedOption);
-      setPage(1);
+      setPage(0);
     };
 
     const handleDirChange = (selectedOption) => {
       setSelectedDir(selectedOption);
-      setPage(1);
+      setPage(0);
     };
 
     const handleTypeChange = (e) =>{
       setSelectedType(e)
-      setPage(1);
+      setPage(0);
     }
 
     useEffect(() => {
@@ -230,7 +239,7 @@ const AdminSyncEmploy = () =>{
                     id:empid._id,
                     StatusNoida:true
                 }
-          await updateStateCordinator(payload);
+          await updateEmpStatus(payload);
           Swal.fire({
             icon: 'success',
             title: 'VAPT Team Member Updated',
@@ -334,6 +343,8 @@ const AdminSyncEmploy = () =>{
                   label: centre,
               }));
               setTypeOptions(options);
+              const defaultOption = options.find((opt) => opt.value === "Regular");
+              if (defaultOption) setSelectedType(defaultOption);
           } catch (error) {
               console.error('Error fetching centre list:');
           } finally {
@@ -388,8 +399,8 @@ const AdminSyncEmploy = () =>{
             </div>
             <hr></hr>
             <div className='container-fluid'>
-              <div className='row mb-3 align-items-end'>
-                <div className='col-sm-2 col-md-2 col-lg-2'>
+              <div className='row mb-3 align-items-end flex-nowrap'>
+                <div className='col'>
                   <Select
                     options={dirOptions}
                     value={selecteddir}
@@ -398,7 +409,7 @@ const AdminSyncEmploy = () =>{
                     isClearable
                   />
                 </div>
-                <div className='col-sm-2 col-md-2 col-lg-2'>
+                <div className='col'>
                   <Select
                     options={centreOptions}
                     value={selectedCentre}
@@ -407,7 +418,7 @@ const AdminSyncEmploy = () =>{
                     isClearable
                   />
                 </div>
-                <div className='col-sm-2 col-md-2 col-lg-2'>
+                <div className='col'>
                     <Select
                       options={typeOptions}
                       value={selectedType}
@@ -416,16 +427,34 @@ const AdminSyncEmploy = () =>{
                       isClearable
                     />
                 </div>
-                <div className='col-sm-2 col-md-2 col-lg-2'>
+                <div className='col'>
                   <Select
                       options={statusOptions}
                       value={selectedStatus}
                       onChange={setSelectedStatus}
-                      placeholder="Status"
+                      placeholder="Vapt Team Member"
                       isClearable
                     />
                 </div>
-                 <div className='col-sm-4 col-md-4 col-lg-4'>
+                <div className='col'>
+                  <Select
+                      options={TaskForceOptions}
+                      value={selectedTaskForceMember}
+                      onChange={setSelectedTaskForceMember}
+                      placeholder="Task Force Member"
+                      isClearable
+                    />
+                </div>
+                <div className='col'>
+                  <Select
+                      options={stateCoordinatorOptions}
+                      value={selectedStateCoordinationMember}
+                      onChange={setSelectedStateCoordinator}
+                      placeholder="State Coordinator"
+                      isClearable
+                    />
+                </div>
+                 <div className='col'>
                    <InputGroup>
                     <FormControl
                       placeholder="Search..."
@@ -437,7 +466,6 @@ const AdminSyncEmploy = () =>{
               </div>
             </div>
             
-
             <CustomDataGrid
                   rows={data}
                   columns={columns}

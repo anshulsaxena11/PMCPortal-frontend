@@ -221,7 +221,7 @@ const TenderTrackingEdit =({ID}) =>{
     const status = formData.status || getValues("status");
     const lastDate = formData.lastDate || getValues("lastDate");
     const comments = formData.comments
-    const tenderid = getValues("_id");
+    // const tenderid = getValues("_id");
 
     formDataToSubmit.append("tenderName", tenderName);
     formDataToSubmit.append("organizationName", organizationName);
@@ -236,52 +236,52 @@ const TenderTrackingEdit =({ID}) =>{
       formDataToSubmit.append("tenderDocument", file, file.name);
     }
 
-    if (status === "Not Bidding") {
-      const messageResult = await Swal.fire({
-        title: "Submit your Message",
-        input: "text",
-        inputAttributes: {
-          autocapitalize: "off",
-        },
-        showCancelButton: true,
-        confirmButtonText: "Submit",
-        showLoaderOnConfirm: true,
-        preConfirm: async (message) => {
-          if (!message || message.trim() === "") {
-            Swal.showValidationMessage("Message is required");
-            return false;
-          }
-          try {
-            const response = await updatetendermessage(tenderid, message); // Axios call
-            if (response.status !== 200 && response.status !== 201) {
-              Swal.showValidationMessage(`Error: ${response.statusText}`);
-              return false;
-            }
-            return response.data;
-          } catch (error) {
-            Swal.showValidationMessage(
-              `Request failed: ${error?.response?.data?.message || error.message}`
-            );
-            return false;
-          }
-        },
-        allowOutsideClick: () => !Swal.isLoading(),
-      });
+    // if (status === "Not Bidding") {
+    //   const messageResult = await Swal.fire({
+    //     title: "Submit your Message",
+    //     input: "text",
+    //     inputAttributes: {
+    //       autocapitalize: "off",
+    //     },
+    //     showCancelButton: true,
+    //     confirmButtonText: "Submit",
+    //     showLoaderOnConfirm: true,
+    //     preConfirm: async (message) => {
+    //       if (!message || message.trim() === "") {
+    //         Swal.showValidationMessage("Message is required");
+    //         return false;
+    //       }
+    //       try {
+    //         const response = await updatetendermessage(tenderid, message); // Axios call
+    //         if (response.status !== 200 && response.status !== 201) {
+    //           Swal.showValidationMessage(`Error: ${response.statusText}`);
+    //           return false;
+    //         }
+    //         return response.data;
+    //       } catch (error) {
+    //         Swal.showValidationMessage(
+    //           `Request failed: ${error?.response?.data?.message || error.message}`
+    //         );
+    //         return false;
+    //       }
+    //     },
+    //     allowOutsideClick: () => !Swal.isLoading(),
+    //   });
 
-      if (messageResult.isDismissed) {
-        console.log("User cancelled");
-        setLoading(false);
-        return false;
-      }
+    //   if (messageResult.isDismissed) {
+    //     console.log("User cancelled");
+    //     setLoading(false);
+    //     return false;
+    //   }
 
-      if (messageResult.isConfirmed) {
-        Swal.fire({
-          title: "Message submitted successfully!",
-          text: messageResult.value?.message || "Your message was recorded.",
-          icon: "success",
-        });
-      }
-    }
+    //   if (messageResult.isConfirmed) {
+    //     Swal.fire({
+    //       title: "Message submitted successfully!",
+    //       text: messageResult.value?.message || "Your message was recorded.",
+    //       icon: "success",
+    //     });
+    //   }
+    // }
 
     const response = await updateTenderById(trackingId, formDataToSubmit);
     if (response.data.statusCode === 200) {
@@ -476,13 +476,26 @@ const TenderTrackingEdit =({ID}) =>{
                               )}
                         </Form.Group>
                         <Form.Group className="pt-3">
-                            <Form.Label className="fs-5 fw-bolder">New Comments</Form.Label>
+                          <Form.Label className="fs-5 fw-bolder">New Comments</Form.Label>
                             <Form.Control
-                                as="textarea"
-                                rows={5}
-                                placeholder="Enter your comments here..."
-                                {...register("comments")} 
+                              as="textarea"
+                              rows={5}
+                              placeholder="Enter your comments here..."
+                              {...register("comments", {
+                                validate: (value) => {
+                                  const statusValue = Array.isArray(slectedStatus)
+                                    ? slectedStatus[0]?.value
+                                    : slectedStatus?.value;
+                                  return statusValue === "Not Bidding"
+                                    ? (value || "").trim() !== "" || "Comments are required when status is Not Bidding"
+                                    : true;
+                                },
+                              })}
+                              isInvalid={!!errors.comments}
                             />
+                            <Form.Control.Feedback type="invalid">
+                              {errors.comments?.message}
+                            </Form.Control.Feedback>
                         </Form.Group>
                     </div>
                     <div className="col-sm-6 col-md-6 col-lg-6">

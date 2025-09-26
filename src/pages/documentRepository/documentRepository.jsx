@@ -55,7 +55,7 @@ const DocumentRepository = () => {
     {
         id: 8,
         document: "Sample of Net Worth Certificate",
-        preview: "/Document/Net Worth Certificate 2020-21_22_23",
+        preview: "/Document/Net_Worth_Certificate_2020-21_22_23.pdf",
         type: "application/pdf",
     },
   ];
