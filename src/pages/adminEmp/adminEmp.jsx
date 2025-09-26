@@ -213,17 +213,17 @@ const AdminSyncEmploy = () =>{
 
     const handleCentreChange = (selectedOption) => {
       setSelectedCentre(selectedOption);
-      setPage(1);
+      setPage(0);
     };
 
     const handleDirChange = (selectedOption) => {
       setSelectedDir(selectedOption);
-      setPage(1);
+      setPage(0);
     };
 
     const handleTypeChange = (e) =>{
       setSelectedType(e)
-      setPage(1);
+      setPage(0);
     }
 
     useEffect(() => {
@@ -343,6 +343,8 @@ const AdminSyncEmploy = () =>{
                   label: centre,
               }));
               setTypeOptions(options);
+              const defaultOption = options.find((opt) => opt.value === "Regular");
+              if (defaultOption) setSelectedType(defaultOption);
           } catch (error) {
               console.error('Error fetching centre list:');
           } finally {
