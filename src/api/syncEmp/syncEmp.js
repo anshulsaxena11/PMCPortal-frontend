@@ -1,7 +1,7 @@
 import axiosInstance from '../axiosconfig'
 
 export const syncEmpData = async() => axiosInstance.post('/admin/syncEmp',{ withCredentials: true,})
-export const empList = async ({ page = "", limit = "", search =" " ,centre="",StatusNoida="",etpe=" ",dir=" "} = {}) => axiosInstance.get("/admin/empList", { params: { page, limit, search,centre,StatusNoida,etpe,dir }, withCredentials: true, }).then(response => response.data);
+export const empList = async ({ page = "", limit = "", search =" " ,centre="",StatusNoida="",etpe=" ",dir=" ",taskForceMember=" ",StateCordinator=" "} = {}) => axiosInstance.get("/admin/empList", { params: { page, limit, search,centre,StatusNoida,etpe,dir,taskForceMember,StateCordinator }, withCredentials: true, }).then(response => response.data);
 export const updateEmpStatus = async(payload) => axiosInstance.put('/admin/empList',payload, {withCredentials: true,})
 export const centreList = async() => axiosInstance.get('/admin/stpiCentre',{ withCredentials: true,})
 export const srpiEmpTypeList = async() => axiosInstance.get('/admin/srpiEmpType')
