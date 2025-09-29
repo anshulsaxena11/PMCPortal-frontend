@@ -57,7 +57,11 @@ const CustomDataGrid = ({
           },
             "& .row-expiring-soon": {
             backgroundColor: "#96842385 !important", 
-          },
+          }, '& .row-expired': {
+              backgroundColor: "#f8d7da !important",
+              color: "#721c24", 
+              fontWeight: "bold",
+            },
           '& .MuiDataGrid-columnHeader': {
             backgroundColor: '#AAC9D5', 
             fontWeight: 'bold',
