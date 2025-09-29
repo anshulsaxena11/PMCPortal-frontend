@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Dropdown, Image } from "react-bootstrap";
 import {
   Drawer,
   List,
@@ -188,7 +189,7 @@ const handleMouseEnter = () => {
     { role: "User", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "User", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "User", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
-    { role: "User", label: "sALES Tracking", icon: <CgListTree />, path: "/tender-list" },
+    { role: "User", label: "Sales Tracking", icon: <CgListTree />, path: "/tender-list" },
   ];
 
   const handleToggleGroup = (label) => {
@@ -224,7 +225,7 @@ const handleMouseEnter = () => {
               alignItems: "center",
             }}
           >
-         <Box sx={{ display: "flex",  justifyContent: "flex-end",alignItems: "centre", gap:2,  mr: 20 }}>
+         <Box sx={{ display: "flex",  justifyContent: "flex-end",alignItems: "centre", gap:2,  mr: 2 }}>
             <IconButton onClick={handleOpen} sx={{ color: "white",ml:-19 }}>
               <Badge badgeContent={hasUnread ? notifications.length : 0} color="error">
                 <NotificationsIcon />
@@ -266,26 +267,41 @@ const handleMouseEnter = () => {
           )}
         </Menu>
          </Box>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <Avatar
-            alt="Profile"
-            src={"/images/default_image_profile.jpg"}
-            sx={{
-              width: 40,
-              height: 40,
-              border: "2px solid #1abc9c",
-            }}
-            onClick={handleNavigate}
-          />
-          <Box textAlign="left"sx={{ pr: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "white" }}  onClick={handleNavigate}>
-              {userName}
-            </Typography>
-            <Typography variant="caption" sx={{ color: "#bdc3c7" }}  onClick={handleNavigate}>
-              {userRole }
-            </Typography>
-          </Box>
-        </Box>
+         <Dropdown align="end">
+               <Dropdown.Toggle
+                 variant="light"
+                 id="dropdown-user"
+                 className="d-flex align-items-center border-0"
+               >
+                <Avatar
+                    alt="Profile"
+                    src={"/images/default_image_profile.jpg"}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      border: "2px solid #1abc9c",
+                    }}
+                    onClick={handleNavigate}
+                  />
+                 <div className="text-start">
+          <div className="fw-bold">{userName}</div>
+          <small className="text-muted">{userRole}</small>
+        </div>
+               </Dropdown.Toggle>
+         
+               <Dropdown.Menu>
+                {userRole !== "Admin" && (
+                  <>
+                    <Dropdown.Item href="/profile">👤 View Profile</Dropdown.Item>
+                    <Dropdown.Divider />
+                  </>
+                )}
+                 <Dropdown.Item onClick={logout} className="text-danger">
+                   🚪 Logout
+                 </Dropdown.Item>
+               </Dropdown.Menu>
+             </Dropdown>
+       
         </Box>
       </Box>
       <Drawer
@@ -407,14 +423,14 @@ const handleMouseEnter = () => {
           <Divider sx={{ bgcolor: "gray", my: 1 }} />
 
           {/* Logout */}
-          <Tooltip title={!isDrawerOpen  ? "Logout" : ""} placement="right" >
+          {/*<Tooltip title={!isDrawerOpen  ? "Logout" : ""} placement="right" >
             <ListItem button onClick={logout} sx={{ px: 2 ,  cursor: !isDrawerOpen  ? "default" : "pointer",}}>
               <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
                 <FaSignOutAlt />
               </ListItemIcon>
               {isDrawerOpen  && <ListItemText primary="Logout" />}
             </ListItem>
-          </Tooltip>
+          </Tooltip>*/}
         </List>
       </Drawer>
     </Box>
