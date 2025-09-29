@@ -70,7 +70,7 @@ export default function TabCardWithGrids() {
     setLoading(true);
     try {
       // Pass safe defaults to avoid "params.page is undefined" inside your API helper
-      const workTypeResponse = await getProjectDetailsList({ page: 1, limit: 100, isDeleted: false });
+      const workTypeResponse = await getProjectDetailsList({ page: 1, limit: 10000, isDeleted: false });
       const tenderResponse = await getAllTenderList({ isDeleted: false });
 
       // Transform projects (ensure numeric projectValue, compute amountStatus & projectType)
