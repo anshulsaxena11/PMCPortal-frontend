@@ -107,6 +107,7 @@ const ToolsAndHardware = () => {
 
     const formattedData = response.data.map((item, index) => {
       const end = item.endDate ? dayjs(item.endDate) : null;
+      const isExpired = end ? end.isBefore(today, 'day') : false;
       const isExpiringSoon =
         end && end.isAfter(today, 'day') && end.diff(today, 'day') <= 30;
       return {
@@ -120,6 +121,7 @@ const ToolsAndHardware = () => {
         startDate: item.startDate ? dayjs(item.startDate).format('DD/MM/YYYY') : '',
         endDate: item.endDate ? dayjs(item.endDate).format('DD/MM/YYYY') : '',
         isExpiringSoon,
+        isExpired,
       };
     });
 
@@ -223,13 +225,15 @@ const ToolsAndHardware = () => {
       </Box>
 
       <div style={{ height: 550, width: '100%' }}>
-        <CustomDataGrid
+       <CustomDataGrid
           rows={data}
           columns={columns}
           rowCount={totalCount}
-          getRowClassName={(params) =>
-            params.row.isExpiringSoon ? "row-expiring-soon" : ""
-          }
+          getRowClassName={(params) => {
+            if (params.row.isExpired) return "row-expired";
+            if (params.row.isExpiringSoon) return "row-expiring-soon";
+            return "";
+          }}
           page={page}
           onPageChange={(newPage) => setPage(newPage)}
           pageSize={pageSize}        
@@ -240,8 +244,8 @@ const ToolsAndHardware = () => {
             setPage(page);
             setPageSize(pageSize);
           }}
-        rowsPerPageOptions={[10, 15, 25]}
-        loading={loading}
+          rowsPerPageOptions={[10, 15, 25]}
+          loading={loading}
         />
       </div>
     </Box>
