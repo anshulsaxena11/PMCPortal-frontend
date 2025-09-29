@@ -141,9 +141,9 @@ const UserProfile = ({ ID }) => {
                 <div>
                   <h5 className="mb-1">{userDetails.ename}</h5>
                   <p className="text-muted mb-1">ID: {userDetails.empid}</p>
-                  <button className="btn btn-outline-secondary btn-sm">
+                  {/* <button className="btn btn-outline-secondary btn-sm">
                     Change Password
-                  </button>
+                  </button>*/}
                 </div>
               </div>
 
