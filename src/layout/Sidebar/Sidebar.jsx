@@ -281,7 +281,6 @@ const handleMouseEnter = () => {
                       height: 40,
                       border: "2px solid #1abc9c",
                     }}
-                    onClick={handleNavigate}
                   />
                  <div className="text-start">
           <div className="fw-bold">{userName}</div>
