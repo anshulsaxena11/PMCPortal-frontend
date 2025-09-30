@@ -4,9 +4,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import { ToastContainer, toast } from 'react-toastify';
-import clientSectorMasterSchema from '../../../validation/clientSectorMaster'
+import DomainMasterSchema from '../../../validation/domainMaster'
 import Form from "react-bootstrap/Form";
-import {getType, postClientSector } from "../../../api/clientSectorApi/clientSectorApi"
+import {getType, postDomainSector } from "../../../api/clientSectorApi/clientSectorApi"
 import { IoIosSave } from "react-icons/io";
 import CircularProgress from '@mui/material/CircularProgress';
 import Select from "react-select";
@@ -15,7 +15,7 @@ import { useNavigate } from 'react-router-dom';
 
 const ClentSectorMasterForm = () =>{
     const { control, handleSubmit, formState: { errors }, setValue,reset } = useForm({
-        resolver: yupResolver(clientSectorMasterSchema),
+        resolver: yupResolver(DomainMasterSchema),
         defaultValues: {},
       });
     const [type,setType] = useState([])
@@ -23,34 +23,34 @@ const ClentSectorMasterForm = () =>{
     const [loading, setLoading] = useState(false); 
     const navigate = useNavigate();
     const handleBackClick = ()=>{
-        navigate(`/Client-Sector-Master`) 
+        navigate(`/Domain-Sector-Master`) 
     }
 
-    useEffect(()=>{
-        const fetchType = async() =>{
-          try{
-            const response = await getType();
-            if(response.data && Array.isArray(response.data.data)){
-              const option = response.data.data.map((Type)=>({
-                value:Type,
-                label:Type
-              }))
-              setType(option)
-            }else{
-              console.log("Expect an Array")
-            }
-          }catch(error){
-            console.error("Error fetching Type Of Work:");
-          }
-        }
-        fetchType()
-    },[])
+    // useEffect(()=>{
+    //     const fetchType = async() =>{
+    //       try{
+    //         const response = await getType();
+    //         if(response.data && Array.isArray(response.data.data)){
+    //           const option = response.data.data.map((Type)=>({
+    //             value:Type,
+    //             label:Type
+    //           }))
+    //           setType(option)
+    //         }else{
+    //           console.log("Expect an Array")
+    //         }
+    //       }catch(error){
+    //         console.error("Error fetching Type Of Work:");
+    //       }
+    //     }
+    //     fetchType()
+    // },[])
 
-    const handleType =(selected)=>{
-        setSelectedType(selected)
-        const typevalue = selected?.value
-        setValue("type",typevalue)
-    }
+    // const handleType =(selected)=>{
+    //     setSelectedType(selected)
+    //     const typevalue = selected?.value
+    //     setValue("type",typevalue)
+    // }
     
     const handleButtonClick = (e) => {
         e.preventDefault();
@@ -59,19 +59,19 @@ const ClentSectorMasterForm = () =>{
 
     const handleFormdataSubmit = async (data) => {
         const payload = {
-            type:data.type,
-            clientType:data.clientType,
+            // type:data.type,
+            domain:data.domain,
         }
         setLoading(true);
         try{
-            const response = await postClientSector(payload)
+            const response = await postDomainSector(payload)
             if (response?.data?.statusCode === 200) {
                 reset({
-                    type:'',
-                    clientType:''
+                    // type:'',
+                    domain:''
                 })
-                setValue('type',"")
-                setSelectedType([])
+                // setValue('type',"")
+                // setSelectedType([])
                 toast.success('Form submitted successfully!', {
                     className: 'custom-toast custom-toast-success',
                 });
@@ -118,7 +118,7 @@ const ClentSectorMasterForm = () =>{
                         </Tooltip>
                     </Box>
                     <Typography variant="h4" fontWeight="bold">
-                        Client Sector
+                        Domain
                     </Typography>
                 </Box>
             </div>
@@ -127,7 +127,7 @@ const ClentSectorMasterForm = () =>{
                 <div className="row">
                     <Form onSubmit={handleSubmit}>
                         <div className="row">
-                            <div className="col-sm-6 col-lg-6 col-md-6">
+                            {/* <div className="col-sm-6 col-lg-6 col-md-6">
                                 <Form.Group className="mb-3">
                                     <Form.Label className="fs-5 fw-bolder">Type<span className="text-danger">*</span></Form.Label>
                                     <Controller
@@ -146,16 +146,16 @@ const ClentSectorMasterForm = () =>{
                                     />
                                     {errors.type && <p className="text-danger">{errors.type.message}</p>}
                                 </Form.Group>
-                            </div>
+                            </div> */}
                             <div className="col-sm-6 col-lg-6 col-md-6">
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="fs-5 fw-bolder">Client Type<span className="text-danger">*</span></Form.Label>
+                                    <Form.Label className="fs-5 fw-bolder">Domain<span className="text-danger">*</span></Form.Label>
                                         <Controller
-                                        name="clientType"
+                                        name="domain"
                                         control={control}
-                                        render={({ field }) => <input {...field} className="form-control" placeholder="Enter Client Type"/>}
+                                        render={({ field }) => <input {...field} className="form-control" placeholder="Enter Domain"/>}
                                     />
-                                    {errors.clientType && <p className="text-danger">{errors.clientType.message}</p>}
+                                    {errors.domain && <p className="text-danger">{errors.domain.message}</p>}
                                 </Form.Group>
                             </div>
                         </div>
