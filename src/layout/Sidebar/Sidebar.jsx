@@ -152,7 +152,7 @@ const handleMouseEnter = () => {
 
   const menuItems = [
     { role: "Admin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
-    { role: "Admin", label: `Sample Bid Doc's`, icon: <VscRepo  />, path: "/Document-Reprositary" },
+    { role: "Admin", label: `Sample Bid Docs`, icon: <VscRepo  />, path: "/Document-Reprositary" },
     { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
     { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
