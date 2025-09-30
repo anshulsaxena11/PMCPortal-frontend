@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import Heading from "../../components/Heading/heading";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, Stack, Button } from "@mui/material";
-import PreviewModal from "../../components/previewfile/preview"; 
+import PreviewModal from "../../components/previewfile/preview";
+import Marquee from '../../components/Marquee/Marquee'; 
 
 const DocumentRepository = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -90,6 +91,15 @@ const DocumentRepository = () => {
         <Heading title="STPI Document Repository" />
       </Stack>
       <hr />
+    <div className='row'>
+          <Marquee
+            text="‼️These are Sample Document are only for referance Purpose‼️"
+            backgroundColor="#AAC9D5"
+            textColor="rgba(0,0,0,0.85)"
+            fontSize="1.2rem"
+            mode="fixed"
+        />
+      </div>
 
       <Box sx={{ height: 'auto', width: "100%", mt: 2 }}>
         <DataGrid
