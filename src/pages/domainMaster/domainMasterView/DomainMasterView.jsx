@@ -1,19 +1,19 @@
 import React, { useState,useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom'; 
-import {getClientSectorById} from '../../../api/clientSectorApi/clientSectorApi'
+import {getDomainById} from '../../../api/clientSectorApi/clientSectorApi'
 import DetailView from '../../../components/DetailsView/DetailView'; 
 
-const ClientSectorMasterView = () => {
-    const [clientSector, setClientSector] = useState({});
+const DomainMasterView = () => {
+    const [domainSector, setDomain] = useState({});
     const [loading, setLoading] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
     const id = location.state?.id;
 
-    const fetchClientSector = async () => {
+    const fetchDomain = async () => {
         try {
-        const response = await getClientSectorById(id);
-            setClientSector(response.data);
+        const response = await getDomainById(id);
+            setDomain(response.data);
         } catch (error) {
             console.error('Error fetching project details:',);
         } finally {
@@ -22,30 +22,30 @@ const ClientSectorMasterView = () => {
     };
 
     useEffect(() => {
-        fetchClientSector();
+        fetchDomain();
     }, [id]);
 
     const fields = [
-        'type',
-        'clientType',
+        // 'type',
+        'domain',
     ];
 
     
     const labels = {
-        type: 'Type',
-        clientType:'Client Sector',
+        // type: 'Type',
+        domain:'Domain',
     };
 
     const handleBackClick = ()=>{
-        navigate(`/Client-Sector-Master`); 
+        navigate(`/Domain-Sector-Master`); 
     }
 
     return(
         <div>
             <DetailView 
-                title={`Client Sector`} 
+                title={`Domain`} 
                 data={{ 
-                    ...clientSector, 
+                    ...domainSector, 
                 }} 
                 loading={loading} 
                 fields={fields} 
@@ -57,4 +57,4 @@ const ClientSectorMasterView = () => {
     )
 }
 
-export default ClientSectorMasterView
+export default DomainMasterView

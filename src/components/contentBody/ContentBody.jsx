@@ -48,10 +48,10 @@ import TaskForceMemberList from "../../pages/taskForceMember/TaskForceMemberList
 import TaskForceMemberViewDetails from "../../pages/taskForceMember/TaskForceMemberView/TaskForceMemberViewDetails.jsx"
 import TaskForceMemberEdit from "../../pages/taskForceMember/TaskForceMemberEdit/TaskForceMemberEdit.jsx"
 import DocumentRepository from "../../pages/documentRepository/documentRepository.jsx"
-import ClienSectortMasterList from "../../pages/clientSectorMaster/clientSectorMasterList/ClientSectorMasterList.jsx"
-import ClentSectorMasterForm from "../../pages/clientSectorMaster/clientSectorMasterForm/ClientSectorMasterForm.jsx"
-import ClientSectorMasterView from "../../pages/clientSectorMaster/clientSectorMasterView/clientSectorMasterView.jsx"
-import ClientSectorMasterEdit from "../../pages/clientSectorMaster/clientSectorMasterEdit/clientSectorMasterEdit.jsx"
+import DomainMasterList from "../../pages/domainMaster/domainMasterList/DomainMasterList.jsx"
+import DomainMasterForm from "../../pages/domainMaster/domainMasterForm/DomainMasterForm.jsx"
+import DomainMasterView from "../../pages/domainMaster/domainMasterView/DomainMasterView.jsx"
+import DomainMasterEdit from "../../pages/domainMaster/domainMasterEdit/DomainMasterEdit.jsx"
 import Profile from "../../pages/profile/Profile.jsx";
 import UserList from "../../pages/profile/UserList.jsx";
 import UserProfile from "../../pages/profile/UserProfile.jsx";
@@ -127,10 +127,10 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Task-Force-member-View" element={<TaskForceMemberViewDetails/>}/>
           <Route path="/Task-Force-member-Edit" element={<TaskForceMemberEdit/>}/>
           <Route path="/Document-Reprositary" element={<DocumentRepository/>}/>
-          <Route path="/Client-Sector-Master" element={<ClienSectortMasterList/>}/>
-          <Route path="/Client-Sector-Master-Form" element={<ClentSectorMasterForm/>}/>
-          <Route path="/Client-Sector-Master-View" element={<ClientSectorMasterView/>}/>
-          <Route path="/Client-Sector-Master-Edit" element={<ClientSectorMasterEdit/>}/>
+          <Route path="/Domain-Sector-Master" element={<DomainMasterList/>}/>
+          <Route path="/Domain-Sector-Master-Form" element={<DomainMasterForm/>}/>
+          <Route path="/Domain-Sector-Master-View" element={<DomainMasterView/>}/>
+          <Route path="/Domain-Sector-Master-Edit" element={<DomainMasterEdit/>}/>
           <Route path="/profile" element={<Profile/>}/>
           <Route path="/user-list" element={<UserList/>}/>
           <Route path="/user-profile/:id" element={<UserProfile/>}/>
