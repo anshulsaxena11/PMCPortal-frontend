@@ -88,12 +88,12 @@ const DocumentRepository = () => {
   return (
     <Box sx={{ width: "100%" }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Heading title="STPI Document Repository" />
+        <Heading title="Sample Bid Documents" />
       </Stack>
       <hr />
     <div className='row'>
           <Marquee
-            text="‼️These are Sample Document are only for referance Purpose‼️"
+            text="‼️These are sample documents only for reference purpose‼️"
             backgroundColor="#AAC9D5"
             textColor="rgba(0,0,0,0.85)"
             fontSize="1.2rem"
