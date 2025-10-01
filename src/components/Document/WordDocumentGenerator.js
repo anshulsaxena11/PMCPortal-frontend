@@ -22,7 +22,6 @@ import {
 } from "docx";
 import { saveAs } from "file-saver";
 import dayjs from 'dayjs';
-import { Chart } from 'chart.js';
 
 
 // Helper to safely return string or fallback
@@ -2825,144 +2824,148 @@ const watermarkHeader = (logoData)
     };
     sections.push(ninthSection)
 
-      // Each vulnerability as a separate section
       for (const [index, item] of fullReport.entries()) {
-        const sectionChildren = [];
+      const sectionChildren = [];
 
-        sectionChildren.push(
-          new Paragraph({
+      // Title: Vulnerability No
+      sectionChildren.push(
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Vulnerability No ${index + 1}`,
+              bold: true,
+              size: 28,
+            }),
+          ],
+          spacing: { after: 300 },
+        })
+      );
+
+      // Severity Color
+      let bgColor = "#FFFFFF";
+      if (item.sevirty === "High") bgColor = "#FF0000";
+      else if (item.sevirty === "Medium") bgColor = "#FFA500";
+      else if (item.sevirty === "Low") bgColor = "#008000";
+      else if (item.sevirty === "INFO") bgColor = "#0000FF";
+
+      // Rows for the vulnerability table
+      const rows = [
+        ["Project Name", safeText(projectDetailsReport?.[0]?.projectName)],
+        ["Project Type", safeText(item.projectType)],
+        item.projectType === "Network Devices" && [
+          "Device Type",
+          safeText(item.devices),
+        ],
+        item.projectType === "Network Devices" && [
+          "Device Name",
+          safeText(item.Name),
+        ],
+        item.projectType === "Network Devices" && [
+          "Device Ip",
+          safeText(item.ipAddress),
+        ],
+        ["Vulnerability Name/Type", safeText(item.vulnerabilityName)],
+        ["Severity", safeText(item.sevirty)],
+        ["Description", safeText(item.description)],
+        ["Location", safeText(item.path)],
+        ["IMPACT", safeText(item.impact)],
+        ["Vulnerable Parameter", safeText(item.vulnerableParameter)],
+        ["References", safeText(item.references)],
+        ["Recomendation", safeText(item.recomendation)],
+      ]
+        .filter(Boolean)
+        .map(([title, value]) =>
+          new TableRow({
             children: [
-              new TextRun({
-                text: `Vulnerability No ${index + 1}`,
-                bold: true,
-                size: 28,
+              new TableCell({
+                children: [new Paragraph(title)],
+                shading: {
+                  type: ShadingType.CLEAR,
+                  color: "auto",
+                  fill: "#b6dde8", // title cell background
+                },
               }),
-            ],
-            spacing: { after: 300 },
-          })
-        );
-          let bgColor = "#FFFFFF";
-          if (item.sevirty === "High") {
-                      bgColor = "#FF0000";
-                    } else if (item.sevirty === "Medium") {
-                      bgColor = "#FFA500";
-                    } else if (item.sevirty === "Low") {
-                      bgColor = "#008000";
-                    }else if (item.sevirty === "INFO") {
-                      bgColor = "#0000FF";
-                    }
-                  
-
-        const rows = [
-  ["Project Name", safeText(projectDetailsReport?.[0]?.projectName)],
-  ["Project Type", safeText(item.projectType)],
-  item.projectType === 'Network Devices' && ["Device Type", safeText(item.devices)],
-  item.projectType === 'Network Devices' && ["Device Name", safeText(item.Name)],
-  item.projectType === 'Network Devices' && ["Device Ip", safeText(item.ipAddress)],
-  ["Vulnerability Name/Type", safeText(item.vulnerabilityName)],
-  ["Severity", safeText(item.sevirty)],
-  ["Description", safeText(item.description)],
-  ["Location", safeText(item.path)],
-  ["IMPACT", safeText(item.impact)],  
-  ["Vulnerable Parameter", safeText(item.vulnerableParameter)],
-  ["References", safeText(item.references)],
-  ["Recomendation", safeText(item.recomendation)],
-].filter(Boolean).map(([title, value]) =>
-  new TableRow({
-    children: [
-      new TableCell({
-        children: [new Paragraph(title)],
-        shading: {
-          type: ShadingType.CLEAR,
-          color: "auto",
-          fill: "#b6dde8", // light blue background for titles
-        },
-      }),
-      new TableCell({
-        children: [new Paragraph(value)],
-        ...(title === "Severity" && {
-          shading: {
-            type: ShadingType.CLEAR,
-            color: "auto",
-            fill: bgColor, 
-          },
-        }),
-      }),
-    ],
-  })
-);
-
-        if (Array.isArray(item.proofOfConcept) && item.proofOfConcept.length > 0) {
-          const proofParagraphs = [];
-
-          for (const proof of item.proofOfConcept) {
-            if (proof.noOfSteps) {
-              proofParagraphs.push(
-                new Paragraph({
-                  children: [new TextRun(proof.noOfSteps)],
-                  spacing: { after: 200 },
-                })
-              );
-            }
-             if (proof.description) {
-              proofParagraphs.push(
-                new Paragraph({
-                  children: [new TextRun(proof.description)],
-                  spacing: { after: 200 },
-                })
-              );
-            }
-
-            if (proof.proof) {
-              const imageData = await fetchImageAsUint8Array(proof.proof);
-              if (imageData && imageData.length > 0) {
-                proofParagraphs.push(
-                  new Paragraph({
-                    children: [
-                      new ImageRun({
-                        data: imageData,
-                        transformation: {
-                          width: 500,
-                          height: 150,
-                          padding:50,
-                        },
-                      }),
-                    ],
-                    spacing: { after: 300 },
-                  })
-                );
-              } else {
-                proofParagraphs.push(
-                  new Paragraph("⚠️ Image could not be loaded.")
-                );
-              }
-            }
-          }
-
-          rows.push(
-            new TableRow({
-              children: [
-                new TableCell({
-                  children: [new Paragraph("Proof of Concept")],shading: {
+              new TableCell({
+                children: [new Paragraph(value)],
+                ...(title === "Severity" && {
+                  shading: {
                     type: ShadingType.CLEAR,
                     color: "auto",
-                    fill: "#b6dde8", // light gray background
+                    fill: bgColor, // severity highlight
                   },
                 }),
-                new TableCell({ children: proofParagraphs }),
-              ],
-            })
-          );
+              }),
+            ],
+          })
+        );
+
+      // Proof of Concept
+      if (Array.isArray(item.proofOfConcept) && item.proofOfConcept.length > 0) {
+        const proofParagraphs = [];
+
+        for (const proof of item.proofOfConcept) {
+          if (proof.noOfSteps) {
+            proofParagraphs.push(new Paragraph(proof.noOfSteps));
+          }
+          if (proof.description) {
+            proofParagraphs.push(new Paragraph(proof.description));
+          }
+          if (proof.proof) {
+            const imageData = await fetchImageAsUint8Array(proof.proof);
+            if (imageData && imageData.length > 0) {
+              proofParagraphs.push(
+                new Paragraph({
+                  children: [
+                    new ImageRun({
+                      data: imageData,
+                      transformation: { width: 500, height: 150 },
+                    }),
+                  ],
+                })
+              );
+            } else {
+              proofParagraphs.push(
+                new Paragraph("⚠️ Image could not be loaded.")
+              );
+            }
+          }
         }
 
-        sectionChildren.push(new Table({ rows }));
-        sectionChildren.push(new Paragraph({ text: "", spacing: { after: 400 } }));
-
-        sections.push({
-          headers: { default: watermarkHeader },
-          children: sectionChildren,
-        });
+        rows.push(
+          new TableRow({
+            children: [
+              new TableCell({
+                children: [new Paragraph("Proof of Concept")],
+                shading: {
+                  type: ShadingType.CLEAR,
+                  color: "auto",
+                  fill: "#b6dde8",
+                },
+              }),
+              new TableCell({ children: proofParagraphs }),
+            ],
+          })
+        );
       }
+
+      // Add table
+      sectionChildren.push(
+        new Table({
+          rows,
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          layout: TableLayoutType.FIXED,
+          columnWidths: [3000, 7000],
+        })
+      );
+
+      sectionChildren.push(new Paragraph({ text: "", spacing: { after: 400 } }));
+
+      // Add section
+      sections.push({
+        headers: { default: watermarkHeader },
+        children: sectionChildren,
+      });
+    }
 
       const eleventSection={
         headers: { default: watermarkHeader },

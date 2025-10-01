@@ -128,7 +128,7 @@ const UserProfile = ({ ID }) => {
             <div className="card-body">
               <div className="d-flex align-items-center mb-4">
                 <img
-                  src="/images/default_image_profile.jpg"
+                  src={`https://intrastpi.stpi.in/stpi/admin/upload_pic/${userDetails?.empid}.jpg`}
                   alt="profile"
                   className="rounded-circle me-3"
                   width="80"
