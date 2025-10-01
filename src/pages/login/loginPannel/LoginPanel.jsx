@@ -32,12 +32,13 @@ const LoginPanel = () =>{
             const userRole = response?.data?.user?.role;
             const userName = response?.data?.user?.name;
             const userId = response?.data?.user?.userId;
+            const photo = response?.data?.user?.photo;
 
             localStorage.setItem('isAuthenticated', 'true');
             localStorage.setItem('userRole', userRole);
             localStorage.setItem('userName', userName);
             localStorage.setItem('userId', userId);
-            
+            localStorage.setItem('photo', photo);
              Swal.fire({
                 icon: 'success',
                 title: 'Login Successful',

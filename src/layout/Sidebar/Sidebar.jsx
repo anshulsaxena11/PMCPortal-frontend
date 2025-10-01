@@ -57,6 +57,7 @@ const Sidebar = ({ onToggle }) => {
   const [openedByHamburger, setOpenedByHamburger] = useState(true);
   const [userRole, setUserRole] = useState(null);
   const [userName, setUserName] = useState(null);
+  const [userPhoto, setUserPhoto] = useState(null);
   const [hasUnread, setHasUnread] = useState(true);
   const [openGroups, setOpenGroups] = useState({});
   const navigate = useNavigate();
@@ -66,8 +67,11 @@ const Sidebar = ({ onToggle }) => {
   useEffect(() => {
     const role = localStorage.getItem("userRole");
     const name = localStorage.getItem("userName");
+    const photo = localStorage.getItem("photo");
+    console.log(photo);
     setUserRole(role);
     setUserName(name);
+    setUserPhoto(photo);
   }, []);
 
  useEffect(() => {
@@ -301,8 +305,8 @@ const handleMouseEnter = () => {
                  className="d-flex align-items-center border-0"
                >
                 <Avatar
-                    alt="Profile"
-                    src={"/images/default_image_profile.jpg"}
+                    alt="A"
+                    src={userPhoto || "/images/default_image_profile.jpg"}
                     sx={{
                       width: 40,
                       height: 40,
