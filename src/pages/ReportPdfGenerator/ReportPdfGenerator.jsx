@@ -552,9 +552,9 @@ const ReportPdfGenerator = () => {
                 </div>
               </div>
               <div className="d-flex justify-content-end mt-3">
-                <Button variant="contained" color="primary" onClick={handleNextthree}>
+                {/* <Button variant="contained" color="primary" onClick={handleNextthree}>
                   Next
-                </Button>
+                </Button> */}
                 <MSWordPreview 
                   fullReport={fullReport} 
                   projectDetailsReport ={projectDetailsReport}

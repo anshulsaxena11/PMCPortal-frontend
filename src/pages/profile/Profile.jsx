@@ -16,7 +16,7 @@ const UserProfile = ({ ID }) => {
   const [userId, setUserId] = useState(null);
   const [projects, setProjects] = useState([]);
   const [certificates, setCertificates] = useState([]);
-  const [error, setError] = useState(null);
+  const [ setError] = useState(null);
 
   // Preview modal states
   const [showModal, setShowModal] = useState(false);
@@ -132,7 +132,7 @@ const UserProfile = ({ ID }) => {
             <div className="card-body">
               <div className="d-flex align-items-center mb-4">
                 <img
-                  src="/images/default_image_profile.jpg"
+                 src={`https://intrastpi.stpi.in/stpi/admin/upload_pic/${userDetails?.empid}.jpg`}
                   alt="profile"
                   className="rounded-circle me-3"
                   width="80"
@@ -179,14 +179,25 @@ const UserProfile = ({ ID }) => {
                   {projects.length ? (
                     projects.map((project, index) => {
                       let badgeClass = "bg-secondary"; // default
-                      if (project.amountStatus?.toLowerCase() === "completed") {
+                      if (project.amountStatus?.toLowerCase() === "complete") {
                         badgeClass = "bg-success";
                       } else if (
-                        project.amountStatus?.toLowerCase() === "on going"
+                        project.amountStatus?.toLowerCase() === "ongoing"
                       ) {
                         badgeClass = "bg-warning";
+                      } else if (
+                        project.amountStatus?.toLowerCase() === "on hold"
+                      ) {
+                         badgeClass = "bg-secondary";
+                      } else if (
+                        project.amountStatus?.toLowerCase() === "closed"
+                      ) {
+                         badgeClass = "bg-danger";
+                      } else if (
+                        project.amountStatus?.toLowerCase() === "work order recieved"
+                      ) {
+                         badgeClass = "bg-primary";
                       }
-
                       return (
                         <div
                           key={project._id}
