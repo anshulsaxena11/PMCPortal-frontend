@@ -68,7 +68,6 @@ const Sidebar = ({ onToggle }) => {
     const role = localStorage.getItem("userRole");
     const name = localStorage.getItem("userName");
     const photo = localStorage.getItem("photo");
-    console.log(photo);
     setUserRole(role);
     setUserName(name);
     setUserPhoto(photo);
@@ -305,7 +304,7 @@ const handleMouseEnter = () => {
                  className="d-flex align-items-center border-0"
                >
                 <Avatar
-                    alt="A"
+                    alt="Profile"
                     src={userPhoto || "/images/default_image_profile.jpg"}
                     sx={{
                       width: 40,
