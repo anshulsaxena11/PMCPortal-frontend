@@ -11,13 +11,14 @@ const Marquee = ({
   fontSize = '1rem',
   pauseOnHover = true,
   stopInCenter = false,
+  mode = 'scroll', // "scroll" (default) or "fixed"
 }) => {
   const containerRef = useRef(null);
   const textRef = useRef(null);
   const [translateX, setTranslateX] = useState(null);
 
   useEffect(() => {
-    if (stopInCenter && containerRef.current && textRef.current) {
+    if (mode === 'scroll' && stopInCenter && containerRef.current && textRef.current) {
       const containerWidth = containerRef.current.offsetWidth;
       const textWidth = textRef.current.offsetWidth;
 
@@ -29,29 +30,40 @@ const Marquee = ({
 
       setTranslateX({ from, to });
     }
-  }, [stopInCenter, direction, text]);
+  }, [stopInCenter, direction, text, mode]);
 
-  const animationName = stopInCenter ? 'marquee-to-center' : 'marquee-loop';
+  let animationStyles = {};
 
-  const animationStyles = stopInCenter && translateX
-    ? {
-        animation: `${animationName} ${speed}s linear forwards`,
-        '@keyframes marquee-to-center': {
-          from: { transform: `translateX(${translateX.from}px)` },
-          to: { transform: `translateX(${translateX.to}px)` },
-        },
-      }
-    : {
-        animation: `${animationName} ${speed}s linear infinite`,
-        '@keyframes marquee-loop': {
-          '0%': {
-            transform: `translateX(${direction === 'left' ? '100%' : '-100%'})`,
-          },
-          '100%': {
-            transform: `translateX(${direction === 'left' ? '-100%' : '100%'})`,
-          },
-        },
-      };
+  if (mode === 'scroll') {
+    const animationName = stopInCenter ? 'marquee-to-center' : 'marquee-loop';
+
+    animationStyles =
+      stopInCenter && translateX
+        ? {
+            animation: `${animationName} ${speed}s linear forwards`,
+            '@keyframes marquee-to-center': {
+              from: { transform: `translateX(${translateX.from}px)` },
+              to: { transform: `translateX(${translateX.to}px)` },
+            },
+          }
+        : {
+            animation: `${animationName} ${speed}s linear infinite`,
+            '@keyframes marquee-loop': {
+              '0%': {
+                transform: `translateX(${direction === 'left' ? '100%' : '-100%'})`,
+              },
+              '100%': {
+                transform: `translateX(${direction === 'left' ? '-100%' : '100%'})`,
+              },
+            },
+          };
+  } else if (mode === 'fixed') {
+    animationStyles = {
+      position: 'absolute',
+      left: '50%',
+      transform: 'translateX(-50%)',
+    };
+  }
 
   return (
     <Box
@@ -77,7 +89,7 @@ const Marquee = ({
           fontSize,
           display: 'inline-block',
           ...animationStyles,
-          ...(pauseOnHover && !stopInCenter && {
+          ...(pauseOnHover && mode === 'scroll' && !stopInCenter && {
             '&:hover': {
               animationPlayState: 'paused',
             },
@@ -99,6 +111,7 @@ Marquee.propTypes = {
   fontSize: PropTypes.string,
   pauseOnHover: PropTypes.bool,
   stopInCenter: PropTypes.bool,
+  mode: PropTypes.oneOf(['scroll', 'fixed']), // 👈 new prop
 };
 
 export default Marquee;

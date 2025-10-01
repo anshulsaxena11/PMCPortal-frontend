@@ -70,29 +70,41 @@ const Sidebar = ({ onToggle }) => {
     setUserName(name);
   }, []);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const response = await getNotification(); 
-        console.log(response)
-        if (response.statusCode === 200) {
-          const formatted = response.data.map(item => {
+ useEffect(() => {
+  const fetchNotifications = async () => {
+    try {
+      const response = await getNotification();
+      if (response.statusCode === 200) {
+        const formatted = response.data.map(item => {
+          let message = "";
+
+          if (item.daysLeft > 0) {
+            message = `${item.tollsName} is going to expire in ${item.daysLeft} days`;
+          } else {
+            const expiredDate = item.expiryDate
+              ? new Date(item.expiryDate).toLocaleDateString()
+              : "Unknown date";
+            message = `${item.tollsName} has expired on ${expiredDate}`;
+          }
+
           return {
             ...item,
-            message: `${item.tollsName } is going to expired in ${item.daysLeft } days`,
+            message,
+            read: false 
           };
         });
-          setNotifications(formatted);
-        } else {
-          console.error("Failed to fetch notifications");
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      }
-    };
 
-    fetchNotifications();
-  }, []);
+        setNotifications(formatted);
+      } else {
+        console.error("Failed to fetch notifications");
+      }
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+
+  fetchNotifications();
+}, []);
   
   const handleOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -140,7 +152,7 @@ const handleMouseEnter = () => {
 
   const menuItems = [
     { role: "Admin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
-    { role: "Admin", label: "Document Repositary", icon: <VscRepo  />, path: "/Document-Reprositary" },
+    { role: "Admin", label: `Sample Bid Docs`, icon: <VscRepo  />, path: "/Document-Reprositary" },
     { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
     { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
@@ -170,7 +182,7 @@ const handleMouseEnter = () => {
         { role: "Admin", label: "Type Of Work", icon: <MdSpatialTracking />, path: "/type-of-work-master-list" },
         { role: "Admin", label: "Scope Of Work", icon: <MdSpatialTracking />, path: "/Scope-Of-Work-Master" },
         { role: "Admin", label: "State Assigment", icon: <MdOutlineRememberMe/>, path: "/Task-Force-member" },
-        { role: "Admin", label: "Client Sector", icon: <IoMdPeople/>, path: "/Client-Sector-Master" },
+        { role: "Admin", label: "Domain", icon: <IoMdPeople/>, path: "/Domain-Sector-Master" },
       ],
     },
 
@@ -254,8 +266,23 @@ const handleMouseEnter = () => {
             >
           {notifications.length > 0 ? (
             notifications.map((n) => (
-              <MenuItem key={n.id} onClick={()=>{navigate(`/Tools-Hardware-View/${n._id}`); handleClose()}}>
-                <Typography variant="body2">{n.message}</Typography>
+              <MenuItem 
+                key={n.id} 
+                onClick={()=>{
+                  navigate(`/Tools-Hardware-View/${n._id}`); 
+                  handleClose()
+                   setNotifications(prev =>
+                      prev.map(item =>
+                        item._id === n._id ? { ...item, read: true } : item
+                      )
+                    );
+                  }}
+                  sx={{
+                    backgroundColor: n.read ? "inherit" : "#ecededff",
+                   
+                  }}
+                >
+                <Typography variant="body2" color={n.read ? "text.primary" : "text.secondary"}>{n.message}</Typography>
               </MenuItem>
             ))
           ) : (

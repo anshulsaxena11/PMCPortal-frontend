@@ -17,7 +17,7 @@ const DetailViewTable = ({
   onBackClick,
   uploadedFile,
   fileType,
-  nestedFields = {}, // optional: define fields to show for arrays
+  nestedFields = {}, 
 }) => {
   const [showModal, setShowModal] = useState(false);
   const [filePreview, setFilePreview] = useState('');
@@ -25,7 +25,7 @@ const DetailViewTable = ({
 
   if (loading) return <div>Loading...</div>;
 
-  // File type helpers
+
   const getFileTypeFromUrl = (url) => {
     const extension = url?.split('.').pop()?.toLowerCase();
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) return 'image/';
@@ -96,84 +96,150 @@ const DetailViewTable = ({
                 );
               }
 
-              // Nested array fields
-          if (Array.isArray(value)) {
-              const showFields = nestedFields[field] || [];
-              const showLabels = nestedFields[`${field}Labels`] || {};
+     
+              if (Array.isArray(value)) {
+                if (field === "proofOfConcept") {
+                  return (
+                    <tr key={index}>
+                      <td><strong>{label}:</strong></td>
+                      <td>
+                        {value.length > 0 ? (
+                          <div
+                            style={{
+                              maxHeight: "250px",
+                              maxWidth: "100%",
+                              overflowX: "auto",
+                              overflowY: "auto",
+                            }}
+                          >
+                            <Table striped bordered hover size="sm">
+                              <thead>
+                                <tr>
+                                  <th>S.No</th>
+                                  <th>Step</th>
+                                  <th>Description</th>
+                                  <th>Proof</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {value.map((item, idx) => (
+                                  <tr key={item._id || idx}>
+                                    <td>{idx + 1}</td>
+                                    <td>{item.noOfSteps || "N/A"}</td>
+                                    <td>{item.description || "N/A"}</td>
+                                    <td>
+                                      {item.proofPreviwe ? (
+                                        <a
+                                          href="#"
+                                          onClick={(e) => {
+                                            e.preventDefault();
+                                            handlePreviewClick(item.proofPreviwe);
+                                          }}
+                                          className="btn btn-link"
+                                        >
+                                          <PiImagesSquareBold style={{ marginRight: "8px" }} />
+                                          Preview
+                                        </a>
+                                      ) : (
+                                        "N/A"
+                                      )}
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                          </div>
+                        ) : (
+                          <span>No Proof of Concept available</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                }
 
-              if (showFields.length === 0) {
+      
+                const showFields = nestedFields[field] || [];
+                const showLabels = nestedFields[`${field}Labels`] || {};
+
+                if (showFields.length === 0) {
+                  return (
+                    <tr key={index}>
+                      <td><strong>{label}:</strong></td>
+                      <td>No fields defined to display</td>
+                    </tr>
+                  );
+                }
+
                 return (
                   <tr key={index}>
                     <td><strong>{label}:</strong></td>
-                    <td>No fields defined to display</td>
+                    <td>
+                      {value.length > 0 ? (
+                        <div
+                          style={{
+                            maxHeight: "200px",
+                            maxWidth: "100%",
+                            overflowX: "auto",
+                            overflowY: "auto",
+                          }}
+                        >
+                          <Table striped bordered hover size="sm">
+                            <thead>
+                              <tr>
+                                <th>S.No</th>
+                                <th>{label}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {value
+                                .sort((a, b) => new Date(b.commentedOn) - new Date(a.commentedOn))
+                                .map((item, idx) => (
+                                  <tr key={item._id || idx}>
+                                    <td style={{ verticalAlign: "top", width: "60px" }}>
+                                      {idx + 1}
+                                    </td>
+                                    <td style={{ textAlign: "justify" }}>
+                                      <div>
+                                        By{" "}
+                                        <span className="fw-bold">
+                                          {item.displayName || "Unknown"}
+                                        </span>{" "}
+                                        on{" "}
+                                        {item.commentedOn ? (
+                                          <>
+                                            <span className="fw-bold">
+                                              {dayjs(item.commentedOn).format("D MMMM YYYY")}
+                                            </span>{" "}
+                                            at{" "}
+                                            <span className="fw-bold">
+                                              {dayjs(item.commentedOn).format("h:mm A")}
+                                            </span>
+                                          </>
+                                        ) : (
+                                          "N/A"
+                                        )}
+                                      </div>
+                                      <div>
+                                        <ReadMoreLess
+                                          text={item.comments ?? "N/A"}
+                                          limit={120}
+                                        />
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                            </tbody>
+                          </Table>
+                        </div>
+                      ) : (
+                        <span>No {label} available</span>
+                      )}
+                    </td>
                   </tr>
                 );
               }
 
-              return (
-                <tr key={index}>
-                  <td><strong>{label}:</strong></td>
-                  <td>
-                    {value.length > 0 ? (
-                      <div
-                        style={{
-                          maxHeight: "200px",
-                          maxWidth: "100%",
-                          overflowX: "auto",
-                          overflowY: "auto",
-                        }}
-                      >
-                        <Table striped bordered hover size="sm">
-                          <thead>
-                            <tr>
-                              <th>S.No</th>
-                              <th>{label}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {value.sort((a, b) => new Date(b.commentedOn) - new Date(a.commentedOn)).map((item, idx) => (
-                              <tr key={item._id || idx}>
-                                <td style={{ verticalAlign: "top", width: "60px" }}>
-                                  {idx + 1}
-                                </td>
-                                <td style={{ textAlign: "justify" }}>
-                                 <div>
-                                    By{" "}<span className="fw-bold">{item.displayName || "Unknown"}</span>{" "} on {" "}
-                                    {item.commentedOn ? (
-                                      <>
-                                       <span className="fw-bold">
-                                          {dayjs(item.commentedOn).format("D MMMM YYYY")}
-                                        </span>{" "}
-                                        at{" "}
-                                        <span className="fw-bold">
-                                          {dayjs(item.commentedOn).format("h:mm A")}
-                                        </span>
-                                      </>
-                                    ) : (
-                                      "N/A"
-                                    )}
-                                  </div>
-                                  <div>
-                                    <ReadMoreLess
-                                      text={item.comments ?? "N/A"}
-                                      limit={120}
-                                    />
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </Table>
-                      </div>
-                    ) : (
-                      <span>No {label} available</span>
-                    )}
-                  </td>
-                </tr>
-              );
-            }
-
-              // Default simple fields
+  
               return (
                 <tr key={index}>
                   <td><strong>{label}:</strong></td>

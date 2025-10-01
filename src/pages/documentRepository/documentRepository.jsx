@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import Heading from "../../components/Heading/heading";
 import { DataGrid } from "@mui/x-data-grid";
 import { Box, Stack, Button } from "@mui/material";
-import PreviewModal from "../../components/previewfile/preview"; 
+import PreviewModal from "../../components/previewfile/preview";
+import Marquee from '../../components/Marquee/Marquee'; 
 
 const DocumentRepository = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -87,9 +88,18 @@ const DocumentRepository = () => {
   return (
     <Box sx={{ width: "100%" }}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Heading title="STPI Document Repository" />
+        <Heading title="Sample Bid Documents" />
       </Stack>
       <hr />
+    <div className='row'>
+          <Marquee
+            text="‼️These are sample documents only for reference purpose‼️"
+            backgroundColor="#AAC9D5"
+            textColor="rgba(0,0,0,0.85)"
+            fontSize="1.2rem"
+            mode="fixed"
+        />
+      </div>
 
       <Box sx={{ height: 'auto', width: "100%", mt: 2 }}>
         <DataGrid

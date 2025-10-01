@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Heading from '../../../components/Heading/heading';
 import { useNavigate } from 'react-router-dom';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
-import {getClientSector,getType} from '../../../api/clientSectorApi/clientSectorApi'
+import {getDomain,getType} from '../../../api/clientSectorApi/clientSectorApi'
 import { Visibility, Edit } from '@mui/icons-material';
 import {
   Box,
@@ -13,7 +13,7 @@ import {
   IconButton,
 } from '@mui/material';
 
-const ClienSectortMasterList = () =>{
+const DomainMasterList = () =>{
     const [data, setData] = useState([]);
     const [page, setPage] = useState(0); 
     const [pageSize, setPageSize] = useState(10);
@@ -31,7 +31,7 @@ const ClienSectortMasterList = () =>{
     const fetchData = async () => {
         setLoading(true);
         try {
-            const response = await getClientSector({
+            const response = await getDomain({
                 page: page + 1,
                 limit: pageSize,
                 search: searchQuery.trim(),
@@ -58,11 +58,11 @@ const ClienSectortMasterList = () =>{
     }, [page, pageSize, searchQuery,selectType]);
 
     const handleViewClick = (id) => {
-        navigate(`/Client-Sector-Master-View`, { state: { id } });
+        navigate(`/Domain-Sector-Master-View`, { state: { id } });
     };
 
     const handleEditClick = (id) => {
-        navigate(`/Client-Sector-Master-Edit`, { state: { id } });
+        navigate(`/Domain-Sector-Master-Edit`, { state: { id } });
     };
     
     const columns = [
@@ -73,8 +73,8 @@ const ClienSectortMasterList = () =>{
             sortable: false,
             filterable: false
         },
-        { field: 'type', headerName: 'Type', flex: 1.5, minWidth: 200 },
-        { field: 'clientType', headerName: 'Client Sector', flex: 1.5, minWidth: 200 },
+        // { field: 'type', headerName: 'Type', flex: 1.5, minWidth: 200 },
+        { field: 'domain', headerName: 'Domain', flex: 1.5, minWidth: 200 },
         {
             field: 'actions',
             headerName: 'Actions',
@@ -102,30 +102,30 @@ const ClienSectortMasterList = () =>{
         }
     ];
 
-    useEffect(()=>{
-        const fetchType = async() =>{
-            try{
-            const response = await getType();
-            if(response.data && Array.isArray(response.data.data)){
-                const option = response.data.data.map((Type)=>({
-                value:Type,
-                label:Type
-                }))
-                setType(option)
-            }else{
-                console.log("Expect an Array")
-            }
-            }catch(error){
-            console.error("Error fetching Type Of Work:");
-            }
-        }
-        fetchType()
-    },[])
+    // useEffect(()=>{
+    //     const fetchType = async() =>{
+    //         try{
+    //         const response = await getType();
+    //         if(response.data && Array.isArray(response.data.data)){
+    //             const option = response.data.data.map((Type)=>({
+    //             value:Type,
+    //             label:Type
+    //             }))
+    //             setType(option)
+    //         }else{
+    //             console.log("Expect an Array")
+    //         }
+    //         }catch(error){
+    //         console.error("Error fetching Type Of Work:");
+    //         }
+    //     }
+    //     fetchType()
+    // },[])
     return(
        <Box sx={{ width: '100%' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Heading title="Client sector List" />
-                <Button variant="contained" onClick={() => navigate('/Client-Sector-Master-Form')}>
+                <Heading title="Domain List" />
+                <Button variant="contained" onClick={() => navigate('/Domain-Sector-Master-Form')}>
                     Add New
                 </Button>
             </Stack>
@@ -142,7 +142,7 @@ const ClienSectortMasterList = () =>{
                     backgroundColor: 'white',
                     }}
                 />
-                <TextField
+                {/* <TextField
                     select
                     fullWidth
                     size="small"
@@ -162,7 +162,7 @@ const ClienSectortMasterList = () =>{
                         {dir.label}
                     </MenuItem>
                     ))}
-                </TextField>
+                </TextField> */}
             </Box>
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
                 <CustomDataGrid
@@ -185,4 +185,4 @@ const ClienSectortMasterList = () =>{
     )
 }
 
-export default ClienSectortMasterList;
+export default DomainMasterList;
