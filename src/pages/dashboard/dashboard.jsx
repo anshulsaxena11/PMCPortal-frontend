@@ -110,12 +110,7 @@ export default function TabCardWithGrids() {
   const [selectedDirectorate, setSelectedDirectorate] = useState("All");
   const [selectedState, setSelectedState] = useState("All");
 
-  const [stats, setStats] = useState([
-    { title: "Total Projects", value: 0, icon: "📁" },
-    { title: "Total Value", value: 0, icon: "💰" },
-    { title: "Completed", value: 0, icon: "✅" },
-    { title: "Ongoing", value: 0, icon: "⏳" }
-  ]);
+  const [stats, setStats] = useState([]);
 
   useEffect(() => {
     const currentDate = new Date();
@@ -212,12 +207,13 @@ export default function TabCardWithGrids() {
         completed: dirMap[key].completed,
         ongoing: dirMap[key].ongoing
       }));
+      dirArray.sort((a, b) => b.value - a.value);
       setDirectorateData(dirArray);
       setStats([
-        { title: "Total Projects", value: projectsData.length, icon: "📁" },
-        { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰" },
-        { title: "Completed", value: completed, icon: "✅" },
-        { title: "Ongoing", value: ongoing, icon: "⏳" }
+        { title: "Total Projects", value: projectsData.length, icon: "📁", width:"50%" },
+        { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰", width:"50%" },
+        { title: "Completed", value: completed, icon: "✅", width:"50%" },
+        { title: "Ongoing", value: ongoing, icon: "⏳", width:"50%" }
       ]);
 
       const processedChartData = groupByFinancialYear(projectsData);
@@ -226,7 +222,7 @@ export default function TabCardWithGrids() {
       setWorkTypeRows(projectsData.map((item, index) => {
         const amountStatus = Array.isArray(item.phases) && item.phases.length > 0
           ? item.phases[0].amountStatus || "N/A"
-          : "N/A";
+          : "Ongoing";
 
         return {
           id: item?._id || index + 1,
@@ -412,7 +408,7 @@ if (search.trim()) {
       </aside>
 
       <main className="right-content">
-  <h5 className="mb-3">Analytics Dashboard</h5> 
+  <h5 className="mb-3">Projects Overview</h5> 
   <div className="stats-grid">
     {stats.map((s, i) => (
       <Card key={i} className="stat-card">
