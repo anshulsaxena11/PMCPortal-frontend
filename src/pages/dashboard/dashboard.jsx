@@ -16,8 +16,6 @@ const tabData = [
   { label: 'Projects', icon: <WorkIcon />, key: 'workType' },
   { label: 'Sales Tracking', icon: <RequestQuoteIcon />, key: 'tenderTracking' },
 ];
-
-
 const workTypeCols = [
     { field: 'sno', headerName: 'S. No.', width: 60, sortable: false, filterable: false },
     { field: 'orginisationName', headerName: 'Organisation Name', flex: 1.5 },
@@ -29,7 +27,7 @@ const workTypeCols = [
     field: "amountStatus",
     headerName: "Status",
     width: 120,
-    renderCell: (params) => params.value || "N/A", // fallback just in case
+    renderCell: (params) => params.value || "N/A", 
   },
     { field: 'directrate', headerName: 'Directorate', flex: 1 },
     {
@@ -59,7 +57,6 @@ const workTypeCols = [
     { field: 'sno', headerName: 'S.No', width: 80 },
     { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
     { field: 'organizationName', headerName: 'Organization Name', flex: 1 },
-    //{ field: 'state', headerName: 'State', flex: 1 },
     { field: 'taskForce', headerName: 'Task Force', flex: 1 },
     { field: 'state', headerName: 'State', flex: 1 },
     {
@@ -96,9 +93,6 @@ const workTypeCols = [
     },
   },
   ];
-
-
-
 export default function TabCardWithGrids() {
   const [activeTab, setActiveTab] = useState(0);
   const [search, setSearch] = useState('');
@@ -109,14 +103,12 @@ export default function TabCardWithGrids() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-
   const [projects, setProjects] = useState([]);
   const [directorateData, setDirectorateData] = useState([]);
   const [selectedFY, setSelectedFY] = useState("All");
   const [financialYears, setFinancialYears] = useState([]);
   const [selectedDirectorate, setSelectedDirectorate] = useState("All");
   const [selectedState, setSelectedState] = useState("All");
-
 
   const [stats, setStats] = useState([
     { title: "Total Projects", value: 0, icon: "📁" },
@@ -125,7 +117,6 @@ export default function TabCardWithGrids() {
     { title: "Ongoing", value: 0, icon: "⏳" }
   ]);
 
-  // 📅 Generate FY options dynamically and include current FY
   useEffect(() => {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
@@ -134,19 +125,16 @@ export default function TabCardWithGrids() {
     const fyStartYear = currentMonth < 3 ? currentYear - 1 : currentYear;
     const fyEndYear = fyStartYear + 1;
     const currentFY = `FY-${fyStartYear}-${fyEndYear}`;
-
     const years = [];
     for (let i = 5; i >= 1; i--) {
       const start = fyStartYear - i;
       const end = start + 1;
       years.push(`FY-${start}-${end}`);
     }
-
     years.push(currentFY);
     setFinancialYears(["All", ...years]);
   }, []);
-
-  // 📊 Group projects by FY for chart
+ 
   function groupByFinancialYear(data) {
     const yearMap = {};
     data.forEach((project) => {
@@ -176,7 +164,6 @@ export default function TabCardWithGrids() {
       .map(({ financialYear, Total }) => ({ financialYear, Total }));
   }
 
-  // 🔄 Fetch data (all)
   const fetchAllData = async (yearFilter = "All") => {
     setLoading(true);
     try {
@@ -185,7 +172,6 @@ export default function TabCardWithGrids() {
 
       let projectsData = workTypeResponse?.data || [];
 
-      // 🎯 Filter by selected FY
       if (yearFilter !== "All") {
         projectsData = projectsData.filter((p) => {
           if (!p.startDate) return false;
@@ -198,10 +184,8 @@ export default function TabCardWithGrids() {
           return fyLabel === yearFilter;
         });
       }
-
       setProjects(projectsData);
 
-      // 💼 Directorates Summary
       const dirMap = {};
       let totalValue = 0, completed = 0, ongoing = 0;
       projectsData.forEach(p => {
@@ -229,7 +213,6 @@ export default function TabCardWithGrids() {
         ongoing: dirMap[key].ongoing
       }));
       setDirectorateData(dirArray);
-
       setStats([
         { title: "Total Projects", value: projectsData.length, icon: "📁" },
         { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰" },
@@ -237,11 +220,9 @@ export default function TabCardWithGrids() {
         { title: "Ongoing", value: ongoing, icon: "⏳" }
       ]);
 
-      // 💹 Chart data
       const processedChartData = groupByFinancialYear(projectsData);
       setChartData(processedChartData);
 
-      // Grid data
       setWorkTypeRows(projectsData.map((item, index) => {
         const amountStatus = Array.isArray(item.phases) && item.phases.length > 0
           ? item.phases[0].amountStatus || "N/A"
@@ -251,7 +232,7 @@ export default function TabCardWithGrids() {
           id: item?._id || index + 1,
           sno: index + 1,
           ...item,
-          amountStatus, // set extracted value or N/A
+          amountStatus, 
         };
       }));
 
@@ -272,7 +253,6 @@ export default function TabCardWithGrids() {
     fetchAllData(selectedFY);
   }, [selectedFY]);
 
-  // 🎨 Chart Rendering
   useEffect(() => {
     if (activeTab !== 0) return;
     if (!chartData.length) return;
@@ -307,7 +287,6 @@ export default function TabCardWithGrids() {
       series.dataFields.valueY = 'value';
       series.dataFields.categoryX = 'category';
       series.columns.template.width = 50;
-
       const labelBullet = series.bullets.push(new charts.LabelBullet());
       labelBullet.label.text = '{valueY} Cr';
       labelBullet.label.fontSize = 12;
@@ -315,10 +294,8 @@ export default function TabCardWithGrids() {
       labelBullet.label.fill = core.color('#000');
       labelBullet.label.dy = -5;
       labelBullet.label.horizontalCenter = 'middle';
-
       series.name = 'Project Value';
       series.columns.template.tooltipText = '{categoryX}: [bold]{valueY} Cr[/]';
-
       return () => {
         if (chartRef.current) {
           chartRef.current.dispose();
@@ -331,32 +308,24 @@ export default function TabCardWithGrids() {
   }, [activeTab, chartData]);
 
   let filteredRows = getCurrentTabRows();
-
-// 🎯 Filter by Directorate (Projects tab)
 if (activeTab === 0 && selectedDirectorate !== "All") {
   filteredRows = filteredRows.filter(
     (row) => row.directrate === selectedDirectorate
   );
 }
 
-// 🏗️ Filter by State (Sales Tracking tab)
 if (activeTab === 1 && selectedState !== "All") {
   filteredRows = filteredRows.filter(
     (row) => row.state === selectedState
   );
 }
 
-// 🔍 Apply text search
 if (search.trim()) {
   filteredRows = getFilteredRows(filteredRows, search);
 }
-
-
-
   function getCurrentTabRows() {
     return activeTab === 0 ? workTypeRows : tenderRows;
   }
-
   function getFilteredRows(rows, term) {
     const lower = term.toLowerCase().trim();
     return rows.filter((row) =>
@@ -368,7 +337,6 @@ if (search.trim()) {
 
   return (
     <>
-      {/* Tab Buttons */}
       <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
         {tabData.map((tab, index) => (
           <Paper
@@ -406,21 +374,19 @@ if (search.trim()) {
       </Box>
 {activeTab === 0 && (
   <>
-    {/* FY Dropdown */}
     <Box sx={{ mb: 2 }}>
-      <label><b>Financial Year:</b></label>{" "}
-      <select
-        value={selectedFY}
-        onChange={(e) => setSelectedFY(e.target.value)}
-        style={{ padding: "6px 10px", borderRadius: "6px" }}
-      >
-        {financialYears.map((fy, i) => (
-          <option key={i} value={fy}>{fy}</option>
-        ))}
-      </select>
-    </Box>
+    <label><b>Financial Year:</b></label>{" "}
+    <select
+      value={selectedFY}
+      onChange={(e) => setSelectedFY(e.target.value)}
+      style={{ padding: "6px 10px", borderRadius: "6px" }}
+    >
+      {[financialYears[0], ...financialYears.slice(1).reverse()].map((fy, i) => (
+        <option key={i} value={fy}>{fy}</option>
+      ))}
+    </select>
+</Box>
 
-    {/* Left & Right sections */}
     <div className="dashboard-wrapper">
       <aside className="left-sidebar">
         <h5 className="left-title">Directorate Wise Projects</h5>
@@ -446,18 +412,14 @@ if (search.trim()) {
       </aside>
 
       <main className="right-content">
-  {/* The title "Projects Overview" should be replaced or removed for this new section */}
   <h5 className="mb-3">Analytics Dashboard</h5> 
   <div className="stats-grid">
     {stats.map((s, i) => (
       <Card key={i} className="stat-card">
-        {/* New: The colored header section */}
         <div className={`stat-header ${s.headerClass}`}>
           {s.title}
         </div>
-        {/* New: The white content section */}
         <div className="stat-content">
-          {/* Note: The d-flex align-items-center is removed since there are no icons */}
           <div className={`stat-value ${s.valueClass}`}>{s.value}</div>
         </div>
       </Card>
@@ -465,7 +427,6 @@ if (search.trim()) {
   </div>
 </main>
     </div>
-
     {/* Chart */}
     <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
       Project Value Overview (Cr INR)
@@ -473,10 +434,7 @@ if (search.trim()) {
     <Box id="chartdiv" sx={{ width: '100%', height: 300 }} />
   </>
 )}
-
-
   <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
-  {/* Directorate Dropdown — visible only for Projects tab */}
   {activeTab === 0 && (
     <Box>
       <label><b>Directorate:</b></label>{" "}
@@ -493,7 +451,6 @@ if (search.trim()) {
     </Box>
   )}
 
-  {/* State Dropdown — visible only for Sales Tracking tab */}
   {activeTab === 1 && (
     <Box>
       <label><b>State:</b></label>{" "}
@@ -509,8 +466,6 @@ if (search.trim()) {
       </select>
     </Box>
   )}
-
-  {/* Search Box */}
   <TextField
     label="Search..."
     variant="outlined"
@@ -584,10 +539,6 @@ if (search.trim()) {
     Download PDF
   </Button>
 </Stack>
-
-
-
-
       <Box sx={{ height: 400 }}>
         <CustomDataGrid
           rows={filteredRows}
