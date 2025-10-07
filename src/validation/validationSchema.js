@@ -2,8 +2,9 @@ import * as yup from 'yup';
 
 const validationSchema = yup.object({
   workOrderNo: yup.string().required("work Order is required"),
-  orderType:yup.string().required("Select One Type"),
-  type:yup.string().required("Select One Type"),
+  orderType: yup.string().required("Order Type Required"),
+  type:yup.string().required("Type Required"),
+  domain:yup.string().required("Domain Required"),
   OrganisationName: yup.string().required("Organisation Name is required"),
   startDate: yup.date()
   .required("Start Date is required")

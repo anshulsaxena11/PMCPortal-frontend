@@ -12,12 +12,12 @@ import { useNavigate } from 'react-router-dom';
 import { Controller } from "react-hook-form";
 import PreviewModal from '../../../components/previewfile/preview';  
 import Select from "react-select";
-import { TiArrowBack } from "react-icons/ti";
 import { PiImagesSquareBold } from "react-icons/pi";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import EditIcon from '@mui/icons-material/Edit';
+import {getDomain} from '../../../api/clientSectorApi/clientSectorApi'
 import './projectDetailsEdit'
 
 const ProjectDetailsEdit = ({ ID, onClose }) => {
@@ -27,6 +27,10 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
     const [projectTypes, setProjectTypes] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [selectedTypeOfWorkOptions, setSelectedTypeOfWorkOptions] = useState([]);
+    const [selectedOrderTypeOptions, setSelectedOrderTypeOptions] = useState([]);
+    const [selectedTypeOptions, setSelectedTypeOptions] = useState([]);
+    const [domainOption, setDomainoOption] = useState([])
+    const [selectedDomainOptions, setSelectedDomainOptions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [filePreviewUrl, setFilePreviewUrl] = useState("");
     const [showModal, setShowModal] = useState(false);
@@ -39,11 +43,37 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
     const [typeValue, setTypeValue] = useState()
     const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
     const inputRef = useRef(null);
-
+    const OrderTypeOption =[
+        {value:"GeM",label:"GeM"},
+        {value:"Nomination",label:"Nomination"},
+    ]
+    const TypeOption =[
+        {value:"PSU",label:"PSU"},
+        {value:"Govt",label:"Govt"},
+        {value:"Private",label:"Private"},
+    ]
     const { id } = useParams();
     const projectId = ID || id;
     const navigate = useNavigate();
-
+    useEffect(() => {
+        fetchData();
+    }, []);
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const response = await getDomain({});
+            const data = response?.data
+            const option = data.map((domain)=>({
+                value:domain._id,
+                label:domain.domain
+            }))
+            setDomainoOption(option);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
     useEffect(()=>{
         const fetchTypeOfWork = async() =>{
           try{
@@ -62,15 +92,14 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
           }
         }
         fetchTypeOfWork()
-      },[])
-
+    },[])
     useEffect(() => {
         const fetchProjectTypes = async () => {
             try {
                 if(selectedTypeOfWorkOptions){
                     let selectedType
                     if (Array.isArray(selectedTypeOfWorkOptions)){
-                         selectedType =selectedTypeOfWorkOptions[0]?.label
+                        selectedType =selectedTypeOfWorkOptions[0]?.label
                     }
                     else{
                         selectedType = selectedTypeOfWorkOptions.label
@@ -87,33 +116,29 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         };
         fetchProjectTypes();
     }, [selectedTypeOfWorkOptions,]);
-
-        
-    
-  useEffect(() => {
-    const fetchdirectrateList = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const response = await getdirectrate();
-        if (response?.data?.data && Array.isArray(response.data.data)) {
-          const options = response.data.data.map((item) => ({
-            label: item.directrate,
-          }));
-          setDirectrateList(options);
-        } else {
-          throw new Error("Unexpected data format or empty directrate list");
-        }
-      } catch (err) {
-        setError(`Failed to fetch directrate list:`);
-        console.error("Error fetching directrate list:");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchdirectrateList();
-  }, []);
-
+    useEffect(() => {
+        const fetchdirectrateList = async () => {
+            setLoading(true);
+            setError("");
+            try {
+                const response = await getdirectrate();
+                if (response?.data?.data && Array.isArray(response.data.data)) {
+                    const options = response.data.data.map((item) => ({
+                        label: item.directrate,
+                    }));
+                    setDirectrateList(options);
+                } else {
+                    throw new Error("Unexpected data format or empty directrate list");
+                }
+            } catch (err) {
+                setError(`Failed to fetch directrate list:`);
+                console.error("Error fetching directrate list:");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchdirectrateList();
+    }, []);
     useEffect(() => {
         const fetchProject = async () => {
             try {
@@ -121,12 +146,10 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                 const fetchedData = response?.data?.projectDetails;
                 const fileUrl = response?.data?.filePreviewUrl
                 setFilePreviewUrl(fileUrl);
-
                 if (fetchedData) {
                     const formattedStartDate = fetchedData.startDate
                         ? fetchedData.startDate.split("T")[0]
                         : "";
-    
                     const formattedEndDate = fetchedData.endDate
                         ? fetchedData.endDate.split("T")[0]
                         : "";
@@ -136,54 +159,71 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                         startDate: formattedStartDate,
                         endDate: formattedEndDate,
                     });
-    
                     setFile(fetchedData.workOrder || null);
-    
+                    const selectedOrderType = Array.isArray(fetchedData.orderType) 
+                    ? fetchedData.orderType
+                    : [fetchedData.orderType]
+                      const selectedOrderTypes = selectedOrderType.map(type => ({
+                        value: type,
+                        label: type,
+                    }));
+                    setSelectedOrderTypeOptions(selectedOrderTypes)
+                    const selectedType = Array.isArray(fetchedData.type) 
+                    ? fetchedData.type
+                    : [fetchedData.type]
+                      const selectedTypes = selectedType.map(type => ({
+                        value: type,
+                        label: type,
+                    }));
+                    setSelectedTypeOptions(selectedTypes)
+                    if (domainOption.length > 0) {
+                        const selectedDomain = Array.isArray(fetchedData.domain) 
+                            ? fetchedData.domain
+                            : [fetchedData.domain];
+
+                        const selectedDomains = selectedDomain
+                            .map(domainId => domainOption.find(opt => opt.value === domainId))
+                            .filter(Boolean);
+
+                        setSelectedDomainOptions(selectedDomains || null);
+                    }
                     const selectedProjectTypes = fetchedData.projectType.map(type => ({
                         value: type._id,
                         label: type.ProjectTypeName,
                     }));
                     setSelectedOptions(selectedProjectTypes);
-
                     const selectedDirectrate = Array.isArray(fetchedData.directrate)
                     ? fetchedData.directrate
                     : [fetchedData.directrate];
-
                     const matchedDirectrate = selectedDirectrate.map(type =>({
                         label:type
                     }));
                     setSelectedDirectorate(matchedDirectrate || null);
-
                     const selectedTypeOfWork = Array.isArray(fetchedData.typeOfWork) 
                     ? fetchedData.typeOfWork
                     : [fetchedData.typeOfWork]
-
                     const matchedTypeOfWork =  selectedTypeOfWork.map(type=>({
                         label:type
                     }));
-                
                     setSelectedTypeOfWorkOptions(matchedTypeOfWork || null);
-                      
                 }
             } catch (error) {
                 console.error("Error fetching project details:");
             }
         };
-    
         if (projectId) fetchProject();
-    }, [projectId, reset, setValue]);
-    
-
+    }, [projectId, reset, setValue,domainOption]);
     const onSubmit = async (formData) => {
         setLoading(true); 
         try {
             const formDataToSubmit = new FormData();
             const workOrderNo = formData.workOrderNo || getValues("workOrderNo")
-            const type = typeValue || getValues("type")
+            const type = formData.type || getValues("type")
             const orginisationName = formData.orginisationName || getValues("orginisationName")
             const projectName = formData.projectName || getValues("projectName");
             const startDate = formData.startDate || getValues("startDate");
             const orderType = formData.orderType || getValues("orderType");
+            const domain = formData.domain || getValues("domain");
             const endDate = formData.endDate || getValues("endDate");
             const projectValue = formData.projectValue || getValues("projectValue");
             const serviceLocation = formData.serviceLocation || getValues("serviceLocation");
@@ -207,6 +247,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             }
 
             formDataToSubmit.append("workOrderNo",workOrderNo)
+            formDataToSubmit.append("domain",domain)
             formDataToSubmit.append("type",type)
             formDataToSubmit.append("orginisationName",orginisationName)
             formDataToSubmit.append("projectName", projectName);
@@ -235,10 +276,14 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             toast.error('Work Order Number Already Exist!', {
                 className: 'custom-toast custom-toast-error',
             });
-           } else if (response?.data?.statusCode  === 401){
+             } else if (response?.data?.statusCode  === 401){
                 toast.error('Project Name Already Exist!', {
                 className: 'custom-toast custom-toast-error',
             });
+            }else if (response?.data?.statusCode  === 500){
+                    toast.error(response?.data?.message, {
+                    className: 'custom-toast custom-toast-error',
+                });
            }else{
                toast.success('Form Updated successfully!', {
                     className: 'custom-toast custom-toast-success',
@@ -323,10 +368,20 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         const selectedString = selected && selected.label ? String(selected.label) : '';
         setValue('typeOfWork',selectedString)
     }
-    const handleType =(value)=>{
-        const selectedValue = value
-        console.log(selectedValue)
-        setTypeValue(selectedValue)
+    const handleOrderTypeChange = (selected) =>{
+        setSelectedOrderTypeOptions(selected)
+        const selectedString = selected?.label;
+        setValue('orderType',selectedString)
+    }
+    const handleType =(selected)=>{
+         setSelectedTypeOptions(selected)
+        const selectedString = selected?.label;
+        setValue('type',selectedString)
+    } 
+    const handleDomain =(selected)=>{
+        setSelectedDomainOptions(selected)
+        const selectedString = selected?.value;
+        setValue('domain',selectedString)
     } 
     return (
         <div className="container-fluid">
@@ -365,7 +420,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
             <form onSubmit={handleSubmit(onSubmit)} className="edit-project-form">
                 <div className="row pt-4" >
-                    <div className="col-sm-4 col-md-4 col-lg-4">
+                    <div className="col-sm-3 col-md-3 col-lg-3">
                         <Form.Group>
                             <Form.Label className="fs-5 fw-bolder">Work Order Number<span className="text-danger">*</span></Form.Label>
                             <Form.Control
@@ -378,67 +433,41 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             )}
                         </Form.Group>
                     </div>
-                    <div className="col-sm-4 col-md-4 col-lg-4">
-                        <Form.Group controlId="orderType">
-                            <Form.Label className="fs-5 fw-bolder">Order Type<span className="text-danger">*</span> </Form.Label>
-                                <div className="row">
-                                    <div className="col-sm-3 col-md-3 col-lg-3">
-                                    <Form.Check
-                                        type="radio"
-                                        label="GeM"
-                                        value="GeM" 
-                                        {...register("orderType")}
-                                        Check={getValues("orderType") === "GeM"} 
-                                        onChange={() => setValue("orderType", "GeM")} 
-                                    />
-                                </div>
-                                <div className="col-sm-6 col-md-6 col-lg-6">
-                                    <Form.Check
-                                        type="radio"
-                                        label="Nomination"
-                                        value="Nomination" 
-                                        {...register("orderType")}
-                                        Check={getValues("orderType") === "Nomination"} 
-                                        onChange={() => setValue("orderType", "Nomination")}
-                                    />
-                                </div>
-                            </div>
+                    <div className="col-sm-3 col-md-3 col-lg-3">
+                        <Form.Group>
+                         <Form.Label className="fs-5 fw-bolder">Order Type<span className="text-danger">*</span></Form.Label>
+                         <Select
+                            name="orderType"
+                            options={OrderTypeOption}
+                            value={selectedOrderTypeOptions} 
+                            onChange={handleOrderTypeChange}
+                            isDisabled={loading} 
+                        />
                         </Form.Group>
                     </div>
-                    <div className="col-sm col-md col-lg">
-                            <Form.Label className="fs-5 fw-bolder"> Type<span className="text-danger">*</span> </Form.Label>
-                            <div className='row'>
-                            <div className="col-sm-3 col-md-3 col-lg-3">
-                                <Form.Check
-                                    type="radio"
-                                    label="PSU"
-                                    value="PSU" 
-                                    {...register("type")}
-                                    Check={getValues("type") === "PSU"} 
-                                    onChange={()=>handleType("PSU")} 
-                                />
-                            </div>
-                            <div className="col-sm-3 col-md-3 col-lg-3">
-                                <Form.Check
-                                    type="radio"
-                                    label="Govt"
-                                    value="Govt" 
-                                    {...register("type")}
-                                    Check={getValues("type") === "Govt"} 
-                                    onChange={()=>handleType("Govt")}
-                                />
-                            </div>
-                            <div className="col-sm-3 col-md-3 col-lg-3">
-                                <Form.Check
-                                    type="radio"
-                                    label="Private"
-                                    value="Private" 
-                                    {...register("type")}
-                                    Check={getValues("type") === "Private"} 
-                                    onChange={()=>handleType("Private")}   
-                                />
-                            </div>
-                        </div>
+                    <div className="col-sm-3 col-md-3 col-lg-3">
+                        <Form.Group>
+                            <Form.Label className="fs-5 fw-bolder">Organisation Type<span className="text-danger">*</span></Form.Label>
+                            <Select
+                                name="type"
+                                options={TypeOption}
+                                value={selectedTypeOptions} 
+                                onChange={handleType}
+                                isDisabled={loading} 
+                            />
+                        </Form.Group>
+                    </div>
+                    <div className="col-sm-3 col-md-3 col-lg-3">
+                         <Form.Group>
+                            <Form.Label className="fs-5 fw-bolder">Domain<span className="text-danger">*</span></Form.Label>
+                            <Select
+                                name="domain"
+                                options={domainOption}
+                                value={selectedDomainOptions} 
+                                onChange={handleDomain}
+                                isDisabled={loading} 
+                            />
+                        </Form.Group>
                     </div>
                 </div>
                 <div className="row pt-3">
