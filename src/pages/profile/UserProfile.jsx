@@ -47,6 +47,7 @@ const UserProfile = ({ ID }) => {
               <span className="text-success fw-bold">Yes</span>
             ),
         };
+        console.log(formattedData)
 
         setUserDetails(formattedData);
       } catch (error) {
@@ -128,7 +129,7 @@ const UserProfile = ({ ID }) => {
             <div className="card-body">
               <div className="d-flex align-items-center mb-4">
                 <img
-                  src={`https://intrastpi.stpi.in/stpi/admin/upload_pic/${userDetails?.empid}.jpg`}
+                  src={userDetails.photo}
                   alt="profile"
                   className="rounded-circle me-3"
                   width="80"
