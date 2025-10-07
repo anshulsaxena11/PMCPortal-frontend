@@ -114,6 +114,9 @@ export default function TabCardWithGrids() {
   const [directorateData, setDirectorateData] = useState([]);
   const [selectedFY, setSelectedFY] = useState("All");
   const [financialYears, setFinancialYears] = useState([]);
+  const [selectedDirectorate, setSelectedDirectorate] = useState("All");
+  const [selectedState, setSelectedState] = useState("All");
+
 
   const [stats, setStats] = useState([
     { title: "Total Projects", value: 0, icon: "📁" },
@@ -327,9 +330,28 @@ export default function TabCardWithGrids() {
     }
   }, [activeTab, chartData]);
 
-  const filteredRows = search
-    ? getFilteredRows(getCurrentTabRows(), search)
-    : getCurrentTabRows();
+  let filteredRows = getCurrentTabRows();
+
+// 🎯 Filter by Directorate (Projects tab)
+if (activeTab === 0 && selectedDirectorate !== "All") {
+  filteredRows = filteredRows.filter(
+    (row) => row.directrate === selectedDirectorate
+  );
+}
+
+// 🏗️ Filter by State (Sales Tracking tab)
+if (activeTab === 1 && selectedState !== "All") {
+  filteredRows = filteredRows.filter(
+    (row) => row.state === selectedState
+  );
+}
+
+// 🔍 Apply text search
+if (search.trim()) {
+  filteredRows = getFilteredRows(filteredRows, search);
+}
+
+
 
   function getCurrentTabRows() {
     return activeTab === 0 ? workTypeRows : tenderRows;
@@ -452,8 +474,25 @@ export default function TabCardWithGrids() {
 )}
 
 
-      {/* Grid + Search + Export */}
-<Stack direction="row" spacing={2} mb={2} alignItems="center">
+     <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
+  {/* Directorate Dropdown */}
+  {activeTab === 0 && (
+    <Box>
+      <label><b>Directorate:</b></label>{" "}
+      <select
+        value={selectedDirectorate}
+        onChange={(e) => setSelectedDirectorate(e.target.value)}
+        style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
+      >
+        <option value="All">All</option>
+        {Array.from(new Set(directorateData.map(d => d.directorate))).map((dir, i) => (
+          <option key={i} value={dir}>{dir}</option>
+        ))}
+      </select>
+    </Box>
+  )}
+
+  {/* Search Box */}
   <TextField
     label="Search..."
     variant="outlined"
@@ -527,6 +566,7 @@ export default function TabCardWithGrids() {
     Download PDF
   </Button>
 </Stack>
+
 
 
       <Box sx={{ height: 400 }}>
