@@ -21,6 +21,7 @@ import { IoIosSave } from "react-icons/io";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
+import {getDomain} from '../../../api/clientSectorApi/clientSectorApi'
 import "./homePage.css";
 
 
@@ -42,16 +43,50 @@ const HomePage = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [selectedTypeOfWorkOptions, setSelectedTypeOfWorkOptions] = useState([]);
+  const [selectedOrderTypeOptions, setSelectedOrderTypeOptions] = useState([]);
+  const [selectedTypeOptions, setSelectedTypeOptions] = useState([]);
+  const [selectedDomainOptions, setSelectedDomainOptions] = useState([]);
   const [directrateOptions, setDirectrateOptions]= useState([])
   const [error, setError] = useState(null);
   const [projectTypes, setProjectTypes] = useState([]);
   const [disableScopeOfWork,setDisableScopeOfWork] =useState()
   const [typeOfWorkOption,setTypeOfWorkOption] = useState([]);
   const [loading, setLoading] = useState(false); 
+  const [data, setData] = useState([]);
   const [fileType, setFileType] = useState(''); 
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const inputRef = useRef(null);
+  const OrderTypeOption =[
+    {value:"GeM",label:"GeM"},
+    {value:"Nomination",label:"Nomination"},
+  ]
+  const TypeOption =[
+    {value:"PSU",label:"PSU"},
+    {value:"Govt",label:"Govt"},
+    {value:"Private",label:"Private"},
+  ]
+
+   useEffect(() => {
+      fetchData();
+    }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+      try {
+        const response = await getDomain({});
+        const data = response?.data
+        const option = data.map((domain)=>({
+          value:domain._id,
+          label:domain.domain
+        }))
+        setData(option);
+      } catch (error) {
+          console.error('Error fetching data:', error);
+      } finally {
+          setLoading(false);
+      }
+  };
 
   useEffect(()=>{
     const fetchTypeOfWork = async() =>{
@@ -137,6 +172,7 @@ const HomePage = () => {
     const payload = {
       workOrderNo:data.workOrderNo,
       orderType:data.orderType,
+      domain:data.domain,
       type:data.type,
       orginisationName: data.OrganisationName,
       projectName: data.ProjectName,
@@ -167,6 +203,7 @@ const HomePage = () => {
           workOrderNo: '',
           orderType: '',
           type: '',
+          domain:'',
           OrganisationName: '',
           ProjectName: '',
           startDate: null,
@@ -193,6 +230,9 @@ const HomePage = () => {
         setPreview(null);
         setValue('typeOfWork',"")
         setSelectedTypeOfWorkOptions(null)
+        setSelectedOrderTypeOptions(null)
+        setSelectedDomainOptions(null)
+        setSelectedTypeOptions(null)
         setUploadedFile(null);
         setFileType("");
         setDisableScopeOfWork('')
@@ -263,6 +303,24 @@ const HomePage = () => {
       trigger('typeOfWork');
   }
 
+  const handleOrderType = (selected) =>{
+    setSelectedOrderTypeOptions(selected)
+    const value = selected?.value
+    setValue('orderType',value)
+  }
+
+  const handleType = (selected) =>{
+    setSelectedTypeOptions(selected)
+    const value = selected?.value
+    setValue('type',value)
+  }
+
+  const handleDomain = (selected) =>{
+    setSelectedDomainOptions(selected)
+    const value = selected?.value
+    setValue('domain',value)
+  }
+
   const formatINRCurrency = (value) => {
     const number = value.replace(/,/g, '');
     const x = number.length;
@@ -312,7 +370,7 @@ const HomePage = () => {
         <div className="row">
           <Form onSubmit={handleSubmit}>
             <div className="row">
-              <div className="col-sm-4 col-lg-4 col-md-4">
+              <div className="col-sm-3 col-lg-3 col-md-3">
               <Form.Group className="mb-3">
                   <Form.Label className="fs-5 fw-bolder">Work Order Number<span className="text-danger">*</span></Form.Label>
                   <Controller
@@ -323,104 +381,72 @@ const HomePage = () => {
                   {errors.workOrderNo && <p className="text-danger">{errors.workOrderNo.message}</p>}
                 </Form.Group>
               </div>
-              <div className="col-sm-4 col-lg-4 col-md-4">
+              <div className="col-sm-3 col-lg-3 col-md-3">
                 <Form.Group className="mb-3">
-                    <Form.Label className="fs-5 fw-bolder">Order Type<span className="text-danger">*</span> </Form.Label>
+                  <Form.Label className="fs-5 fw-bolder">Order Type<span className="text-danger">*</span></Form.Label>
                     <Controller
                       name="orderType"
                       control={control}
-                      defaultValue=""
                       render={({ field }) => (
-                        <div className="row">
-                          <div className="col-sm-3 col-lg-3 col-md-3">
-                            <div className="form-check">
-                              <input
-                                {...field}
-                                type="radio"
-                                id="1"
-                                value="GeM"
-                                className="form-check-input"
-                                checked={field.value === "GeM"}
-                              />
-                              <label htmlFor="11" className="form-check-label">GeM</label>
-                            </div>
-                          </div>
-                          <div className="col-sm-6 col-lg-6 col-md-6">
-                            <div className="form-check">
-                          <input
-                            {...field}
-                            type="radio"
-                            id="2"
-                            value="Nomination"
-                            className="form-check-input"
-                            checked={field.value === "Nomination"}
-                          />
-                          <label htmlFor="2" className="form-check-label">Nomination</label>
-                        </div>
-                      </div>
-                    </div>                      
+                        <Select
+                        {...field}
+                        options={OrderTypeOption} 
+                        value={selectedOrderTypeOptions}
+                        isClearable
+                        isDisabled={loading}
+                        placeholder="Select Order Type"
+                        onChange={handleOrderType}
+                      />
                       )}
                     />
-                    {errors.orderType && <p className="text-danger">{errors.orderType.message}</p>}
+                      {errors.orderType && <p className="text-danger">{errors.orderType.message}</p>}
                   </Form.Group>
               </div>
-              <div className="col-sm-4 col-lg-4 col-md-4">
+              <div className="col-sm-3 col-lg-3 col-md-3">
                 <Form.Group className="mb-3">
-                  <Form.Label className="fs-5 fw-bolder"> Type<span className="text-danger">*</span> </Form.Label>
-                  <Controller
-                    name="type"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <div className="row">
-                        <div className="col-sm-3 col-lg-3 col-md-3">
-                          <div className="form-check">
-                            <input
-                              {...field}
-                              type="radio"
-                              id="1"
-                              value="PSU"
-                              className="form-check-input"
-                              checked={field.value === "PSU"}
-                            />
-                            <label htmlFor="1" className="form-check-label">PSU</label>
-                          </div>
-                        </div>
-                        <div className="col-sm-3 col-lg-3 col-md-3">
-                          <div className="form-check">
-                            <input
-                              {...field}
-                              type="radio"
-                              id="2"
-                              value="Govt"
-                              className="form-check-input"
-                              checked={field.value === "Govt"}
-                            />
-                            <label htmlFor="2" className="form-check-label">Govt</label>
-                          </div>
-                        </div>
-                        <div className="col-sm-3 col-md-3 col-lg-3">
-                        <div className="form-check">
-                            <input
-                              {...field}
-                              type="radio"
-                              id="3"
-                              value="Private"
-                              className="form-check-input"
-                              checked={field.value === "Private"}
-                            />
-                            <label htmlFor="3" className="form-check-label">Private</label>
-                          </div>
-                        </div>
-                      </div>                      
-                    )}
-                  />
-                  {errors.type && <p className="text-danger">{errors.type.message}</p>}
-                </Form.Group>
+                  <Form.Label className="fs-5 fw-bolder">Organisation Type<span className="text-danger">*</span></Form.Label>
+                    <Controller
+                      name="type"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                        {...field}
+                        options={TypeOption} 
+                        value={selectedTypeOptions}
+                        isClearable
+                        isDisabled={loading}
+                        placeholder="Select Order Type"
+                        onChange={handleType}
+                      />
+                      )}
+                    />
+                      {errors.type && <p className="text-danger">{errors.type.message}</p>}
+                  </Form.Group>
+              </div>
+              <div className="col-sm-3 col-md-3 col-lg-3">
+                <Form.Group className="mb-3">
+                  <Form.Label className="fs-5 fw-bolder">Domain<span className="text-danger">*</span></Form.Label>
+                    <Controller
+                      name="domain"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                        {...field}
+                        options={data} 
+                        value={selectedDomainOptions}
+                        isClearable
+                        isDisabled={loading}
+                        placeholder="Select Domain Type"
+                        onChange={handleDomain}
+                      />
+                      )}
+                    />
+                      {errors.domain && <p className="text-danger">{errors.domain.message}</p>}
+                  </Form.Group>
               </div>
             </div>
             <div className="row">
-              <div className="col-sm-6 col-md-6 col-lg-6">
+              <div className="col-sm-3 col-md-3 col-lg-3">
                 <Form.Group className="mb-3">
                   <Form.Label className="fs-5 fw-bolder">Organisation Name<span className="text-danger">*</span></Form.Label>
                   <Controller
@@ -430,65 +456,6 @@ const HomePage = () => {
                   />
                   {errors.OrganisationName && <p className="text-danger">{errors.OrganisationName.message}</p>}
                 </Form.Group>
-                <div className="row">
-                  <div className="col-sm-6 col-md-6 col-lg-6">
-                    <Form.Group className="mb-3" controlId="StartDate">
-                      <Form.Label className="fs-5 fw-bolder">Start Date<span className="text-danger">*</span></Form.Label>
-                      <div className="row">
-                        <div className="col-sm-11 col-md-11 col-lg-11 ">
-                        <Controller
-                          name="startDate"
-                          control={control}
-                          render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select Start Date" />}
-                          />
-                        {errors.startDate && <p className="text-danger">{errors.startDate.message}</p>}
-                        </div>
-                      </div>
-                    </Form.Group>
-                  </div>
-                  <div className="col-sm-6 col-md-6 col-lg-6">
-                    <Form.Group className="mb-3" controlId="EndDate">
-                      <Form.Label className="fs-5 fw-bolder">End Date<span className="text-danger">*</span></Form.Label>
-                      <div className="row">
-                          <div className="col-sm-11 col-md-11 col-lg-11 ">
-                          <Controller
-                            name="endDate"
-                            control={control}
-                            render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select End Date" />}
-                          />
-                          {errors.endDate && <p className="text-danger">{errors.endDate.message}</p>}
-                        </div>
-                      </div>
-                    </Form.Group>
-                  </div>
-                </div>
-                {disableScopeOfWork &&(
-                <Form.Group className="mb-3" >
-                    <Form.Label className="fs-5 fw-bolder">Scope Of Work<span className="text-danger">*</span></Form.Label>
-                    {projectTypes && Array.isArray(projectTypes) && projectTypes.length > 0 ? (
-                    <Controller
-                      name="selectedProjectTypes"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          {...field}
-                          options={projectTypes} 
-                          isMulti
-                          getOptionLabel={(e) => e.label}
-                          getOptionValue={(e) => e.value}
-                          onChange={(selected) => {setValue("selectedProjectTypes", selected);trigger('selectedProjectTypes')}} // Updates the form value
-                          placeholder="Select Project Types"
-                        />
-                      )}
-                    />
-                  ) : (
-                    <div>Loading project types...</div> 
-                  )}
-                  {errors.selectedProjectTypes && (
-                    <div className="text-danger">{errors.selectedProjectTypes.message}</div>
-                  )}
-                </Form.Group>
-                )}
                 <Form.Group className="mb-3" controlId="ProjectValue">
                   <Form.Label className="fs-5 fw-bolder">Project value (GST)<span className="text-danger">*</span></Form.Label>
                    <Controller
@@ -541,17 +508,8 @@ const HomePage = () => {
                   />
                   {errors.ServiceLoction && <p className="text-danger">{errors.ServiceLoction.message}</p>}
                 </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fs-5 fw-bolder">Project Manager<span className="text-danger">*</span></Form.Label>
-                  <Controller
-                    name="projectManager"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Manager Name" />}
-                  />
-                  {errors.projectManager && <p className="text-danger">{errors.projectManager.message}</p>}
-                </Form.Group>
               </div>
-              <div className="col-sm-6 col-md-6 col-lg-6"> 
+              <div className="col-sm-3 col-md-3 col-lg-3"> 
                 <Form.Group className="mb-3" controlId="PriojectName">
                   <Form.Label className="fs-5 fw-bolder">Project Name<span className="text-danger">*</span></Form.Label>
                   <Controller
@@ -580,26 +538,56 @@ const HomePage = () => {
                       />
                        {errors.typeOfWork && <p className="text-danger">{errors.typeOfWork.message}</p>}
                     </Form.Group>
-                    <Form.Group className="mb-3" controlId="directrate">
-                          <Form.Label className="fs-5 fw-bolder">Directorates<span className="text-danger">*</span></Form.Label>
-                          <Controller
-                            name="DirectrateName"
-                            control={control}
-                            render={({ field }) => (
-                              <Select
-                              {...field}
-                              options={directrateOptions} 
-                              value={directrateOptions.find(option => option.label === field.value) || null}
-                              isClearable
-                              isDisabled={loading}
-                              placeholder="Select Directorate"
-                              onChange={(selectedOption) => field.onChange(selectedOption ? selectedOption.label : "")}
-                            />
-                            )}
-                          />
-                          {errors.DirectrateName && <p className="text-danger">{errors.DirectrateName.message}</p>}
-                    </Form.Group>
-                    <Form.Group className="mt-3">
+                     <Form.Group className="mb-3">
+                  <Form.Label className="fs-5 fw-bolder">Project Manager<span className="text-danger">*</span></Form.Label>
+                  <Controller
+                    name="projectManager"
+                    control={control}
+                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Manager Name" />}
+                  />
+                  {errors.projectManager && <p className="text-danger">{errors.projectManager.message}</p>}
+                </Form.Group>
+              </div>
+              <div className="col-sm-3 col-md-3 col-lg-3 ">
+                <Form.Group className="mb-3" controlId="StartDate">
+                    <Form.Label className="fs-5 fw-bolder">Start Date<span className="text-danger">*</span></Form.Label>
+                    <div className="row px-2">
+                      <Controller
+                        name="startDate"
+                        control={control}
+                        render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select Start Date" />}
+                        />
+                      {errors.startDate && <p className="text-danger">{errors.startDate.message}</p>}
+                    </div>
+                  </Form.Group>
+                    {disableScopeOfWork &&(
+                <Form.Group className="mb-3" >
+                    <Form.Label className="fs-5 fw-bolder">Scope Of Work<span className="text-danger">*</span></Form.Label>
+                    {projectTypes && Array.isArray(projectTypes) && projectTypes.length > 0 ? (
+                    <Controller
+                      name="selectedProjectTypes"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={projectTypes} 
+                          isMulti
+                          getOptionLabel={(e) => e.label}
+                          getOptionValue={(e) => e.value}
+                          onChange={(selected) => {setValue("selectedProjectTypes", selected);trigger('selectedProjectTypes')}} // Updates the form value
+                          placeholder="Select Project Types"
+                        />
+                      )}
+                    />
+                  ) : (
+                    <div>Loading project types...</div> 
+                  )}
+                  {errors.selectedProjectTypes && (
+                    <div className="text-danger">{errors.selectedProjectTypes.message}</div>
+                  )}
+                </Form.Group>
+                )}
+                 <Form.Group className="mt-3">
                       <Form.Label className="fs-5 fw-bolder">Work Order<span className="text-danger">*</span></Form.Label>
                       <Controller
                         name="workOrder"
@@ -647,6 +635,41 @@ const HomePage = () => {
                   preview={preview}
                   fileType={fileType}
                 />
+              </div>
+              <div className="col-sm-3 col-md-3 col-lg-3 ">
+                <Form.Group className="mb-3" controlId="EndDate">
+                      <Form.Label className="fs-5 fw-bolder">End Date<span className="text-danger">*</span></Form.Label>
+                      <div className="row px-2">
+                         
+                          <Controller
+                            name="endDate"
+                            control={control}
+                            render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select End Date" />}
+                          />
+                          {errors.endDate && <p className="text-danger">{errors.endDate.message}</p>}
+                       
+                      </div>
+                    </Form.Group>
+                    <Form.Group className="mb-3" controlId="directrate">
+                          <Form.Label className="fs-5 fw-bolder">Directorates<span className="text-danger">*</span></Form.Label>
+                          <Controller
+                            name="DirectrateName"
+                            control={control}
+                            render={({ field }) => (
+                              <Select
+                              {...field}
+                              options={directrateOptions} 
+                              value={directrateOptions.find(option => option.label === field.value) || null}
+                              isClearable
+                              isDisabled={loading}
+                              placeholder="Select Directorate"
+                              onChange={(selectedOption) => field.onChange(selectedOption ? selectedOption.label : "")}
+                            />
+                            )}
+                          />
+                          {errors.DirectrateName && <p className="text-danger">{errors.DirectrateName.message}</p>}
+                    </Form.Group>
+
               </div>
             </div>
             <h1 className="pt-5 fw-bolder">Contact Details Of Client</h1>
@@ -776,7 +799,6 @@ const HomePage = () => {
                   mt: 4, 
                 }}
               >
-                
                 <Button
                   variant="contained"
                   color="primary"
