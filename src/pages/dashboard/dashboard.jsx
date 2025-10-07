@@ -446,23 +446,24 @@ if (search.trim()) {
       </aside>
 
       <main className="right-content">
-        <h5 className="mb-3">Projects Overview</h5>
-        <div className="stats-grid">
-          {stats.map((s, i) => (
-            <Card key={i} className="stat-card">
-              <Card.Body>
-                <div className="d-flex align-items-center">
-                  <div className="icon-circle me-3">{s.icon}</div>
-                  <div>
-                    <div className="stat-title">{s.title}</div>
-                    <div className="stat-value">{s.value}</div>
-                  </div>
-                </div>
-              </Card.Body>
-            </Card>
-          ))}
+  {/* The title "Projects Overview" should be replaced or removed for this new section */}
+  <h5 className="mb-3">Analytics Dashboard</h5> 
+  <div className="stats-grid">
+    {stats.map((s, i) => (
+      <Card key={i} className="stat-card">
+        {/* New: The colored header section */}
+        <div className={`stat-header ${s.headerClass}`}>
+          {s.title}
         </div>
-      </main>
+        {/* New: The white content section */}
+        <div className="stat-content">
+          {/* Note: The d-flex align-items-center is removed since there are no icons */}
+          <div className={`stat-value ${s.valueClass}`}>{s.value}</div>
+        </div>
+      </Card>
+    ))}
+  </div>
+</main>
     </div>
 
     {/* Chart */}
@@ -474,8 +475,8 @@ if (search.trim()) {
 )}
 
 
-     <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
-  {/* Directorate Dropdown */}
+  <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
+  {/* Directorate Dropdown — visible only for Projects tab */}
   {activeTab === 0 && (
     <Box>
       <label><b>Directorate:</b></label>{" "}
@@ -487,6 +488,23 @@ if (search.trim()) {
         <option value="All">All</option>
         {Array.from(new Set(directorateData.map(d => d.directorate))).map((dir, i) => (
           <option key={i} value={dir}>{dir}</option>
+        ))}
+      </select>
+    </Box>
+  )}
+
+  {/* State Dropdown — visible only for Sales Tracking tab */}
+  {activeTab === 1 && (
+    <Box>
+      <label><b>State:</b></label>{" "}
+      <select
+        value={selectedState}
+        onChange={(e) => setSelectedState(e.target.value)}
+        style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
+      >
+        <option value="All">All</option>
+        {Array.from(new Set(tenderRows.map(t => t.state).filter(Boolean))).map((st, i) => (
+          <option key={i} value={st}>{st}</option>
         ))}
       </select>
     </Box>
@@ -566,6 +584,7 @@ if (search.trim()) {
     Download PDF
   </Button>
 </Stack>
+
 
 
 
