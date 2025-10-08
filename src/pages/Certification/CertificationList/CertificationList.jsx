@@ -37,7 +37,6 @@ const CertificateList = () => {
         limit: pageSize,
         search: searchQuery.trim()
       });
-      console.log(response)
       const transformedData = response.data.map((item, index) => {
        
         return {
