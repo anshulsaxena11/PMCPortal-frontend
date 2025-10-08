@@ -80,7 +80,7 @@ const ClentSectorMasterForm = () =>{
                     className: "custom-toast custom-toast-error",
                 });}
         }catch(error){
-            toast.error(error, {
+            toast.error(error?.response?.data?.message, {
                 className: 'custom-toast custom-toast-error',
             });
         }finally{
