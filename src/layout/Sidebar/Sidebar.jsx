@@ -45,6 +45,7 @@ import { PiCertificateBold } from "react-icons/pi";
 import { MdOutlineRememberMe } from "react-icons/md";
 import { VscRepo } from "react-icons/vsc";
 import { IoMdPeople } from "react-icons/io";
+import { TbCertificate } from "react-icons/tb";
 
 const drawerWidth = 240;
 const miniDrawerWidth = 70;
@@ -186,6 +187,7 @@ const handleMouseEnter = () => {
         { role: "Admin", label: "Scope Of Work", icon: <MdSpatialTracking />, path: "/Scope-Of-Work-Master" },
         { role: "Admin", label: "State Assigment", icon: <MdOutlineRememberMe/>, path: "/Task-Force-member" },
         { role: "Admin", label: "Domain", icon: <IoMdPeople/>, path: "/Domain-Sector-Master" },
+        { role: "Admin", label: "Certificate", icon: <TbCertificate/>, path: "/Certificate-Master" },
       ],
     },
 
