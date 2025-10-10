@@ -209,8 +209,8 @@ const ProjectDetailsList = () => {
         }}
       />
       
-      <Box sx={{ width: '100%', overflowX: 'auto' }}>
-        <CustomDataGrid
+  <Box sx={{ width: '100%', overflowX: 'auto' }}>
+  <CustomDataGrid
   key={pageSize}
   rows={data}
   columns={columns}
