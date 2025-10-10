@@ -151,19 +151,30 @@ const TenderTrackingEdit =({ID}) =>{
                 const handleSelectField = (fieldValue, optionsList, setSelectedFn, fieldName) => {
                     const values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
                     const matched = values
+                        .map((val) => optionsList.find((opt) => opt.value === val))
+                        .filter(Boolean);
+
+                    setSelectedFn(matched);
+                    setValue(fieldName, fieldValue);
+                };
+                const handleSelectFieldState = (fieldValue, optionsList, setSelectedFn, fieldName) => {
+                    const values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+                    const matched = values
                         .map((val) => optionsList.find((opt) => opt.label === val))
                         .filter(Boolean);
 
                     setSelectedFn(matched);
                     setValue(fieldName, fieldValue);
                 };
-                if (fetchedData.taskForce && empListOption.length > 0) {
-                    handleSelectField(fetchedData.taskForce, empListOption, setSelectedEmpList, "taskForce");
+                
+                if (fetchedData.taskForceemp && empListOption.length > 0) {
+                  
+                    handleSelectField(fetchedData.taskForceemp, empListOption, setSelectedEmpList, "taskForceemp");
                 }
                 if (fetchedData.state ) {
                     
                     console.log(setSelectedStateOption)
-                    handleSelectField(fetchedData.state, stateOption, setSelectedStateOption, "state");
+                    handleSelectFieldState(fetchedData.state, stateOption, setSelectedStateOption, "state");
                 }
                 if (fetchedData.status && StatusOption.length > 0) {
                     handleSelectField(fetchedData.status, StatusOption, setSelectedStatus, "status");
@@ -216,7 +227,7 @@ const TenderTrackingEdit =({ID}) =>{
     const tenderName = formData.tenderName || getValues("tenderName");
     const organizationName = formData.organizationName || getValues("organizationName");
     const state = formData.state || getValues("state");
-    const taskForce = formData.taskForce || getValues("taskForce");
+    const taskforceempid = formData.taskForceemp || getValues("taskForceemp");
     const valueINR = formData.valueINR || getValues("valueINR");
     const status = formData.status || getValues("status");
     const lastDate = formData.lastDate || getValues("lastDate");
@@ -226,7 +237,7 @@ const TenderTrackingEdit =({ID}) =>{
     formDataToSubmit.append("tenderName", tenderName);
     formDataToSubmit.append("organizationName", organizationName);
     formDataToSubmit.append("state", state);
-    formDataToSubmit.append("taskForce", taskForce);
+    formDataToSubmit.append("taskforceempid", taskforceempid);
     formDataToSubmit.append("valueINR", valueINR);
     formDataToSubmit.append("status", status);
     formDataToSubmit.append("lastDate", lastDate);
@@ -373,8 +384,8 @@ const TenderTrackingEdit =({ID}) =>{
     };
     const handleTaskForcwMemberChange = (selected)=>{
       setSelectedEmpList(selected)
-      const selectedValues = selected?.label
-      setValue("taskForce", selectedValues);
+      const selectedValues = selected?.value
+      setValue("taskForceemp", selectedValues);
       setTaskForceError("");
     }
 
@@ -450,7 +461,6 @@ const TenderTrackingEdit =({ID}) =>{
                              <Select
                                 options={stateOption}
                                 value={selectedStateOption}
-                                isClearable
                                 isDisabled={loading}
                                 placeholder="Select State"
                                 onChange={handleState}
@@ -467,7 +477,6 @@ const TenderTrackingEdit =({ID}) =>{
                                 value={selectedEmpList}
                                 placeholder="Select Task Force Member"
                                 onChange ={handleTaskForcwMemberChange}
-                                isClearable
                                 isDisabled={loading}
                                 className={taskForceError ? "is-invalid" : ""}
                             />
@@ -579,7 +588,6 @@ const TenderTrackingEdit =({ID}) =>{
                                 value={slectedStatus}
                                 placeholder="Select Statusr"
                                 onChange ={handleStatusChange}
-                                isClearable
                                 isDisabled={loading}
                                 className={statusError ? "is-invalid" : ""}
                             />

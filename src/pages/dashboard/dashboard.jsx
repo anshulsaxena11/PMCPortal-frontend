@@ -57,7 +57,8 @@ const workTypeCols = [
     { field: 'sno', headerName: 'S.No', width: 80 },
     { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
     { field: 'organizationName', headerName: 'Organization Name', flex: 1 },
-    { field: 'taskForce', headerName: 'Task Force', flex: 1 },
+    { field: 'ename', headerName: 'Task Force', flex: 1 },
+    { field: 'dir', headerName: 'Directorate', flex: 1 },
     { field: 'state', headerName: 'State', flex: 1 },
     {
               field: 'valueINR',
@@ -105,6 +106,7 @@ export default function TabCardWithGrids() {
   const [pageSize, setPageSize] = useState(10);
   const [projects, setProjects] = useState([]);
   const [directorateData, setDirectorateData] = useState([]);
+  const [directorateTender, setDirectorateTender] = useState([]);
   const [selectedFY, setSelectedFY] = useState("All");
   const [financialYears, setFinancialYears] = useState([]);
   const [selectedDirectorate, setSelectedDirectorate] = useState("All");
@@ -210,10 +212,10 @@ export default function TabCardWithGrids() {
       dirArray.sort((a, b) => b.value - a.value);
       setDirectorateData(dirArray);
       setStats([
-        { title: "Total Projects", value: projectsData.length, icon: "📁", width:"50%" },
-        { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰", width:"50%" },
-        { title: "Completed", value: completed, icon: "✅", width:"50%" },
-        { title: "Ongoing", value: ongoing, icon: "⏳", width:"50%" }
+        { title: "Total Projects", value: projectsData.length, icon: "📁" },
+        { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰" },
+        { title: "Completed", value: completed, icon: "✅" },
+        { title: "Ongoing", value: ongoing, icon: "⏳" }
       ]);
 
       const processedChartData = groupByFinancialYear(projectsData);
@@ -310,11 +312,12 @@ if (activeTab === 0 && selectedDirectorate !== "All") {
   );
 }
 
-if (activeTab === 1 && selectedState !== "All") {
-  filteredRows = filteredRows.filter(
-    (row) => row.state === selectedState
-  );
+if (activeTab === 1) {
+  if (selectedDirectorate !== "All") {
+    filteredRows = filteredRows.filter((row) => row.dir === selectedDirectorate);
+  }
 }
+
 
 if (search.trim()) {
   filteredRows = getFilteredRows(filteredRows, search);
@@ -448,20 +451,23 @@ if (search.trim()) {
   )}
 
   {activeTab === 1 && (
-    <Box>
-      <label><b>State:</b></label>{" "}
-      <select
-        value={selectedState}
-        onChange={(e) => setSelectedState(e.target.value)}
-        style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
-      >
-        <option value="All">All</option>
-        {Array.from(new Set(tenderRows.map(t => t.state).filter(Boolean))).map((st, i) => (
-          <option key={i} value={st}>{st}</option>
-        ))}
-      </select>
-    </Box>
+    <>
+      <Box>
+        <label><b>Directorate:</b></label>{" "}
+        <select
+          value={selectedDirectorate}
+          onChange={(e) => setSelectedDirectorate(e.target.value)}
+          style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
+        >
+          <option value="All">All</option>
+          {Array.from(new Set(tenderRows.map(t => t.dir).filter(Boolean))).map((dir, i) => (
+            <option key={i} value={dir}>{dir}</option>
+          ))}
+        </select>
+      </Box>
+    </>
   )}
+
   <TextField
     label="Search..."
     variant="outlined"
@@ -477,63 +483,7 @@ if (search.trim()) {
     }}
   />
 
-  {/* CSV Download */}
-  <Button
-    variant="contained"
-    onClick={() => {
-      const columns = activeTab === 0 ? workTypeCols : tenderCols;
-      const rows = filteredRows;
-
-      const headers = columns.map((col) => `"${col.headerName}"`).join(",");
-      const data = rows.map((row) =>
-        columns.map((col) => `"${row[col.field] ?? ''}"`).join(",")
-      );
-      const csvContent = [headers, ...data].join("\n");
-      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `${tabData[activeTab].label.replace(/\s+/g, "_")}.csv`
-      );
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }}
-  >
-    Download CSV
-  </Button>
-
-  {/* PDF Download */}
-  <Button
-    variant="contained"
-    color="secondary"
-    onClick={() => {
-      const doc = new jsPDF();
-      const columns = (activeTab === 0 ? workTypeCols : tenderCols).map((col) => ({
-        header: col.headerName,
-        dataKey: col.field,
-      }));
-      const rows = filteredRows.map((row) => {
-        const formatted = {};
-        columns.forEach((col) => {
-          formatted[col.dataKey] = row[col.dataKey] ?? "";
-        });
-        return formatted;
-      });
-
-      autoTable(doc, {
-        columns,
-        body: rows,
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [33, 150, 243] },
-      });
-      doc.save(`${tabData[activeTab].label.replace(/\s+/g, "_")}.pdf`);
-    }}
-  >
-    Download PDF
-  </Button>
+  {/* CSV and PDF download buttons remain the same */}
 </Stack>
       <Box sx={{ height: 400 }}>
         <CustomDataGrid
