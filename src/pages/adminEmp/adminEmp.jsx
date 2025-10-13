@@ -51,7 +51,7 @@ const AdminSyncEmploy = () =>{
       centre: 'Centre',
       dir: 'Directorates',
       etpe: 'Employee Type',
-      StatusNoida: 'VAPT Team Member',
+      StatusNoida: 'Project Team Member',
       taskForceMember: 'Task Force Member',
       StateCordinator: 'State Coordinator'
     };
@@ -218,6 +218,7 @@ const AdminSyncEmploy = () =>{
 
     const handleDirChange = (selectedOption) => {
       setSelectedDir(selectedOption);
+      setSelectedCentre({})
       setPage(0);
     };
 
@@ -231,7 +232,7 @@ const AdminSyncEmploy = () =>{
         fetchDiretoratesData();
         fetchCentreData();
         fetchTypeData();
-    }, [page, searchQuery]); 
+    }, [page, searchQuery,selecteddir]); 
 
     const handleActivate = async (empid) => {
         try {
@@ -242,7 +243,7 @@ const AdminSyncEmploy = () =>{
           await updateEmpStatus(payload);
           Swal.fire({
             icon: 'success',
-            title: 'VAPT Team Member Updated',
+            title: 'Project Team Member Updated',
             showConfirmButton: false,
             timer: 2000,
           });
@@ -250,7 +251,7 @@ const AdminSyncEmploy = () =>{
         } catch (err) {
            Swal.fire({
               icon: 'error',
-              title: 'Failed to update VAPT Team Member',
+              title: 'Failed to update Project Team Member',
               showConfirmButton: true,
             });
         }
@@ -265,7 +266,7 @@ const AdminSyncEmploy = () =>{
           await updateEmpStatus(payload);
           Swal.fire({
             icon: 'success',
-            title: 'VAPT Team Member Updated',
+            title: 'Project Team Member Updated',
             showConfirmButton: false,
             timer: 2000,
           });
@@ -273,7 +274,7 @@ const AdminSyncEmploy = () =>{
         } catch (err) {
          Swal.fire({
             icon: 'error',
-            title: 'Failed to update VAPT Team Member',
+            title: 'Failed to update Project Team Member',
             showConfirmButton: true,
           });
           
@@ -305,7 +306,8 @@ const AdminSyncEmploy = () =>{
         const fetchCentreData = async () => {
             setLoader(true);
             try {
-                const response = await centreList();
+                if(!selecteddir) return;
+                const response = await centreList({dir:selecteddir?.label});
                 const options = response.data.data.map((centre) => ({
                     value: centre,
                     label: centre,
@@ -379,13 +381,13 @@ const AdminSyncEmploy = () =>{
     return(        
         <div className='admin-portal'>
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
-            <div className='row pb-3'>
+            <div className='row pb-3 pt-3'>
               <div className='col-sm-6 col-lg-6 col-md-6'>
                    <Heading title="Employee List" />
                 </div>
               <div className='col-sm-3 col-md-3 col-lg-3'></div>
               
-               <div className="col-sm-3 col-md-3 col-lg-3 d-flex justify-content-end">
+               <div className="col-sm-3 col-md-3 col-lg-3 d-flex justify-content-end pt-3">
                 <Button variant="primary" className="btn btn-Primary" onClick={handleSync} style={{ width: "60%", height: "45px" }} disabled={loader}>
                   {loader ? (
                       <Spinner animation="border" size="sm" />
@@ -400,7 +402,7 @@ const AdminSyncEmploy = () =>{
             <hr></hr>
             <div className='container-fluid'>
               <div className='row mb-3 align-items-end flex-nowrap'>
-                <div className='col'>
+                <div className='col-sm col-md col-lg'>
                   <Select
                     options={dirOptions}
                     value={selecteddir}
@@ -409,16 +411,18 @@ const AdminSyncEmploy = () =>{
                     isClearable
                   />
                 </div>
-                <div className='col'>
-                  <Select
-                    options={centreOptions}
-                    value={selectedCentre}
-                    onChange={handleCentreChange}
-                    placeholder="Centre"
-                    isClearable
-                  />
-                </div>
-                <div className='col'>
+                {selecteddir && (
+                  <div className='col-sm col-md col-lg'>
+                    <Select
+                      options={centreOptions}
+                      value={selectedCentre}
+                      onChange={handleCentreChange}
+                      placeholder="Centre"
+                      isClearable
+                    />
+                  </div>
+                )}
+                <div className='col-sm col-md col-lg'>
                     <Select
                       options={typeOptions}
                       value={selectedType}
@@ -427,16 +431,16 @@ const AdminSyncEmploy = () =>{
                       isClearable
                     />
                 </div>
-                <div className='col'>
+                <div className='col-sm col-md col-lg'>
                   <Select
                       options={statusOptions}
                       value={selectedStatus}
                       onChange={setSelectedStatus}
-                      placeholder="Vapt Team Member"
+                      placeholder="Project Team Member"
                       isClearable
                     />
                 </div>
-                <div className='col'>
+                <div className='col-sm col-md col-lg'>
                   <Select
                       options={TaskForceOptions}
                       value={selectedTaskForceMember}
@@ -445,7 +449,7 @@ const AdminSyncEmploy = () =>{
                       isClearable
                     />
                 </div>
-                <div className='col'>
+                <div className='col-sm col-md col-lg'>
                   <Select
                       options={stateCoordinatorOptions}
                       value={selectedStateCoordinationMember}
@@ -454,7 +458,7 @@ const AdminSyncEmploy = () =>{
                       isClearable
                     />
                 </div>
-                 <div className='col'>
+                 <div className='col-sm col-md col-lg'>
                    <InputGroup>
                     <FormControl
                       placeholder="Search..."
