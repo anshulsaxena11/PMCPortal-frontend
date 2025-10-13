@@ -45,7 +45,8 @@ const TenderDetailsList = () => {
         tenderName: item?.tenderName || 'N/A',
         organizationName: item?.organizationName || 'N/A',
         state: item?.state || 'N/A',
-        taskForce: item?.taskForce || 'N/A',
+        ename: item?.ename || 'N/A',
+        dir: item?.dir || 'N/A',
         valueINR: item?.valueINR?.toLocaleString('en-IN') || '0',
         status: item?.status || 'N/A',
         lastDate: item?.lastDate?.split('T')[0] || 'N/A',
@@ -158,8 +159,8 @@ const TenderDetailsList = () => {
     { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
     { field: 'organizationName', headerName: 'Organization', flex: 1 },
     { field: 'state', headerName: 'State', flex: 1 },
-    { field: 'taskForce', headerName: 'Task Force Member', flex: 1 },
-
+    { field: 'ename', headerName: 'Task Force Member', flex: 1 },
+    { field: 'dir', headerName: 'Directorate', flex: 1 },
     {
           field: 'valueINR',
           headerName: 'Value (Cr INR)',
