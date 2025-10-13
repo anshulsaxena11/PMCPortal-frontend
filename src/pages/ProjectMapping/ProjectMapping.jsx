@@ -180,7 +180,7 @@ const ProjectMapping = () => {
   };
 
   return (
-    <div className="container mt-4">
+    <div className="container-fluid mt-4">
       <ToastContainer position="top-center" autoClose={5000} />
        <Heading title="Project Mapping" />
        <hr></hr>
