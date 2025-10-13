@@ -73,21 +73,25 @@ const SkillMapping = () => {
       try {
         const typeRes = await srpiEmpTypeList();
         setTypeOptions(typeRes.data.data.map((d) => ({ value: d, label: d })));
-
-        const centreRes = await centreList();
-        setCentreOptions(centreRes.data.data.map((c) => ({ value: c, label: c })));
-
+        
         const dirRes = await directoratesList();
         setDirOptions(dirRes.data.data.map((d) => ({ value: d, label: d })));
-
+        
         const projectTypeRes = await getProjectTypeList();
         setProjectTypes(projectTypeRes.data);
+        if(!selecteddir){
+          return;
+        }else{
+          const centreRes = await centreList({dir:selecteddir?.label});
+          setCentreOptions(centreRes.data.data.map((c) => ({ value: c, label: c })));
+
+        }
       } catch (error) {
         console.error('Initialization error:', error);
       }
     };
     fetchInitials();
-  }, []);
+  }, [selecteddir]);
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
@@ -105,6 +109,7 @@ const SkillMapping = () => {
   };
 
   const handleDirChange = (e) => {
+    setSelectedCentre(null)
     setSelectedDir(e);
     setPage(1);
   };
@@ -222,8 +227,8 @@ const SkillMapping = () => {
         </div>
         <hr></hr>
       <div className="row mb-3 align-items-end">
-       
-        <div className="col-sm-3">
+      
+        <div className="col-sm col-lg col-md">
           <Select
             options={dirOptions}
             value={selecteddir}
@@ -232,16 +237,19 @@ const SkillMapping = () => {
             isClearable
           />
         </div>
-        <div className="col-sm-2">
-          <Select
-            options={centreOptions}
-            value={selectedCentre}
-            onChange={handleCentreChange}
-            placeholder="Centre"
-            isClearable
-          />
-        </div>
-        <div className="col-sm-2">
+        {selecteddir && (
+          <div className="col-sm col-lg col-md">
+            <Select
+              options={centreOptions}
+              value={selectedCentre}
+              onChange={handleCentreChange}
+              placeholder="Centre"
+              isClearable
+            />
+          </div>
+        )}
+       
+        <div className="col-sm col-lg col-md">
           <Select
             options={typeOptions}
             value={selectedType}
@@ -250,7 +258,7 @@ const SkillMapping = () => {
             isClearable
           />
         </div>
-        <div className="col-sm-5">
+        <div className="col-sm col-lg col-md">
           <InputGroup>
             <FormControl
               placeholder="Search..."

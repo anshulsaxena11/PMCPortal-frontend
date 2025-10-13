@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   srpiEmpTypeListActive,
   resourseMapping,
@@ -10,8 +10,12 @@ import { getProjectNameList } from '../../api/ProjectDetailsAPI/projectDetailsAp
 import { ToastContainer, toast } from 'react-toastify';
 import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
 import Heading from '../../components/Heading/heading';
+import { IoIosSave } from "react-icons/io";
+import CircularProgress from '@mui/material/CircularProgress';
 import Select from 'react-select';
+import { Button } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
+import { RiListView } from "react-icons/ri";
 
 const ProjectMapping = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -136,14 +140,14 @@ const ProjectMapping = () => {
       setTypeOptions(res.data.data.map(val => ({ label: val, value: val })));
     })();
     (async () => {
-      const res = await centreList();
+      const res = await centreList({dir:selecteddir?.label});
       setCentreOptions(res.data.data.map(val => ({ label: val, value: val })));
     })();
     (async () => {
       const res = await directoratesList();
       setDirOptions(res.data.data.map(val => ({ label: val, value: val })));
     })();
-  }, []);
+  }, [selecteddir]);
 
   const handleCheckboxToggle = (params) => {
     const id = params.id;
@@ -153,10 +157,10 @@ const ProjectMapping = () => {
   };
 
   const handleMappingSubmit = async () => {
-    if (!selectedProject || selectedItems.length === 0) {
-      alert("Please select a project and at least one employee.");
-      return;
-    }
+    // if (!selectedProject || selectedItems.length === 0) {
+    //   alert("Please select a project and at least one employee.");
+    //   return;
+    // }
 
     setLoader(true);
     try {
@@ -164,7 +168,7 @@ const ProjectMapping = () => {
         projectId: selectedProject.value,
         employeeIds: selectedItems,
       });
-      toast.success("Employee has been Mapped");
+      toast.success("Employee has been Mapped", {className: 'custom-toast custom-toast-success',});
       setSelectedItems([]);
       await fetchEmpList();
     } catch (error) {
@@ -183,51 +187,84 @@ const ProjectMapping = () => {
 
       {/* Filter Section */}
       <div className="row g-2 mb-3">
-        <div className="col-md-3">
+        <div className="col-md col-sm col-lg">
           <label>Project</label>
           <Select options={ProjectName} value={selectedProject} onChange={setSelectedProject} isClearable />
         </div>
-        <div className="col-md-2">
-          <label>Centre</label>
-          <Select options={centreOptions} value={selectedCentre} onChange={setSelectedCentre} isClearable/>
-        </div>
-        <div className="col-md-2">
-          <label>Directorates</label>
-          <Select options={dirOptions} value={selecteddir} onChange={setSelectedDir} isClearable />
-        </div>
-        <div className="col-md-2">
+        {selectedProject && (
+          <div className="col-md-2 col-sm col-lg">
+            <label>Directorates</label>
+            <Select options={dirOptions} value={selecteddir} onChange={(selected)=>{setSelectedDir(selected);setSelectedCentre(null); }} isClearable />
+          </div>
+        )}
+        {selecteddir && (
+          <div className="col-md col-sm col-lg">
+            <label>Centre</label>
+            <Select options={centreOptions} value={selectedCentre} onChange={setSelectedCentre} isClearable/>
+          </div>
+        )}
+        {/* <div className="col-md-2">
           <label>Type</label>
           <Select options={typeOptions} value={selectedType} onChange={setSelectedType} isClearable />
+        </div> */}
+          {selectedProject && (
+          <div className="col-md col-sm col-lg">
+            <label>Search</label>
+            <input
+              type="text"
+              className="form-control"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          )}
+          {selectedProject && (
+          <div className="col-md-3 col-sm col-lg d-flex justify-content-end pt-4">
+            {(userRole !== 'User') && (
+              <div className="d-flex gap-3">
+              <Button
+                variant="contained"
+                color="success"
+                disabled={!selectedProject}
+                onClick={handleMappingSubmit}
+                startIcon={!loader && <IoIosSave />}
+                sx={{
+                  paddingX: 3,
+                  paddingY: 1,
+                  fontWeight: 'bold',
+                  borderRadius: 3,
+                  fontSize: '1rem',
+                  letterSpacing: '0.5px',
+                  boxShadow: 3,
+                }}
+              >
+                 {loader ? <CircularProgress size={24} color="inherit" /> : 'SAVE'}
+              </Button>
+            
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={!loader && <RiListView  />}
+                onClick={() => setIsViewMode(!isViewMode)}
+                sx={{
+                  paddingX: 3,
+                  paddingY: 1,
+                  fontWeight: 'bold',
+                  borderRadius: 3,
+                  fontSize: '1rem',
+                  letterSpacing: '0.5px',
+                  boxShadow: 3,
+                }}
+                >
+                {loader ? <CircularProgress size={24} color="inherit" /> : isViewMode ? 'List' : 'View'}
+              </Button>
+            </div>
+              )}
         </div>
-        <div className="col-md-3">
-          <label>Search</label>
-          <input
-            type="text"
-            className="form-control"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
+      )}
+
       </div>
 {/* Buttons */}
-        {(userRole !== 'User') && (
-          <div className="d-flex gap-3">
-          <button
-            className="btn btn-primary"
-            disabled={!selectedProject || selectedItems.length === 0}
-            onClick={handleMappingSubmit}
-          >
-            Save
-          </button>
-        
-          <button
-            className="btn btn-warning"
-            onClick={() => setIsViewMode(!isViewMode)}
-            >
-            {isViewMode ? 'List' : 'View'}
-          </button>
-        </div>
-          )}
       {/* DataGrid */}
       <CustomDataGrid
   rows={

@@ -67,7 +67,8 @@ const Userlist = () => {
     // Functions to fetch dropdown options (Centre, Directorates, Type)
     const fetchCentreData = async () => {
         try {
-            const response = await centreList();
+            if(!selecteddir) return;
+            const response = await centreList({dir:selecteddir?.label});
             const options = response.data.data.map((centre) => ({
                 value: centre,
                 label: centre,
@@ -112,7 +113,7 @@ const Userlist = () => {
         fetchDiretoratesData();
         fetchCentreData();
         fetchTypeData();
-    }, []); // Empty array ensures this runs only once
+    }, [selecteddir]); // Empty array ensures this runs only once
 
     // 2. Fetch Employee List - Runs on pagination/filter change
     useEffect(() => {
@@ -140,6 +141,7 @@ const Userlist = () => {
 
     const handleDirChange = (selectedOption) => {
         setSelectedDir(selectedOption);
+        setSelectedCentre(null)
         setPage(0); // FIX: Reset to the first page (index 0)
     };
 
