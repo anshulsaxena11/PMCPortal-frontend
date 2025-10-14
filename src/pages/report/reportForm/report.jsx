@@ -57,8 +57,9 @@ const ReportPage = () => {
   const [selectedProjectNameAdd,setSelectedProjectNameAdd] = useState('')
   const [showPreview, setShowPreview] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [proofs, setProofs] = useState([]);
   const severityOptions = [
-     {value:"Critical",label:"Critical"},
+    {value:"Critical",label:"Critical"},
     { value: "High", label: "High" },
     { value: "Medium", label: "Medium" },
     { value: "LOW", label: "LOW" },
@@ -125,6 +126,32 @@ const ReportPage = () => {
       setLoading(false);
     }
   };
+
+  const handlePasteOnIndex = (e, index) => {
+  const items = e.clipboardData?.items;
+  if (items) {
+    for (const item of items) {
+      if (item.type.indexOf("image") !== -1) {
+        const file = item.getAsFile();
+        const preview = URL.createObjectURL(file);
+        const updatedProofs = [...proofs];
+        updatedProofs[index] = { ...updatedProofs[index], preview, file };
+        setProofs(updatedProofs);
+      }
+    }
+  }
+};
+
+// Handles file upload from input type="file"
+const handleFileUpload = (e, index) => {
+  const file = e.target.files[0];
+  if (file) {
+    const preview = URL.createObjectURL(file);
+    const updatedProofs = [...proofs];
+    updatedProofs[index] = { ...updatedProofs[index], preview, file };
+    setProofs(updatedProofs);
+  }
+};
 
   useEffect(() => {
     loadRounds();
@@ -1098,7 +1125,228 @@ const handleDropOnIndex = (e, targetIndex) => {
                         >Remove</Button>
                       )}
                     </div>
-                    <div className="col-md-6">
+                    <div className="col-md-6 mb-3">
+            <Form.Control
+              as="textarea"
+              rows={4}
+              placeholder="Enter Proof Of Concept"
+              value={proof.text}
+              onChange={(e) => handleTextChange(index, e.target.value)}
+              style={{
+                resize: "none",
+                borderRadius: "8px",
+                borderColor: "#ccc",
+                backgroundColor: "#fff",
+                boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+              }}
+            />
+          </div>
+          <div className="col-md-6">
+            {proof.preview ? (
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: "500px",
+                  height: "210px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  padding: "6px",
+                  background: "#f9f9f9",
+                  position: "relative",
+                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <img
+                  src={proof.preview}
+                  alt={`Pasted ${index}`}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "100%",
+                    objectFit: "contain",
+                    borderRadius: "4px",
+                    backgroundColor: "white",
+                  }}
+                />
+                <button
+                  onClick={() => handleDeleteImage(index)}
+                  style={{
+                    position: "absolute",
+                    top: "6px",
+                    right: "6px",
+                    background: "red",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "50%",
+                    width: "24px",
+                    height: "24px",
+                    cursor: "pointer",
+                    fontWeight: "bold",
+                    fontSize: "16px",
+                    lineHeight: "20px",
+                    textAlign: "center",
+                  }}
+                  title="Remove"
+                >
+                  &times;
+                </button>
+              </div>
+            ) : (
+              <div
+                style={{
+                  width: "100%",
+                  maxWidth: "400px",
+                  height: "100px",
+                  border: "2px dashed #ccc",
+                  borderRadius: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#666",
+                  backgroundColor: "#f8f9fa",
+                  transition: "border-color 0.2s ease-in-out, background-color 0.2s",
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => handleDropOnIndex(e, index)}
+              >
+                <div
+                  contentEditable
+                  suppressContentEditableWarning={true}
+                  onPaste={(e) => handlePasteOnIndex(e, index)}
+                  style={{
+                    outline: "none",
+                    width: "100%",
+                    textAlign: "center",
+                    color: "#888",
+                    fontStyle: "italic",
+                    userSelect: "none",
+                    cursor: "text",
+                  }}
+                  title="Click here and press Ctrl+V or Right Click → Paste"
+                >
+                  Paste or Drag Image Here
+                </div>
+              </div>
+            )}
+          </div>
+
+{/* <div className="col-md-6">
+  {proof.preview ? (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "300px",
+        height: "200px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        padding: "6px",
+        background: "#f9f9f9",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <img
+        src={proof.preview}
+        alt={`Pasted ${index}`}
+        style={{
+          maxWidth: "100%",
+          maxHeight: "100%",
+          objectFit: "contain",
+          borderRadius: "4px",
+          backgroundColor: "white",
+        }}
+      />
+      <button
+        onClick={() => handleDeleteImage(index)}
+        style={{
+          position: "absolute",
+          top: "6px",
+          right: "6px",
+          background: "red",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "24px",
+          height: "24px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "16px",
+          lineHeight: "20px",
+          textAlign: "center",
+        }}
+        title="Remove"
+      >
+        &times;
+      </button>
+    </div>
+  ) : (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "400px",
+        height: "100px",
+        border: "2px dashed #ccc",
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        color: "#666",
+        backgroundColor: "#f8f9fa",
+        transition: "border-color 0.2s ease-in-out, background-color 0.2s",
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => handleDropOnIndex(e, index)}
+    >
+      <div
+        contentEditable
+        suppressContentEditableWarning={true}
+        onPaste={(e) => handlePasteOnIndex(e, index)}
+        style={{
+          outline: "none",
+          width: "100%",
+          textAlign: "center",
+          color: "#888",
+          fontStyle: "italic",
+          userSelect: "none",
+          cursor: "text",
+        }}
+        title="Click here and press Ctrl+V or Right Click → Paste"
+      >
+        Paste (Ctrl+V or Right Click → Paste), Drag or Upload Image
+      </div>
+
+  
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleFileUpload(e, index)}
+        style={{ display: "none" }}
+        id={`file-upload-${index}`}
+      />
+      <label
+        htmlFor={`file-upload-${index}`}
+        style={{
+          marginTop: "8px",
+          padding: "4px 10px",
+          backgroundColor: "#007bff",
+          color: "white",
+          borderRadius: "4px",
+          fontSize: "13px",
+          cursor: "pointer",
+        }}
+      >
+        Upload Image
+      </label>
+    </div>
+  )}
+</div> */}
+                    {/* <div className="col-md-6">
                       <Form.Control
                         as="textarea"
                         placeholder="Enter Proof Of Concept"
@@ -1201,7 +1449,7 @@ const handleDropOnIndex = (e, targetIndex) => {
 
                       </div>
                     )}
-                    </div>
+                    </div> */}
                   </div>
                 ))}
               </div>

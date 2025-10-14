@@ -598,6 +598,36 @@ const handleDelete = async (id) => {
     });
   }
 };
+const handleDropOnIndex = (e, index) => {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const updatedProofs = [...proofs];
+      updatedProofs[index].preview = event.target.result;
+      setProofs(updatedProofs);
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+// Handles image paste (Ctrl+V or right-click → Paste)
+const handlePasteOnIndex = (e, index) => {
+  const items = e.clipboardData.items;
+  for (const item of items) {
+    if (item.type.indexOf("image") !== -1) {
+      const file = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const updatedProofs = [...proofs];
+        updatedProofs[index].preview = event.target.result;
+        setProofs(updatedProofs);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+};
 
     return (
         <div className="container">
@@ -783,7 +813,92 @@ const handleDelete = async (id) => {
                                         onChange={(e) => handleTextChange(index, e.target.value)}
                                     />
                                 </div>
-                             <div className="col-md-6 ">
+<div className="col-md-6">
+  <div
+    className="form-control position-relative"
+    contentEditable
+    suppressContentEditableWarning={true}
+    onPaste={(e) => handlePasteImage(e, index)} 
+    onInput={(e) => e.preventDefault()}         
+    style={{
+      width: "100%",
+      maxWidth: "500px",
+      height: "210px",
+      borderRadius: "6px",
+      border: "2px dashed #ccc",
+      backgroundColor: "#f8f9fa",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      overflow: "hidden",      
+      textAlign: "center",
+      cursor: "pointer",
+    }}
+    title="Paste only image here (Ctrl+V)"
+  >
+    {!proof.proofPreviwe ? (
+      <p
+        style={{
+          color: "#999",
+          fontStyle: "italic",
+          margin: 0,
+          userSelect: "none",
+        }}
+      >
+        Paste an image here (Ctrl+V)
+      </p>
+    ) : (
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          overflow: "hidden",
+        }}
+      >
+        <img
+          src={proof.proofPreviwe}
+          alt={`Preview`}
+          style={{
+            maxWidth: "100%",    
+            maxHeight: "100%",    
+            objectFit: "contain",
+            borderRadius: "6px",
+            border: "1px solid #ccc",
+            background: "#fff",
+          }}
+        />
+        <span
+          onClick={() => handleDeleteImage(index)}
+          style={{
+            position: "absolute",
+            top: "6px",
+            right: "6px",
+            background: "#dc3545",
+            color: "#fff",
+            borderRadius: "50%",
+            width: "24px",
+            height: "24px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            fontWeight: "bold",
+            zIndex: 10,
+            boxShadow: "0 0 2px rgba(0,0,0,0.5)",
+          }}
+        >
+          &times;
+        </span>
+      </div>
+    )}
+  </div>
+</div>
+
+                             {/* <div className="col-md-6 ">
                                  <div
                                     className="form-control position-relative"
                                     contentEditable
@@ -837,7 +952,7 @@ const handleDelete = async (id) => {
                                         </div>
                                     )}
                                     </div>
-                                </div>
+                                </div> */}
                             </div>
                         ))}
                     </div>
