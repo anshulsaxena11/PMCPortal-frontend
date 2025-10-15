@@ -175,7 +175,7 @@ const TenderTracking = () => {
         setSelectedStateOption(selected)
           setFormData((prev) => ({
       ...prev,
-        state: selected?.label || "", 
+        state: selected?.value || "", 
       }));
     }
 

@@ -334,7 +334,7 @@ const TenderTrackingEdit =({ID}) =>{
 
     const handleState =(selected)=>{
         setSelectedStateOption(selected)
-        const selectedValues = selected?.label
+        const selectedValues = selected?.value
         setValue("state", selectedValues || '');
         setStateError(""); 
     }
