@@ -209,15 +209,17 @@ const Userlist = () => {
                         />
                     </div>
                     {/* Centre Filter */}
-                    <div className='col-sm-2 col-md-2 col-lg-2'>
-                        <Select
-                            options={centreOptions}
-                            value={selectedCentre}
-                            onChange={handleCentreChange}
-                            placeholder="Centre"
-                            isClearable
-                        />
-                    </div>
+                    {selecteddir && 
+                        <div className='col-sm-2 col-md-2 col-lg-2'>
+                            <Select
+                                options={centreOptions}
+                                value={selectedCentre}
+                                onChange={handleCentreChange}
+                                placeholder="Centre"
+                                isClearable
+                            />
+                        </div>
+                    }
                     {/* Type Filter */}
                     <div className='col-sm-2 col-md-2 col-lg-2'>
                         <Select
