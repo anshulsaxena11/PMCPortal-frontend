@@ -52,6 +52,10 @@ import DomainMasterList from "../../pages/domainMaster/domainMasterList/DomainMa
 import DomainMasterForm from "../../pages/domainMaster/domainMasterForm/DomainMasterForm.jsx"
 import DomainMasterView from "../../pages/domainMaster/domainMasterView/DomainMasterView.jsx"
 import DomainMasterEdit from "../../pages/domainMaster/domainMasterEdit/DomainMasterEdit.jsx"
+import CertificateMasterList from  "../../pages/CertificationMaster/CertificationMasterList/CertificateMasterList.jsx"
+import CertificateMasterView from "../../pages/CertificationMaster/CertificateMasterView/CertificateMasterView.jsx"
+import CertificateMasterForm from "../../pages/CertificationMaster/CertificateMasterForm/CertificateMasterForm.jsx"
+import CertificateMasterEdit from "../../pages/CertificationMaster/CertificateMasterEdit/CertificationMasterEdit.jsx"
 import Profile from "../../pages/profile/Profile.jsx";
 import UserList from "../../pages/profile/UserList.jsx";
 import UserProfile from "../../pages/profile/UserProfile.jsx";
@@ -134,6 +138,10 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/profile" element={<Profile/>}/>
           <Route path="/user-list" element={<UserList/>}/>
           <Route path="/user-profile/:id" element={<UserProfile/>}/>
+          <Route path="/Certificate-Master" element={<CertificateMasterList/>}/>
+          <Route path="/Certificate-Master-View" element={<CertificateMasterView/>}/>
+          <Route path="/Certificate-Master-Form" element={<CertificateMasterForm/>}/>
+          <Route path="/Certificate-Master-Edit" element={<CertificateMasterEdit/>}/>
         </Routes>
       </div>
     </div>

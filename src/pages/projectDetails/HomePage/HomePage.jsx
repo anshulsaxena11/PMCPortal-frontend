@@ -575,7 +575,7 @@ const HomePage = () => {
                           getOptionLabel={(e) => e.label}
                           getOptionValue={(e) => e.value}
                           onChange={(selected) => {setValue("selectedProjectTypes", selected);trigger('selectedProjectTypes')}} // Updates the form value
-                          placeholder="Select Project Types"
+                          placeholder="Select Scope of Work"
                         />
                       )}
                     />

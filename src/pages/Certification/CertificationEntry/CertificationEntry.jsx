@@ -162,7 +162,7 @@ const CertificateForm = () => {
             const fetchCertificateList = async() =>{
                 setLoading(true);
                  try{
-                    const response = await getCertificateMasterList()
+                    const response = await getCertificateMasterList({})
                     const fetchList = response?.data
                     console.log(fetchList)
                     if(fetchList && Array.isArray(fetchList) ){

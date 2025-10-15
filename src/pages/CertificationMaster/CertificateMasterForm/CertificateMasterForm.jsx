@@ -6,72 +6,38 @@ import { useForm, Controller } from "react-hook-form";
 import { ToastContainer, toast } from 'react-toastify';
 import DomainMasterSchema from '../../../validation/domainMaster'
 import Form from "react-bootstrap/Form";
-import {getType, postDomainSector } from "../../../api/clientSectorApi/clientSectorApi"
 import { IoIosSave } from "react-icons/io";
 import CircularProgress from '@mui/material/CircularProgress';
-import Select from "react-select";
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import CertificateMasterSchema from "../../../validation/certificateMaster"
+import {postCertificateMaster} from "../../../api/certificateMaster/certificateMaster"
 
-const ClentSectorMasterForm = () =>{
+const CertificateMasterForm = () =>{
     const { control, handleSubmit, formState: { errors }, setValue,reset } = useForm({
-        resolver: yupResolver(DomainMasterSchema),
+        resolver: yupResolver(CertificateMasterSchema),
         defaultValues: {},
-      });
-    const [type,setType] = useState([])
-    const [selectType,setSelectedType] = useState([])
+    });
     const [loading, setLoading] = useState(false); 
     const navigate = useNavigate();
     const handleBackClick = ()=>{
-        navigate(`/Domain-Sector-Master`) 
+        navigate(`/Certificate-Master`) 
     }
-
-    // useEffect(()=>{
-    //     const fetchType = async() =>{
-    //       try{
-    //         const response = await getType();
-    //         if(response.data && Array.isArray(response.data.data)){
-    //           const option = response.data.data.map((Type)=>({
-    //             value:Type,
-    //             label:Type
-    //           }))
-    //           setType(option)
-    //         }else{
-    //           console.log("Expect an Array")
-    //         }
-    //       }catch(error){
-    //         console.error("Error fetching Type Of Work:");
-    //       }
-    //     }
-    //     fetchType()
-    // },[])
-
-    // const handleType =(selected)=>{
-    //     setSelectedType(selected)
-    //     const typevalue = selected?.value
-    //     setValue("type",typevalue)
-    // }
-    
     const handleButtonClick = (e) => {
         e.preventDefault();
         handleSubmit(handleFormdataSubmit)();
     };
-
     const handleFormdataSubmit = async (data) => {
         const payload = {
-            // type:data.type,
-            domain:data.domain,
+            certificateName:data.certificateName,
         }
         setLoading(true);
         try{
-            const response = await postDomainSector(payload)
+            const response = await postCertificateMaster(payload)
             if (response?.data?.statusCode === 200) {
                 reset({
-                    // type:'',
-                    domain:''
+                    certificateName:'certificateName'
                 })
-                // setValue('type',"")
-                // setSelectedType([])
                 toast.success('Form submitted successfully!', {
                     className: 'custom-toast custom-toast-success',
                 });
@@ -84,10 +50,9 @@ const ClentSectorMasterForm = () =>{
                 className: 'custom-toast custom-toast-error',
             });
         }finally{
-           setLoading(false) 
+            setLoading(false) 
         }
     }
-
     return(
         <div>
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
@@ -117,8 +82,8 @@ const ClentSectorMasterForm = () =>{
                             </IconButton>
                         </Tooltip>
                     </Box>
-                    <Typography variant="h4" fontWeight="bold">
-                        Domain
+                     <Typography variant="h4" fontWeight="bold">
+                        Certificate Master
                     </Typography>
                 </Box>
             </div>
@@ -127,39 +92,19 @@ const ClentSectorMasterForm = () =>{
                 <div className="row">
                     <Form onSubmit={handleSubmit}>
                         <div className="row">
-                            {/* <div className="col-sm-6 col-lg-6 col-md-6">
-                                <Form.Group className="mb-3">
-                                    <Form.Label className="fs-5 fw-bolder">Type<span className="text-danger">*</span></Form.Label>
-                                    <Controller
-                                        name="type"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                {...field}
-                                                options={type} 
-                                                value={selectType}
-                                                isDisabled={loading}
-                                                placeholder="Select Type"
-                                                onChange={handleType}
-                                            />
-                                        )}
-                                    />
-                                    {errors.type && <p className="text-danger">{errors.type.message}</p>}
-                                </Form.Group>
-                            </div> */}
                             <div className="col-sm-6 col-lg-6 col-md-6">
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="fs-5 fw-bolder">Domain<span className="text-danger">*</span></Form.Label>
-                                        <Controller
-                                        name="domain"
+                                    <Form.Label className="fs-5 fw-bolder">Certificate Name<span className="text-danger">*</span></Form.Label>
+                                    <Controller
+                                        name="certificateName"
                                         control={control}
-                                        render={({ field }) => <input {...field} className="form-control" placeholder="Enter Domain"/>}
+                                        render={({ field }) => <input {...field} className="form-control" placeholder="Enter Certificate Name"/>}
                                     />
-                                    {errors.domain && <p className="text-danger">{errors.domain.message}</p>}
+                                    {errors.certificateName && <p className="text-danger">{errors.certificateName.message}</p>}
                                 </Form.Group>
                             </div>
                         </div>
-                        <div className="py-3">
+                         <div className="py-3">
                             <Box
                                 sx={{
                                     display: 'flex',
@@ -194,4 +139,4 @@ const ClentSectorMasterForm = () =>{
     )
 }
 
-export default ClentSectorMasterForm
+export default CertificateMasterForm
