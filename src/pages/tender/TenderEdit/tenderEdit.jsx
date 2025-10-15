@@ -157,15 +157,6 @@ const TenderTrackingEdit =({ID}) =>{
                     setSelectedFn(matched);
                     setValue(fieldName, fieldValue);
                 };
-                const handleSelectFieldState = (fieldValue, optionsList, setSelectedFn, fieldName) => {
-                    const values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-                    const matched = values
-                        .map((val) => optionsList.find((opt) => opt.label === val))
-                        .filter(Boolean);
-
-                    setSelectedFn(matched);
-                    setValue(fieldName, fieldValue);
-                };
                 
                 if (fetchedData.taskForceemp && empListOption.length > 0) {
                   
@@ -174,7 +165,7 @@ const TenderTrackingEdit =({ID}) =>{
                 if (fetchedData.state ) {
                     
                     console.log(setSelectedStateOption)
-                    handleSelectFieldState(fetchedData.state, stateOption, setSelectedStateOption, "state");
+                    handleSelectField(fetchedData.state, stateOption, setSelectedStateOption, "state");
                 }
                 if (fetchedData.status && StatusOption.length > 0) {
                     handleSelectField(fetchedData.status, StatusOption, setSelectedStatus, "status");

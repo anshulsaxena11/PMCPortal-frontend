@@ -18,7 +18,6 @@ const TenderTrackingView = ({ ID }) => {
     const fetchTrackingTenderDetails = async () => {
       try {
         const data = await getTrackingById(trackingId);
-        console.log(data)
         const fetchedData = data.data;
         setData(fetchedData)
       } catch (error) {
@@ -36,7 +35,7 @@ const TenderTrackingView = ({ ID }) => {
 const fields = [
     'tenderName',
     'organizationName', 
-    'state', 
+    'stateName', 
     'taskforceempid', 
     'valueINR',
     'status',
@@ -49,7 +48,7 @@ const fields = [
   const labels = {
     tenderName: 'Tender Name',
     organizationName: 'Organization Name',
-    state: 'State',
+    stateName: 'State',
     taskforceempid: 'Task Force Member',
     valueINR: 'Value INR (GST)',
     status: 'Status',
