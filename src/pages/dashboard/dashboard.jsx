@@ -23,13 +23,18 @@ const workTypeCols = [
     { field: 'orderType', headerName: 'Order Type', flex: 1 },
     { field: 'projectName', headerName: 'Project Name', flex: 1 },
     { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
-     {
+      {
     field: "amountStatus",
     headerName: "Status",
     width: 120,
     renderCell: (params) => params.value || "N/A", 
   },
-    { field: 'directrate', headerName: 'Directorate', flex: 1 },
+    {
+    field: "directrate",
+    headerName: "Directorate",
+    flex: 1,
+    renderCell: (params) => params.value || "N/A", 
+  },
     {
       field: 'projectValue',
       headerName: 'Project Value (Cr INR)',
@@ -58,8 +63,14 @@ const workTypeCols = [
     { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
     { field: 'organizationName', headerName: 'Organization Name', flex: 1 },
     { field: 'ename', headerName: 'Task Force', flex: 1 },
-    { field: 'dir', headerName: 'Directorate', flex: 1 },
-    { field: 'state', headerName: 'State', flex: 1 },
+    {
+    field: "directrate",
+    headerName: "Directorate",
+    flex: 1,
+    renderCell: (params) => params.value || "N/A", 
+  },
+    
+    { field: 'stateName', headerName: 'State', flex: 1 },
     {
               field: 'valueINR',
               headerName: 'Value (Cr INR)',
@@ -106,10 +117,14 @@ export default function TabCardWithGrids() {
   const [pageSize, setPageSize] = useState(10);
   const [projects, setProjects] = useState([]);
   const [directorateData, setDirectorateData] = useState([]);
-  const [directorateTender, setDirectorateTender] = useState([]);
+  // --- FIX 1: New state for Tender's selected directorate and its data ---
+  const [selectedDirectorateProject, setSelectedDirectorateProject] = useState("All"); // For Tab 0
+  const [selectedDirectorateTender, setSelectedDirectorateTender] = useState("All"); // For Tab 1
+  const [directorateTenderOptions, setDirectorateTenderOptions] = useState([]); // For Tab 1 dropdown
+  // -----------------------------------------------------------------------
+
   const [selectedFY, setSelectedFY] = useState("All");
   const [financialYears, setFinancialYears] = useState([]);
-  const [selectedDirectorate, setSelectedDirectorate] = useState("All");
   const [selectedState, setSelectedState] = useState("All");
 
   const [stats, setStats] = useState([]);
@@ -131,7 +146,7 @@ export default function TabCardWithGrids() {
     years.push(currentFY);
     setFinancialYears(["All", ...years]);
   }, []);
- 
+  
   function groupByFinancialYear(data) {
     const yearMap = {};
     data.forEach((project) => {
@@ -168,6 +183,7 @@ export default function TabCardWithGrids() {
       const tenderResponse = await getAllTenderList({ isDeleted: false });
 
       let projectsData = workTypeResponse?.data || [];
+      const tenderData = tenderResponse?.data || [];
 
       if (yearFilter !== "All") {
         projectsData = projectsData.filter((p) => {
@@ -183,6 +199,7 @@ export default function TabCardWithGrids() {
       }
       setProjects(projectsData);
 
+      // --- Tab 0 (Projects) Data Processing ---
       const dirMap = {};
       let totalValue = 0, completed = 0, ongoing = 0;
       projectsData.forEach(p => {
@@ -210,7 +227,8 @@ export default function TabCardWithGrids() {
         ongoing: dirMap[key].ongoing
       }));
       dirArray.sort((a, b) => b.value - a.value);
-      setDirectorateData(dirArray);
+      setDirectorateData(dirArray); // Directorates for Project Sidebar
+
       setStats([
         { title: "Total Projects", value: projectsData.length, icon: "📁" },
         { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰" },
@@ -234,11 +252,17 @@ export default function TabCardWithGrids() {
         };
       }));
 
-      setTendereRows((tenderResponse?.data || []).map((r, i) => ({
+      // --- Tab 1 (Tender) Data Processing ---
+      const processedTenderRows = tenderData.map((r, i) => ({
         id: r?._id || i + 1,
         sno: i + 1,
         ...r,
-      })));
+      }));
+      setTendereRows(processedTenderRows);
+      
+      // --- FIX 2: Set Directorate Options for Tab 1 ---
+      const uniqueTenderDirectorates = Array.from(new Set(processedTenderRows.map(t => t.directrate).filter(Boolean)));
+      setDirectorateTenderOptions(uniqueTenderDirectorates);
 
     } catch (error) {
       console.error("API fetch error:", error);
@@ -250,6 +274,14 @@ export default function TabCardWithGrids() {
   useEffect(() => {
     fetchAllData(selectedFY);
   }, [selectedFY]);
+
+  // Reset selected directorate when switching tabs
+  useEffect(() => {
+      setSelectedDirectorateProject("All");
+      setSelectedDirectorateTender("All");
+      setSearch(""); // Also clear search on tab switch for cleanliness
+  }, [activeTab]);
+
 
   useEffect(() => {
     if (activeTab !== 0) return;
@@ -305,23 +337,6 @@ export default function TabCardWithGrids() {
     }
   }, [activeTab, chartData]);
 
-  let filteredRows = getCurrentTabRows();
-if (activeTab === 0 && selectedDirectorate !== "All") {
-  filteredRows = filteredRows.filter(
-    (row) => row.directrate === selectedDirectorate
-  );
-}
-
-if (activeTab === 1) {
-  if (selectedDirectorate !== "All") {
-    filteredRows = filteredRows.filter((row) => row.dir === selectedDirectorate);
-  }
-}
-
-
-if (search.trim()) {
-  filteredRows = getFilteredRows(filteredRows, search);
-}
   function getCurrentTabRows() {
     return activeTab === 0 ? workTypeRows : tenderRows;
   }
@@ -333,6 +348,27 @@ if (search.trim()) {
       )
     );
   }
+
+  // --- FIX 3: Update Filtering Logic ---
+  let filteredRows = getCurrentTabRows();
+  
+  if (activeTab === 0 && selectedDirectorateProject !== "All") {
+    filteredRows = filteredRows.filter(
+      (row) => row.directrate === selectedDirectorateProject
+    );
+  }
+
+  if (activeTab === 1 && selectedDirectorateTender !== "All") {
+    // Note: The tenderCols uses 'directrate' as the field name, not 'dir'
+    filteredRows = filteredRows.filter(
+      (row) => row.directrate === selectedDirectorateTender
+    );
+  }
+
+  if (search.trim()) {
+    filteredRows = getFilteredRows(filteredRows, search);
+  }
+  // -------------------------------------
 
   return (
     <>
@@ -438,11 +474,12 @@ if (search.trim()) {
     <Box>
       <label><b>Directorate:</b></label>{" "}
       <select
-        value={selectedDirectorate}
-        onChange={(e) => setSelectedDirectorate(e.target.value)}
+        value={selectedDirectorateProject} // Use Project-specific state
+        onChange={(e) => setSelectedDirectorateProject(e.target.value)} // Update Project-specific state
         style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
       >
         <option value="All">All</option>
+        {/* The data for the options is correctly coming from directorateData */}
         {Array.from(new Set(directorateData.map(d => d.directorate))).map((dir, i) => (
           <option key={i} value={dir}>{dir}</option>
         ))}
@@ -455,12 +492,13 @@ if (search.trim()) {
       <Box>
         <label><b>Directorate:</b></label>{" "}
         <select
-          value={selectedDirectorate}
-          onChange={(e) => setSelectedDirectorate(e.target.value)}
+          value={selectedDirectorateTender} // Use Tender-specific state
+          onChange={(e) => setSelectedDirectorateTender(e.target.value)} // Update Tender-specific state
           style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
         >
           <option value="All">All</option>
-          {Array.from(new Set(tenderRows.map(t => t.dir).filter(Boolean))).map((dir, i) => (
+          {/* Use the new state for Tender options */}
+          {directorateTenderOptions.map((dir, i) => (
             <option key={i} value={dir}>{dir}</option>
           ))}
         </select>

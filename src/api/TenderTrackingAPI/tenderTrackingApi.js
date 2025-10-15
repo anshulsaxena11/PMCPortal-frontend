@@ -34,10 +34,19 @@ export const postTenderTrackingData = async (payload) => {
   }
 };
 
-export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "",isDeleted = "" }) => {
+export const getTenderDetailsList = async ({ page = 1, limit = 10, search = "", isDeleted = "", directorate = "" }) => {
+//                                                                               ^^^^^^^^^^^^^^^^^^^^^^^
+//                                                                                   Added directorate parameter
   try {
     const response = await axiosInstance.get("/user/Tender", {
-      params: { page, limit, search, isDeleted:isDeleted.toString() }, withCredentials: true,
+      params: { 
+        page, 
+        limit, 
+        search, 
+        isDeleted: isDeleted.toString(),
+        directorate, // Included directorate in query params
+      }, 
+      withCredentials: true,
     });
     console.log(response);
     return response.data;
