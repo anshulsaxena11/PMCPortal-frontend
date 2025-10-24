@@ -1,378 +1,50 @@
-/* global am4core, am4charts, am4themes_animated */
-import React, { useEffect, useState, useRef } from 'react';
-import { Box, Paper, Typography, TextField, Button, Stack, Tooltip } from '@mui/material';
+// Dashboard.jsx
+
+import React, { useState } from 'react';
+import { Box, Paper, Typography } from '@mui/material'; 
+import { GiSkills } from "react-icons/gi";
+import { TbCertificate } from "react-icons/tb";
+import { CgListTree, CgProfile } from "react-icons/cg";
 import WorkIcon from '@mui/icons-material/Work';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
-import { Card } from "react-bootstrap";
-import dayjs from 'dayjs';
-import "./dashboard.css";
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import { getProjectDetailsList } from '../../api/ProjectDetailsAPI/projectDetailsApi';
-import { getAllTenderList } from '../../api/TenderTrackingAPI/tenderTrackingApi';
-import CustomDataGrid from '../../components/DataGrid/CustomDataGrid';
+import ProjectsDashboard from '../../components/dashboard/ProjectsDashboard'; 
+import SalesTrackingDashboard from '../../components/dashboard/SalesTrackingDashboard'; 
+import CertificateDashboard from '../../components/dashboard/CertificateDashboard'; 
+import SkillsMappingDashboard from '../../components/dashboard/SkillsMappingDashboard'; 
+import UsersDashboard from '../../components/dashboard/UsersDashboard'; 
+import "./dashboard.css"; 
 
 const tabData = [
-  { label: 'Projects', icon: <WorkIcon />, key: 'workType' },
-  { label: 'Sales Tracking', icon: <RequestQuoteIcon />, key: 'tenderTracking' },
+  { label: 'Projects', icon: <WorkIcon />, key: 'projects' },
+  { label: 'Sales Tracking', icon: <RequestQuoteIcon />, key: 'salesTracking' },
+  { label: 'Users', icon: <CgProfile />, key: 'users' },
+  { label: 'Certificates', icon: <TbCertificate />, key: 'certificates' },
+  { label: 'Skills Mapping', icon: <GiSkills />, key: 'skillsmapping' },
 ];
-const workTypeCols = [
-    { field: 'sno', headerName: 'S. No.', width: 60, sortable: false, filterable: false },
-    { field: 'orginisationName', headerName: 'Organisation Name', flex: 1.5 },
-    { field: 'type', headerName: 'Org Type', flex: 1 },
-    { field: 'orderType', headerName: 'Order Type', flex: 1 },
-    { field: 'projectName', headerName: 'Project Name', flex: 1 },
-    { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1 },
-      {
-    field: "amountStatus",
-    headerName: "Status",
-    width: 120,
-    renderCell: (params) => params.value || "N/A", 
-  },
-    {
-    field: "directrate",
-    headerName: "Directorate",
-    flex: 1,
-    renderCell: (params) => params.value || "N/A", 
-  },
-    {
-      field: 'projectValue',
-      headerName: 'Project Value (Cr INR)',
-      flex: 1,
-      align: 'right',
-      renderCell: (params) => {
-        const val = params?.row?.projectValue;
-        if (!val || isNaN(val)) return 'N/A';
-        const croreValue = Number(val) / 10000000;
-        const formattedCr = croreValue.toLocaleString('en-IN', {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        });
-        const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
-        return (
-          <Tooltip title={fullValue}>
-            <span>{formattedCr} Cr</span>
-          </Tooltip>
-        );
-      },
-    },
-  ];
 
-  const tenderCols = [
-    { field: 'sno', headerName: 'S.No', width: 80 },
-    { field: 'tenderName', headerName: 'Tender Name', flex: 1 },
-    { field: 'organizationName', headerName: 'Organization Name', flex: 1 },
-    { field: 'ename', headerName: 'Task Force', flex: 1 },
-    {
-    field: "directrate",
-    headerName: "Directorate",
-    flex: 1,
-    renderCell: (params) => params.value || "N/A", 
-  },
-    
-    { field: 'stateName', headerName: 'State', flex: 1 },
-    {
-              field: 'valueINR',
-              headerName: 'Value (Cr INR)',
-              flex: 1,
-              align: 'right',
-              renderCell: (params) => {
-                const val = params?.row?.valueINR;
-                if (!val || isNaN(val)) return 'N/A';
-                const croreValue = Number(val) / 10000000;
-                const formattedCr = croreValue.toLocaleString('en-IN', {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                });
-                const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
-                return (
-                  <Tooltip title={fullValue} INR>
-                    <span>{formattedCr} Cr</span>
-                  </Tooltip>
-                );
-              }
-            },
-    { field: 'status', headerName: 'Status', flex: 1 },
-    {
-    field: 'lastDate',
-    headerName: 'Last Date',
-    flex: 1,
-    renderCell: (params) => {
-      if (params.value) {
-        return dayjs(params.value).format('YYYY-MM-DD');
-      }
-      return 'N/A';
-    },
-  },
-  ];
-export default function TabCardWithGrids() {
+export default function Dashboard() {
   const [activeTab, setActiveTab] = useState(0);
-  const [search, setSearch] = useState('');
-  const [workTypeRows, setWorkTypeRows] = useState([]);
-  const [tenderRows, setTendereRows] = useState([]);
-  const chartRef = useRef(null);
-  const [chartData, setChartData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  const [projects, setProjects] = useState([]);
-  const [directorateData, setDirectorateData] = useState([]);
-  // --- FIX 1: New state for Tender's selected directorate and its data ---
-  const [selectedDirectorateProject, setSelectedDirectorateProject] = useState("All"); // For Tab 0
-  const [selectedDirectorateTender, setSelectedDirectorateTender] = useState("All"); // For Tab 1
-  const [directorateTenderOptions, setDirectorateTenderOptions] = useState([]); // For Tab 1 dropdown
-  // -----------------------------------------------------------------------
 
-  const [selectedFY, setSelectedFY] = useState("All");
-  const [financialYears, setFinancialYears] = useState([]);
-  const [selectedState, setSelectedState] = useState("All");
-
-  const [stats, setStats] = useState([]);
-
-  useEffect(() => {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth();
-
-    const fyStartYear = currentMonth < 3 ? currentYear - 1 : currentYear;
-    const fyEndYear = fyStartYear + 1;
-    const currentFY = `FY-${fyStartYear}-${fyEndYear}`;
-    const years = [];
-    for (let i = 5; i >= 1; i--) {
-      const start = fyStartYear - i;
-      const end = start + 1;
-      years.push(`FY-${start}-${end}`);
-    }
-    years.push(currentFY);
-    setFinancialYears(["All", ...years]);
-  }, []);
-  
-  function groupByFinancialYear(data) {
-    const yearMap = {};
-    data.forEach((project) => {
-      const { startDate, projectValue } = project;
-      if (!startDate) return;
-      const date = new Date(startDate);
-      const month = date.getMonth();
-      const year = date.getFullYear();
-      const fyStartYear = month < 3 ? year - 1 : year;
-      const fyEndYear = fyStartYear + 1;
-      const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
-      const value = parseFloat(projectValue || "0");
-
-      if (!yearMap[fyLabel]) {
-        yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, startYear: fyStartYear };
-      }
-      yearMap[fyLabel].Total += value;
-    });
-
-    return Object.values(yearMap)
-      .map(({ financialYear, Total, startYear }) => ({
-        financialYear,
-        Total: +(Total / 10000000).toFixed(2),
-        startYear,
-      }))
-      .sort((a, b) => a.startYear - b.startYear)
-      .map(({ financialYear, Total }) => ({ financialYear, Total }));
-  }
-
-  const fetchAllData = async (yearFilter = "All") => {
-    setLoading(true);
-    try {
-      const workTypeResponse = await getProjectDetailsList({ page: 1, limit: 10000, isDeleted: false });
-      const tenderResponse = await getAllTenderList({ isDeleted: false });
-
-      let projectsData = workTypeResponse?.data || [];
-      const tenderData = tenderResponse?.data || [];
-
-      if (yearFilter !== "All") {
-        projectsData = projectsData.filter((p) => {
-          if (!p.startDate) return false;
-          const date = new Date(p.startDate);
-          const month = date.getMonth();
-          const year = date.getFullYear();
-          const fyStartYear = month < 3 ? year - 1 : year;
-          const fyEndYear = fyStartYear + 1;
-          const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
-          return fyLabel === yearFilter;
-        });
-      }
-      setProjects(projectsData);
-
-      // --- Tab 0 (Projects) Data Processing ---
-      const dirMap = {};
-      let totalValue = 0, completed = 0, ongoing = 0;
-      projectsData.forEach(p => {
-        const dir = p.directrate || "Unknown";
-        if (!dirMap[dir]) dirMap[dir] = { count: 0, value: 0, completed: 0, ongoing: 0 };
-        dirMap[dir].count += 1;
-        const val = Number(p.projectValue) || 0;
-        dirMap[dir].value += val;
-        totalValue += val;
-        const isComplete = p.phases?.length > 0 && p.phases.every(ph => ph.amountStatus === "Complete");
-        if (isComplete) {
-          completed += 1;
-          dirMap[dir].completed += 1;
-        } else {
-          ongoing += 1;
-          dirMap[dir].ongoing += 1;
-        }
-      });
-
-      const dirArray = Object.keys(dirMap).map(key => ({
-        directorate: key,
-        count: dirMap[key].count,
-        value: dirMap[key].value,
-        completed: dirMap[key].completed,
-        ongoing: dirMap[key].ongoing
-      }));
-      dirArray.sort((a, b) => b.value - a.value);
-      setDirectorateData(dirArray); // Directorates for Project Sidebar
-
-      setStats([
-        { title: "Total Projects", value: projectsData.length, icon: "📁" },
-        { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰" },
-        { title: "Completed", value: completed, icon: "✅" },
-        { title: "Ongoing", value: ongoing, icon: "⏳" }
-      ]);
-
-      const processedChartData = groupByFinancialYear(projectsData);
-      setChartData(processedChartData);
-
-      setWorkTypeRows(projectsData.map((item, index) => {
-        const amountStatus = Array.isArray(item.phases) && item.phases.length > 0
-          ? item.phases[0].amountStatus || "N/A"
-          : "Ongoing";
-
-        return {
-          id: item?._id || index + 1,
-          sno: index + 1,
-          ...item,
-          amountStatus, 
-        };
-      }));
-
-      // --- Tab 1 (Tender) Data Processing ---
-      const processedTenderRows = tenderData.map((r, i) => ({
-        id: r?._id || i + 1,
-        sno: i + 1,
-        ...r,
-      }));
-      setTendereRows(processedTenderRows);
-      
-      // --- FIX 2: Set Directorate Options for Tab 1 ---
-      const uniqueTenderDirectorates = Array.from(new Set(processedTenderRows.map(t => t.directrate).filter(Boolean)));
-      setDirectorateTenderOptions(uniqueTenderDirectorates);
-
-    } catch (error) {
-      console.error("API fetch error:", error);
-    } finally {
-      setLoading(false);
+  const renderActiveComponent = () => {
+    switch (activeTab) {
+      case 0:
+        return <ProjectsDashboard />; 
+      case 1:
+        return <SalesTrackingDashboard />;
+        case 2:
+        return <UsersDashboard />;
+         case 3:
+        return <CertificateDashboard />;
+        case 4:
+        return <SkillsMappingDashboard />;
+      default:
+        return <ProjectsDashboard />;
     }
   };
 
-  useEffect(() => {
-    fetchAllData(selectedFY);
-  }, [selectedFY]);
-
-  // Reset selected directorate when switching tabs
-  useEffect(() => {
-      setSelectedDirectorateProject("All");
-      setSelectedDirectorateTender("All");
-      setSearch(""); // Also clear search on tab switch for cleanliness
-  }, [activeTab]);
-
-
-  useEffect(() => {
-    if (activeTab !== 0) return;
-    if (!chartData.length) return;
-
-    if (window.am4core && window.am4charts && window.am4themes_animated) {
-      const core = window.am4core;
-      const charts = window.am4charts;
-      const animated = window.am4themes_animated;
-
-      if (chartRef.current) {
-        chartRef.current.dispose();
-        chartRef.current = null;
-      }
-
-      core.useTheme(animated);
-      const chart = core.create('chartdiv', charts.XYChart);
-      chartRef.current = chart;
-
-      chart.data = chartData.map((item) => ({
-        category: item.financialYear,
-        value: item.Total,
-      }));
-
-      const categoryAxis = chart.xAxes.push(new charts.CategoryAxis());
-      categoryAxis.dataFields.category = 'category';
-      categoryAxis.title.text = 'Financial Year';
-
-      const valueAxis = chart.yAxes.push(new charts.ValueAxis());
-      valueAxis.title.text = 'Project Value (Cr INR)';
-
-      const series = chart.series.push(new charts.ColumnSeries());
-      series.dataFields.valueY = 'value';
-      series.dataFields.categoryX = 'category';
-      series.columns.template.width = 50;
-      const labelBullet = series.bullets.push(new charts.LabelBullet());
-      labelBullet.label.text = '{valueY} Cr';
-      labelBullet.label.fontSize = 12;
-      labelBullet.label.fontWeight = '600';
-      labelBullet.label.fill = core.color('#000');
-      labelBullet.label.dy = -5;
-      labelBullet.label.horizontalCenter = 'middle';
-      series.name = 'Project Value';
-      series.columns.template.tooltipText = '{categoryX}: [bold]{valueY} Cr[/]';
-      return () => {
-        if (chartRef.current) {
-          chartRef.current.dispose();
-          chartRef.current = null;
-        }
-      };
-    } else {
-      console.error('amCharts library not loaded.');
-    }
-  }, [activeTab, chartData]);
-
-  function getCurrentTabRows() {
-    return activeTab === 0 ? workTypeRows : tenderRows;
-  }
-  function getFilteredRows(rows, term) {
-    const lower = term.toLowerCase().trim();
-    return rows.filter((row) =>
-      Object.values(row).some(
-        (val) => String(val || "").toLowerCase().includes(lower)
-      )
-    );
-  }
-
-  // --- FIX 3: Update Filtering Logic ---
-  let filteredRows = getCurrentTabRows();
-  
-  if (activeTab === 0 && selectedDirectorateProject !== "All") {
-    filteredRows = filteredRows.filter(
-      (row) => row.directrate === selectedDirectorateProject
-    );
-  }
-
-  if (activeTab === 1 && selectedDirectorateTender !== "All") {
-    // Note: The tenderCols uses 'directrate' as the field name, not 'dir'
-    filteredRows = filteredRows.filter(
-      (row) => row.directrate === selectedDirectorateTender
-    );
-  }
-
-  if (search.trim()) {
-    filteredRows = getFilteredRows(filteredRows, search);
-  }
-  // -------------------------------------
-
   return (
     <>
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 4 }}>
         {tabData.map((tab, index) => (
           <Paper
             key={index}
@@ -407,136 +79,10 @@ export default function TabCardWithGrids() {
           </Paper>
         ))}
       </Box>
-{activeTab === 0 && (
-  <>
-    <Box sx={{ mb: 2 }}>
-    <label><b>Financial Year:</b></label>{" "}
-    <select
-      value={selectedFY}
-      onChange={(e) => setSelectedFY(e.target.value)}
-      style={{ padding: "6px 10px", borderRadius: "6px" }}
-    >
-      {[financialYears[0], ...financialYears.slice(1).reverse()].map((fy, i) => (
-        <option key={i} value={fy}>{fy}</option>
-      ))}
-    </select>
-</Box>
 
-    <div className="dashboard-wrapper">
-      <aside className="left-sidebar">
-        <h5 className="left-title">Directorate Wise Projects</h5>
-        <div className="left-scroll">
-          {directorateData.map((d, i) => (
-            <Card key={i} className="mb-2 left-item">
-              <Card.Body className="py-2 px-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="small"><strong>{d.directorate}</strong></div>
-                  <div className="text-end">
-                    <div className="fw-bold">{d.count} Projects</div>
-                    <div className="small">Value: {(d.value / 1e7).toFixed(2)} Cr</div>
-                  </div>
-                </div>
-                <div className="mt-1 d-flex justify-content-between small">
-                  <span>Completed: {d.completed}</span>
-                  <span>Ongoing: {d.ongoing}</span>
-                </div>
-              </Card.Body>
-            </Card>
-          ))}
-        </div>
-      </aside>
-
-      <main className="right-content">
-  <h5 className="mb-3">Projects Overview</h5> 
-  <div className="stats-grid">
-    {stats.map((s, i) => (
-      <Card key={i} className="stat-card">
-        <div className={`stat-header ${s.headerClass}`}>
-          {s.title}
-        </div>
-        <div className="stat-content">
-          <div className={`stat-value ${s.valueClass}`}>{s.value}</div>
-        </div>
-      </Card>
-    ))}
-  </div>
-</main>
-    </div>
-    {/* Chart */}
-    <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-      Project Value Overview (Cr INR)
-    </Typography>
-    <Box id="chartdiv" sx={{ width: '100%', height: 300 }} />
-  </>
-)}
-  <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
-  {activeTab === 0 && (
-    <Box>
-      <label><b>Directorate:</b></label>{" "}
-      <select
-        value={selectedDirectorateProject} // Use Project-specific state
-        onChange={(e) => setSelectedDirectorateProject(e.target.value)} // Update Project-specific state
-        style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
-      >
-        <option value="All">All</option>
-        {/* The data for the options is correctly coming from directorateData */}
-        {Array.from(new Set(directorateData.map(d => d.directorate))).map((dir, i) => (
-          <option key={i} value={dir}>{dir}</option>
-        ))}
-      </select>
-    </Box>
-  )}
-
-  {activeTab === 1 && (
-    <>
+      {/* Render the selected dashboard component */}
       <Box>
-        <label><b>Directorate:</b></label>{" "}
-        <select
-          value={selectedDirectorateTender} // Use Tender-specific state
-          onChange={(e) => setSelectedDirectorateTender(e.target.value)} // Update Tender-specific state
-          style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
-        >
-          <option value="All">All</option>
-          {/* Use the new state for Tender options */}
-          {directorateTenderOptions.map((dir, i) => (
-            <option key={i} value={dir}>{dir}</option>
-          ))}
-        </select>
-      </Box>
-    </>
-  )}
-
-  <TextField
-    label="Search..."
-    variant="outlined"
-    value={search}
-    size="small"
-    onChange={(e) => setSearch(e.target.value)}
-    sx={{
-      mb: 2,
-      width: 250,
-      backgroundColor: 'white',
-      '& .MuiInputBase-root': { height: 40 },
-      flexGrow: 1,
-    }}
-  />
-
-  {/* CSV and PDF download buttons remain the same */}
-</Stack>
-      <Box sx={{ height: 400 }}>
-        <CustomDataGrid
-          rows={filteredRows}
-          columns={activeTab === 0 ? workTypeCols : tenderCols}
-          loading={loading}
-          paginationModel={{ page, pageSize }}
-          onPaginationModelChange={({ page, pageSize }) => {
-            setPage(page);
-            setPageSize(pageSize);
-          }}
-          rowCount={filteredRows.length}
-          paginationMode="client"
-          autoHeight
-        />
+        {renderActiveComponent()}
       </Box>
     </>
   );
