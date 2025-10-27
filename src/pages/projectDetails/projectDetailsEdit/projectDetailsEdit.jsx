@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
-import { Form } from "react-bootstrap";
+import { Form ,Table} from "react-bootstrap";
 import { useParams } from "react-router-dom";
-import { editProjectDetails } from "../../../api/ProjectDetailsAPI/projectDetailsApi";
+import { editProjectDetails,getProjectDetailsById } from "../../../api/ProjectDetailsAPI/projectDetailsApi";
 import { getProjectTypeList } from "../../../api/projectTypeListApi/projectTypeListApi";
 import { getdirectrate } from "../../../api/directrateAPI/directrate";
 import { ToastContainer, toast } from 'react-toastify';
@@ -21,14 +21,19 @@ import {getDomain} from '../../../api/clientSectorApi/clientSectorApi'
 import './projectDetailsEdit'
 
 const ProjectDetailsEdit = ({ ID, onClose }) => {
-    const { register, handleSubmit, setValue, reset, getValues, control,formState: { errors }, } = useForm();
+    const { register, handleSubmit, setValue, reset, getValues, control,formState: { errors },watch } = useForm();
     const [file, setFile] = useState(null);
     const [valueINR, setValueINR] = useState("");
     const [projectTypes, setProjectTypes] = useState([]);
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [selectedTypeOfWorkOptions, setSelectedTypeOfWorkOptions] = useState([]);
+    const [yearlyFields, setYearlyFields] = useState([]);
     const [selectedOrderTypeOptions, setSelectedOrderTypeOptions] = useState([]);
+    const [selectPaymentMethodOptions, setSelectPaymentMethodOptions]= useState([])
     const [selectedTypeOptions, setSelectedTypeOptions] = useState([]);
+    const [disableProjectValue,setDisableProjectValue] = useState(false)
+    const [savedProjectValue, setSavedProjectValue] = useState("");
+    const [disableProjectValueYearly,setDisableProjectValueYearly] = useState(false)
     const [domainOption, setDomainoOption] = useState([])
     const [selectedDomainOptions, setSelectedDomainOptions] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -40,7 +45,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
     const [previewFileType, setPreviewFileType] = useState('');
     const [selectedDirectorate, setSelectedDirectorate] = useState(null);
     const [typeOfWorkOption,setTypeOfWorkOption] = useState([]);
-    const [typeValue, setTypeValue] = useState()
+    const [savedYearlyFields, setSavedYearlyFields] = useState([]); 
     const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
     const inputRef = useRef(null);
     const OrderTypeOption =[
@@ -52,6 +57,10 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         {value:"Govt",label:"Govt"},
         {value:"Private",label:"Private"},
     ]
+    const paymentMethodOptions = [
+        { value: 'Fixed Payment', label: 'Fixed Payment' },
+        { value: 'Yearly Payment', label: 'Yearly Payment' },
+    ];
     const { id } = useParams();
     const projectId = ID || id;
     const navigate = useNavigate();
@@ -142,9 +151,9 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
     useEffect(() => {
         const fetchProject = async () => {
             try {
-                const response = await editProjectDetails(projectId, {}, null);
-                const fetchedData = response?.data?.projectDetails;
-                const fileUrl = response?.data?.filePreviewUrl
+                const response = await getProjectDetailsById(projectId);
+                const fetchedData = response?.data;
+                const fileUrl = fetchedData?.workOrderUrl
                 setFilePreviewUrl(fileUrl);
                 if (fetchedData) {
                     const formattedStartDate = fetchedData.startDate
@@ -158,7 +167,23 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                         ...fetchedData,
                         startDate: formattedStartDate,
                         endDate: formattedEndDate,
+                        ProjectValue: fetchedData.projectValue || "",
+                        projectValueYearly: fetchedData.projectValueYearly || [],
                     });
+                    if (fetchedData.paymentMethod === 'Fixed Payment') {
+                        setDisableProjectValue(true);
+                        setDisableProjectValueYearly(false);    
+                    }else if (fetchedData.paymentMethod === 'Yearly Payment') { 
+                        setDisableProjectValue(false);
+                        setDisableProjectValueYearly(true);
+                         if (fetchedData.projectValueYearly?.length > 0) {
+                            const yearlyMapped = fetchedData.projectValueYearly.map((item) => ({
+                                yearRange: item.financialYear,
+                                value: item.amount,
+                            }));
+                            setYearlyFields(yearlyMapped);
+                        }
+                    }
                     setFile(fetchedData.workOrder || null);
                     const selectedOrderType = Array.isArray(fetchedData.orderType) 
                     ? fetchedData.orderType
@@ -176,6 +201,14 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                         label: type,
                     }));
                     setSelectedTypeOptions(selectedTypes)
+                    const selectPaymentMethod = Array.isArray(fetchedData.paymentMethod)
+                    ? fetchedData.paymentMethod
+                    : [fetchedData.paymentMethod]
+                    const selectedPaymentMethods = selectPaymentMethod.map(method => ({
+                        value: method,
+                        label: method,
+                    }));
+                    setSelectPaymentMethodOptions(selectedPaymentMethods)
                     if (domainOption.length > 0) {
                         const selectedDomain = Array.isArray(fetchedData.domain) 
                             ? fetchedData.domain
@@ -239,6 +272,8 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             const typeOfWork = formData.typeOfWork || getValues('typeOfWork')
             const primaryRoleAndDesignation = formData.primaryRoleAndDesignation || getValues('primaryRoleAndDesignation')
             const secondaryRoleAndDesignation = formData.secondaryRoleAndDesignation || getValues('secondaryRoleAndDesignation')
+            const paymentMethod = formData.paymentMethod || getValues("paymentMethod");
+            const currentYearlyData = getValues("projectValueYearly") || [];
             let projectTypeIds = [];
             if (Array.isArray(projectType) && projectType.every(item => item._id)) {
                 projectTypeIds = projectType.map(item => item._id);
@@ -254,7 +289,6 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             formDataToSubmit.append("endDate", endDate);
             formDataToSubmit.append("startDate", startDate);
             formDataToSubmit.append("orderType", orderType);
-            formDataToSubmit.append("projectValue", projectValue);
             formDataToSubmit.append("serviceLocation", serviceLocation);
             formDataToSubmit.append("projectType",projectTypeIds);
             formDataToSubmit.append("directrate",directrate)
@@ -268,9 +302,30 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             formDataToSubmit.append("typeOfWork",typeOfWork)
             formDataToSubmit.append("primaryRoleAndDesignation",primaryRoleAndDesignation)
             formDataToSubmit.append("secondaryRoleAndDesignation",secondaryRoleAndDesignation)
+            formDataToSubmit.append("paymentMethod",paymentMethod)
             if (file && file instanceof Blob) {
                 formDataToSubmit.append("workOrder", file, file.name);
             } 
+            if (paymentMethod === "Yearly Payment") {
+                const formattedYearlyValues = currentYearlyData
+                    .filter(item => item.financialYear && item.amount)
+                    .map(item => ({
+                        financialYear: item.financialYear,
+                        amount: Number(item.amount)
+                    }));
+
+                if (formattedYearlyValues.length === 0 || !formattedYearlyValues[0].amount) {
+                    toast.error("Please enter the first year's project value before submitting.");
+                    setLoading(false);
+                    return;
+                }
+
+                formDataToSubmit.append("projectValueYearly", JSON.stringify(formattedYearlyValues));
+                formDataToSubmit.append("projectValue", ""); 
+            } else {
+                formDataToSubmit.append("projectValueYearly", "[]");
+                formDataToSubmit.append("projectValue", projectValue);
+            }
            const response = await editProjectDetails(projectId, formDataToSubmit);
            if (response?.data?.statusCode  === 400){
             toast.error('Work Order Number Already Exist!', {
@@ -367,6 +422,41 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         const selectedString = selected && selected.label ? String(selected.label) : '';
         setValue('typeOfWork',selectedString)
     }
+    const handlePaymentMethodChange =(selected)=>{
+        const start = getValues("startDate");
+        const end = getValues("endDate");
+        if (selected?.value === "Fixed Payment") {
+            if (yearlyFields.length > 0) {
+                setSavedYearlyFields(yearlyFields);
+                setYearlyFields([]);
+            }
+            generateYearlyFields()
+            setDisableProjectValue(true);
+            setDisableProjectValueYearly(false);
+            if (savedProjectValue) {
+                setValue("projectValue", savedProjectValue || "");
+            }
+        }else if (selected?.value === "Yearly Payment") {
+            setDisableProjectValue(false);
+            setDisableProjectValueYearly(true);
+            const currentValue = getValues("projectValue");
+            setSavedProjectValue(currentValue || ""); 
+            if (savedYearlyFields.length > 0) {
+                setYearlyFields(savedYearlyFields);
+                } else {
+                setYearlyFields([]); 
+            }
+             if (start && end) {
+                generateYearlyFields();
+            } else {
+                setYearlyFields([]);
+            }
+            setValue("projectValue", "")
+        }
+        setSelectPaymentMethodOptions(selected)
+        const selectedString = selected?.label;
+        setValue('paymentMethod',selectedString)
+    }
     const handleOrderTypeChange = (selected) =>{
         setSelectedOrderTypeOptions(selected)
         const selectedString = selected?.label;
@@ -382,6 +472,41 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         const selectedString = selected?.value;
         setValue('domain',selectedString)
     } 
+    useEffect(() => {
+        const start = getValues("startDate");
+        const end = getValues("endDate");
+
+        if (start && end) {
+            generateYearlyFields();
+        } else {
+            setYearlyFields([]); 
+        }
+        }, [watch("startDate"), watch("endDate")]);
+   const generateYearlyFields = () => {
+        const start = getValues("startDate");
+        const end = getValues("endDate");
+
+        if (!start || !end) return;
+
+        const startYear = new Date(start).getFullYear();
+        const startMonth = new Date(start).getMonth() + 1;
+        const endYear = new Date(end).getFullYear();
+        const endMonth = new Date(end).getMonth() + 1;
+
+        let fyStart = startMonth < 4 ? startYear - 1 : startYear;
+        let fyEnd = endMonth >= 4 ? endYear : endYear - 1;
+
+        const fields = [];
+
+        for (let year = fyStart; year <= fyEnd; year++) {
+            fields.push({
+            yearRange: `${year}-${year + 1}`,
+            value: "",
+            });
+        }
+
+        setYearlyFields(fields);
+    };
     return (
         <div className="container-fluid">
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
@@ -482,99 +607,6 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                                 <div className="text-danger">{errors.orginisationName.message}</div>
                             )}
                         </Form.Group>
-                         <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder pt-3">Project Value ₹ (GST) <span className="text-danger">*</span></Form.Label>
-                            <div className="position-relative">
-                                <Controller
-                                name="projectValue"
-                                control={control}
-                                rules={{
-                                    required: "Project Value is required",
-                                    validate: (val) => {
-                                    const raw = String(val).replace(/,/g, "");
-                                    if (raw === "") return "Value in INR is required";
-                                    if (!/^\d+$/.test(raw)) return "Only numeric values are allowed";
-                                    return true;
-                                    },
-                                }}
-                                render={({
-                                    field: { onChange, onBlur, value, ref },
-                                    fieldState: { error },
-                                }) => {
-                                    const formattedValue = value ? formatINRCurrency(value) : "";
-                                    return (
-                                    <>
-                                        <Form.Control
-                                        type="text"
-                                        inputMode="numeric"
-                                        className="form-control"
-                                        isInvalid={!!error}
-                                        ref={(el) => {
-                                            ref(el);
-                                            inputRef.current = el;
-                                        }}
-                                        placeholder="Project Value in ₹"
-                                        value={formattedValue}
-                                        onChange={(e) => {
-                                            const input = e.target;
-                                            const cursorPos = input.selectionStart;
-
-                                            const rawDigits = e.target.value.replace(/[^0-9]/g, "");
-
-                                            const oldFormatted = formatINRCurrency(value || "");
-                                            const newFormatted = formatINRCurrency(rawDigits);
-
-                                            const oldCommas = (oldFormatted.slice(0, cursorPos).match(/,/g) || []).length;
-                                            const newCommas = (newFormatted.slice(0, cursorPos).match(/,/g) || []).length;
-                                            const diff = newCommas - oldCommas;
-
-                                            onChange(rawDigits);
-
-                                            setTimeout(() => {
-                                            const newPos = cursorPos + diff;
-                                            input.setSelectionRange(newPos, newPos);
-                                            }, 0);
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (["e", "E", "+", "-", "."].includes(e.key)) {
-                                            e.preventDefault();
-                                            }
-                                        }}
-                                        onBlur={onBlur}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                        {error?.message}
-                                        </Form.Control.Feedback>
-                                    </>
-                                    );
-                                }}
-                                />
-                            </div>
-                        </Form.Group>
-                        <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder pt-2">Service Location<span className="text-danger">*</span></Form.Label>
-                            <Form.Control 
-                                type="text" 
-                                {...register("serviceLocation",{required: "Service Location is required"})} 
-                                isInvalid={!!errors.serviceLocation}
-                            />
-                            {errors.serviceLocation && (
-                                <div className="text-danger">{errors.serviceLocation.message}</div>
-                            )}
-                        </Form.Group>
-                    </div>
-                    <div className="col-sm-3 col-md-3 col-lg-3">
-                        <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder">Project Name<span className="text-danger">*</span></Form.Label>
-                            <Form.Control 
-                                type="text" 
-                                {...register("projectName",{required: "Project Name is required"})} 
-                                isInvalid={!!errors.projectName}
-                            />
-                            {errors.projectName && (
-                                <div className="text-danger">{errors.projectName.message}</div>
-                            )}
-                        </Form.Group>
                         <Form.Group>
                             <Form.Label className="fs-5 fw-bolder pt-3">Type Of Work<span className="text-danger">*</span></Form.Label>
                             <Select
@@ -595,22 +627,24 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             {errors.projectManager && (
                                 <div className="text-danger">{errors.projectManager.message}</div>
                             )}
-                        </Form.Group>                  
+                        </Form.Group>            
+                        
+                       
                     </div>
                     <div className="col-sm-3 col-md-3 col-lg-3">
-                        <Form.Group className="mb-3" controlId="StartDate">
-                            <Form.Label className="fs-5 fw-bolder">Start Date<span className="text-danger">*</span></Form.Label>
+                        <Form.Group>
+                            <Form.Label className="fs-5 fw-bolder">Project Name<span className="text-danger">*</span></Form.Label>
                             <Form.Control 
-                                type="date"
-                                {...register("startDate",{required: "Start Date is required"})} 
-                                isInvalid={!!errors.startDate}                     
+                                type="text" 
+                                {...register("projectName",{required: "Project Name is required"})} 
+                                isInvalid={!!errors.projectName}
                             />
-                            {errors.startDate && (
-                                <div className="text-danger">{errors.startDate.message}</div>
+                            {errors.projectName && (
+                                <div className="text-danger">{errors.projectName.message}</div>
                             )}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder ">Scope Of Work<span className="text-danger">*</span></Form.Label>
+                            <Form.Label className="fs-5 fw-bolder pt-3">Scope Of Work<span className="text-danger">*</span></Form.Label>
                             <Select
                                 isMulti
                                 name="projectType"
@@ -630,7 +664,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             )}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder pt-3">Work Order<span className="text-danger">*</span></Form.Label>
+                            <Form.Label className="fs-5 fw-bolder pt-2">Work Order<span className="text-danger">*</span></Form.Label>
                             <Form.Control 
                                 type="file" 
                                 accept=".jpg,.png,.pdf" 
@@ -667,6 +701,39 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                         />  
                     </div>
                     <div className="col-sm-3 col-md-3 col-lg-3">
+                        <Form.Group className="mb-3" controlId="StartDate">
+                            <Form.Label className="fs-5 fw-bolder">Start Date<span className="text-danger">*</span></Form.Label>
+                            <Form.Control 
+                                type="date"
+                                {...register("startDate",{required: "Start Date is required"})} 
+                                isInvalid={!!errors.startDate}                     
+                            />
+                            {errors.startDate && (
+                                <div className="text-danger">{errors.startDate.message}</div>
+                            )}
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label className="fs-5 fw-bolder">Directorates<span className="text-danger">*</span></Form.Label> 
+                            <Select
+                                name="directrate"
+                                options={directrateList}
+                                value={selectedDirectorate}
+                                onChange={handleDirectoreteChange}
+                                isLoading={loading}
+                            />
+                        </Form.Group>
+                        <Form.Group>
+                            <Form.Label className="fs-5 fw-bolder pt-2">Payment Method<span className="text-danger">*</span></Form.Label>
+                            <Select
+                                name="paymentMethod"
+                                options={paymentMethodOptions}
+                                value={selectPaymentMethodOptions} 
+                                onChange={handlePaymentMethodChange}
+                                isDisabled={loading} 
+                            />
+                        </Form.Group>
+                    </div>
+                    <div className="col-sm-3 col-md-3 col-lg-3">
                         <Form.Group controlId="endDate">
                             <Form.Label className="fs-5 fw-bolder">End Date<span className="text-danger">*</span></Form.Label>
                             <Form.Control
@@ -689,16 +756,162 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             )}
                         </Form.Group>
                         <Form.Group>
-                            <Form.Label className="fs-5 fw-bolder pt-3">Directorates<span className="text-danger">*</span></Form.Label> 
-                            <Select
-                                name="directrate"
-                                options={directrateList}
-                                value={selectedDirectorate}
-                                onChange={handleDirectoreteChange}
-                                isLoading={loading}
+                            <Form.Label className="fs-5 fw-bolder pt-2">Service Location<span className="text-danger">*</span></Form.Label>
+                            <Form.Control 
+                                type="text" 
+                                {...register("serviceLocation",{required: "Service Location is required"})} 
+                                isInvalid={!!errors.serviceLocation}
                             />
+                            {errors.serviceLocation && (
+                                <div className="text-danger">{errors.serviceLocation.message}</div>
+                            )}
                         </Form.Group>
+                        {disableProjectValue &&(
+                            <Form.Group>
+                                <Form.Label className="fs-5 fw-bolder pt-3">Project Value ₹ (GST) <span className="text-danger">*</span></Form.Label>
+                                <div className="position-relative">
+                                    <Controller
+                                    name="projectValue"
+                                    control={control}
+                                   rules={{
+                                        validate: (val) => {
+                                        if (selectPaymentMethodOptions?.value === "Fixed Payment") {
+                                            const raw = String(val).replace(/,/g, "");
+                                            if (raw === "") return "Project Value is required";
+                                            if (!/^\d+$/.test(raw)) return "Only numeric values are allowed";
+                                        }
+                                        return true; 
+                                        },
+                                    }}
+                                    render={({
+                                        field: { onChange, onBlur, value, ref },
+                                        fieldState: { error },
+                                    }) => {
+                                        const formattedValue = value ? formatINRCurrency(value) : "";
+                                        return (
+                                        <>
+                                            <Form.Control
+                                            type="text"
+                                            inputMode="numeric"
+                                            className="form-control"
+                                            isInvalid={!!error}
+                                            ref={(el) => {
+                                                ref(el);
+                                                inputRef.current = el;
+                                            }}
+                                            placeholder="Project Value in ₹"
+                                            value={formattedValue||""}
+                                            onChange={(e) => {
+                                                const input = e.target;
+                                                const cursorPos = input.selectionStart;
+
+                                                const rawDigits = e.target.value.replace(/[^0-9]/g, "");
+
+                                                const oldFormatted = formatINRCurrency(value || "");
+                                                const newFormatted = formatINRCurrency(rawDigits);
+
+                                                const oldCommas = (oldFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+                                                const newCommas = (newFormatted.slice(0, cursorPos).match(/,/g) || []).length;
+                                                const diff = newCommas - oldCommas;
+
+                                                onChange(rawDigits);
+
+                                                setTimeout(() => {
+                                                const newPos = cursorPos + diff;
+                                                input.setSelectionRange(newPos, newPos);
+                                                }, 0);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                                e.preventDefault();
+                                                }
+                                            }}
+                                            onBlur={onBlur}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {error?.message}
+                                            </Form.Control.Feedback>
+                                        </>
+                                        );
+                                    }}
+                                    />
+                                </div>
+                            </Form.Group>
+                        )}
                     </div>
+                     {disableProjectValueYearly && (
+                        <div className="mt-3">
+                            <Form.Label className="fs-5 fw-bolder">
+                            Project Values Yearly Wise With (GST) <span className="text-danger">*</span>
+                            </Form.Label>
+
+                            <Table bordered hover responsive className="mt-2">
+                            <thead className="custom-thead">
+                                <tr>
+                                <th style={{ width: "50%" }}>Financial Year</th>
+                                <th style={{ width: "50%" }}>Project Value (₹)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {yearlyFields.map((fieldData, index) => (
+                                <tr key={fieldData.yearRange || index}>
+                                    <td className="align-middle">
+                                    {fieldData.yearRange}
+                                    <Controller
+                                        name={`projectValueYearly[${index}].financialYear`}
+                                        control={control}
+                                        defaultValue={fieldData.yearRange}
+                                        render={({ field }) => <input type="hidden" {...field} />}
+                                    />
+                                    </td>
+                                    <td>
+                                    <Controller
+                                        name={`projectValueYearly[${index}].amount`}
+                                        control={control}
+                                        defaultValue={fieldData.value}
+                                        render={({ field: { onChange, value, ref } }) => (
+                                        <Form.Control
+                                            type="text"
+                                            inputMode="numeric"
+                                            className="form-control"
+                                            placeholder={`Enter value for ${fieldData.yearRange}`}
+                                            value={value ? formatINRCurrency(value) : ""}
+                                            onChange={(e) => {
+                                            const input = e.target;
+                                            const cursorPosition = input.selectionStart;
+                                            const raw = e.target.value.replace(/[^0-9]/g, "");
+                                            const formatted = formatINRCurrency(raw);
+                                            const prevCommas =
+                                                (formatINRCurrency(value || "")
+                                                .slice(0, cursorPosition)
+                                                .match(/,/g) || []).length;
+                                            const newCommas =
+                                                (formatted.slice(0, cursorPosition).match(/,/g) || []).length;
+                                            const commaDiff = newCommas - prevCommas;
+
+                                            onChange(raw);
+
+                                            setTimeout(() => {
+                                                const newPos = cursorPosition + commaDiff;
+                                                input.setSelectionRange(newPos, newPos);
+                                            }, 0);
+                                            }}
+                                            ref={ref}
+                                            onKeyDown={(e) => {
+                                            if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                                e.preventDefault();
+                                            }
+                                            }}
+                                        />
+                                        )}
+                                    />
+                                    </td>
+                                </tr>
+                                ))}
+                            </tbody>
+                            </Table>
+                        </div>
+                    )}
                 </div>
                 <h1 className="pt-5 fw-bolder">Contact Details Of Client</h1>
                 <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>

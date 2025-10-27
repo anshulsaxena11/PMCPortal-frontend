@@ -14,7 +14,6 @@ const ProjectDetailView = () => {
   const fetchProjectDetails = async () => {
     try {
       const response = await getProjectDetailsById(id); 
-      console.log(response)
       setProject(response.data);
     } catch (error) {
       console.error('Error fetching project details:',);
@@ -31,12 +30,15 @@ const ProjectDetailView = () => {
     'workOrderNo',
     'orderType', 
     'type', 
-    'domain',
+    'domainValue',
     'orginisationName', 
     'projectName',
     'startDate',
     'endDate',
-    'projectValue',
+    'paymentMethod',
+     ...(project.paymentMethod === 'Yearly Payment'
+      ? ['projectValueYearly']
+      : ['projectValue']),
     'projectManager', 
     'typeOfWork',
     'projectType', 
@@ -61,12 +63,14 @@ const ProjectDetailView = () => {
     workOrderNo: 'Work Order Number',
     orderType: 'Order Type',
     type: 'Type',
-    domain:'Domain',
+    domainValue:'Domain',
     orginisationName: 'Organisation Name',
     projectName: 'Project Name',
     startDate: 'Start Date',
     endDate: 'End Date',
-    projectValue: 'Project Value (GST)',
+    paymentMethod: 'Payment Method',  
+    projectValue: 'Project Value with (GST)',
+    projectValueYearly: 'Project Value Yearly with (GST)',
     projectManager: 'Project Manager',
     typeOfWork: 'Type Of Work',
     projectType: 'Scope of Work',

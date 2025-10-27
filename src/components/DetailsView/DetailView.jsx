@@ -157,6 +157,47 @@ const DetailViewTable = ({
                   );
                 }
 
+                if (field === "projectValueYearly") {
+                  return (
+                    <tr key={index}>
+                      <td><strong>{label}:</strong></td>
+                      <td>
+                        {value.length > 0 ? (
+                          <div
+                            style={{
+                              maxHeight: "250px",
+                              maxWidth: "100%",
+                              overflowX: "auto",
+                              overflowY: "auto",
+                            }}
+                          >
+                            <Table striped bordered hover size="sm">
+                              <thead>
+                                <tr>
+                                  <th>S.No</th>
+                                  <th>Financial Year</th>
+                                  <th>Amount</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {value.map((item, idx) => (
+                                  <tr key={item._id || idx}>
+                                    <td>{idx + 1}</td>
+                                    <td>{item.financialYear || "N/A"}</td>
+                                    <td>{item.amount ? `${new Intl.NumberFormat('en-IN').format(item.amount)}₹` : "N/A"}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </Table>
+                          </div>
+                        ) : (
+                          <span>No Proof of Concept available</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                }
+
       
                 const showFields = nestedFields[field] || [];
                 const showLabels = nestedFields[`${field}Labels`] || {};

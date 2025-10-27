@@ -362,9 +362,11 @@ const HomePage = () => {
     if (selected?.value === "Fixed Payment") {
       setDisableProjectValue(true);
       setDisableProjectValueYearly(false);
+      setValue("yearlyProjectValues", [])
     } else if (selected?.value === "Yearly Payment") {
       setDisableProjectValueYearly(true);
       setDisableProjectValue(false);
+      setValue("ProjectValue", "")
     } else {
       setDisableProjectValue(false);
       setDisableProjectValueYearly(false);
@@ -826,12 +828,11 @@ const HomePage = () => {
                                   }
                                 }}
                                 />
-                                {errors.yearlyProjectValues &&
-                                  errors.yearlyProjectValues[index] &&(
-                                    <p className="text-danger">
-                                      {errors.yearlyProjectValues.message }
+                                {index === 0 && errors.yearlyProjectValues?.message && (
+                                    <p className="text-danger mt-1">
+                                      {errors.yearlyProjectValues.message}
                                     </p>
-                                )}
+                                  )}
                                 </>
                             )}
                           />
@@ -849,7 +850,6 @@ const HomePage = () => {
                   </tbody>
                 </Table>
                 </div>
-
               )}
             </div>
             <h1 className="pt-5 fw-bolder">Contact Details Of Client</h1>
