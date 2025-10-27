@@ -197,6 +197,8 @@ const handleMouseEnter = () => {
     { role: "SubAdmin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
     { role: "SubAdmin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "SubAdmin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
+    { role: "SubAdmin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
+    { role: "SubAdmin", label: "Generate File", icon: <TbReportAnalytics />, path: "/ReportPdfGenerator" },
     { role: "SubAdmin", label: "Tools/Hardware Mapping", icon: <FaTools />, path: "/Tools-Hardware-list" },
     { role: "SubAdmin", label: "Sales Tracking", icon: <CgListTree />, path: "/tender-list" },
     { role: "SubAdmin", label: "Certificates", icon: <PiCertificateBold  />, path: "/certificate" },
@@ -230,7 +232,7 @@ const handleMouseEnter = () => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton onClick={toggleDrawer} sx={{ color: "white", mr: 2 }}>
+          <IconButton onClick={toggleDrawer} sx={{ color: "#1abc9c", mr: 2 }}>
             <MenuIcon />
           </IconButton>
           <Typography variant="h6">STPI</Typography>
@@ -379,7 +381,7 @@ const handleMouseEnter = () => {
               return (
                 <React.Fragment key={index}>
                   <ListItem button onClick={() => handleToggleGroup(item.label)} sx={{ px: 2,  cursor: !isDrawerOpen  ? "default" : "pointer", }}>
-                    <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center", }}>
+                    <ListItemIcon sx={{ fontSize: '20px', minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center", color:'#1abc9c'}}>
                       {item.icon}
                     </ListItemIcon>
                     {isDrawerOpen  && (
@@ -411,7 +413,7 @@ const handleMouseEnter = () => {
                               },
                             }}
                           >
-                            <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
+                            <ListItemIcon sx={{ fontSize: '20px', minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center",color:'#1abc9c' }}>
                               {child.icon}
                             </ListItemIcon>
                             {isDrawerOpen  && <ListItemText primary={child.label} />}
@@ -441,7 +443,7 @@ const handleMouseEnter = () => {
                         },
                       }}
                     >
-                      <ListItemIcon sx={{ color: "white", minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center" }}>
+                      <ListItemIcon sx={{fontSize: '20px',minWidth: 0, mr: isDrawerOpen  ? 2 : "auto", justifyContent: "center",color:'#1abc9c' }}>
                         {item.icon}
                       </ListItemIcon>
                       {isDrawerOpen  && <ListItemText primary={item.label} />}

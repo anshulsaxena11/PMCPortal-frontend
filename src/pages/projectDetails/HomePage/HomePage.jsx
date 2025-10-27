@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import Form from "react-bootstrap/Form";
+import { Form, Table } from "react-bootstrap";
 import { yupResolver } from "@hookform/resolvers/yup";
 import validationSchema from '../../../validation/validationSchema'
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -26,7 +26,7 @@ import "./homePage.css";
 
 
 const HomePage = () => {
-  const { control, handleSubmit, formState: { errors }, setValue,reset,trigger } = useForm({
+  const { control, handleSubmit, formState: { errors }, setValue,reset,trigger,watch,getValues } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
       selectedProjectTypes: [],
@@ -35,7 +35,8 @@ const HomePage = () => {
       SecondaryEmail:"",
       SecondaryPhoneNo:"",
       SecondaryFullName:"",
-      secondaryRoleAndDesignation:""
+      secondaryRoleAndDesignation:"",
+      projectValue:""
     },
   });
 
@@ -47,6 +48,10 @@ const HomePage = () => {
   const [selectedTypeOptions, setSelectedTypeOptions] = useState([]);
   const [selectedDomainOptions, setSelectedDomainOptions] = useState([]);
   const [directrateOptions, setDirectrateOptions]= useState([])
+  const [yearlyFields, setYearlyFields] = useState([]);
+  const [selectPaymentMethodOptions, setSelectPaymentMethodOptions]= useState([])
+  const [disableProjectValue,setDisableProjectValue] = useState(false)
+  const [disableProjectValueYearly,setDisableProjectValueYearly] = useState(false)
   const [error, setError] = useState(null);
   const [projectTypes, setProjectTypes] = useState([]);
   const [disableScopeOfWork,setDisableScopeOfWork] =useState()
@@ -66,6 +71,10 @@ const HomePage = () => {
     {value:"Govt",label:"Govt"},
     {value:"Private",label:"Private"},
   ]
+  const paymentMethodOptions = [
+    { value: 'Fixed Payment', label: 'Fixed Payment' },
+    { value: 'Yearly Payment', label: 'Yearly Payment' },
+  ];
 
    useEffect(() => {
       fetchData();
@@ -107,6 +116,13 @@ const HomePage = () => {
     }
     fetchTypeOfWork()
   },[])
+  useEffect(() => {
+    if (selectPaymentMethodOptions?.value === "Yearly Payment") {
+      generateYearlyFields();
+    } else {
+      setYearlyFields([]);
+    }
+  }, [watch("startDate"), watch("endDate"), selectPaymentMethodOptions]);
 
   
   useEffect(() => {
@@ -187,12 +203,20 @@ const HomePage = () => {
       primaryPersonEmail: data.PrimaryEmail,
       directrate: data.DirectrateName,
       typeOfWork: data.typeOfWork,
+      paymentMethod: data.paymentMethod,
       serviceLocation: data.ServiceLoction,
       secondaryRoleAndDesignation: data.secondaryRoleAndDesignation,
       primaryRoleAndDesignation:data.primaryRoleAndDesignation,
       projectManager:data.projectManager,
       projectType: data.selectedProjectTypes.map(type => type.value),
       workOrder: uploadedFile,
+      projectValueYearly:
+        data.paymentMethod === "Yearly Payment"
+          ? data.yearlyProjectValues.map((item) => ({
+              financialYear: item.yearRange,
+              amount: item.value ? item.value.toString() : "0",
+            }))
+        : [],
     };
  
     setLoading(true);
@@ -217,6 +241,7 @@ const HomePage = () => {
           PrimaryEmail: '',
           DirectrateName: '',
           ServiceLoction: '',
+          paymentMethod:'',
           projectManager: '',
           typeOfWork:null,
           selectedProjectTypes: [],
@@ -233,6 +258,9 @@ const HomePage = () => {
         setSelectedOrderTypeOptions(null)
         setSelectedDomainOptions(null)
         setSelectedTypeOptions(null)
+        setSelectPaymentMethodOptions(null)
+        setDisableProjectValue(false);
+        setDisableProjectValueYearly(false);
         setUploadedFile(null);
         setFileType("");
         setDisableScopeOfWork('')
@@ -330,6 +358,49 @@ const HomePage = () => {
     const formattedRest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
     return formattedRest + ',' + lastThree;
   };
+  const handlePaymentMethodChange = (selected) =>{
+    if (selected?.value === "Fixed Payment") {
+      setDisableProjectValue(true);
+      setDisableProjectValueYearly(false);
+    } else if (selected?.value === "Yearly Payment") {
+      setDisableProjectValueYearly(true);
+      setDisableProjectValue(false);
+    } else {
+      setDisableProjectValue(false);
+      setDisableProjectValueYearly(false);
+    }
+    setSelectPaymentMethodOptions(selected)
+    const value = selected?.value
+    setValue('paymentMethod',value)
+  }
+
+  const generateYearlyFields = () => {
+    const start = getValues("startDate");
+    const end = getValues("endDate");
+
+    if (!start || !end) return;
+
+    const startYear = new Date(start).getFullYear();
+    const startMonth = new Date(start).getMonth() + 1;
+    const endYear = new Date(end).getFullYear();
+    const endMonth = new Date(end).getMonth() + 1;
+
+
+    let fyStart = startMonth < 4 ? startYear - 1 : startYear;
+    let fyEnd = endMonth >= 4 ? endYear : endYear - 1;
+
+    const fields = [];
+
+    for (let year = fyStart; year <= fyEnd; year++) {
+      fields.push({
+        yearRange: `${year}-${year + 1}`,
+        value: "",
+      });
+  }
+
+  setYearlyFields(fields);
+};
+
 
   return (
     <div className="home-page">
@@ -456,69 +527,6 @@ const HomePage = () => {
                   />
                   {errors.OrganisationName && <p className="text-danger">{errors.OrganisationName.message}</p>}
                 </Form.Group>
-                <Form.Group className="mb-3" controlId="ProjectValue">
-                  <Form.Label className="fs-5 fw-bolder">Project value (GST)<span className="text-danger">*</span></Form.Label>
-                   <Controller
-                      name="ProjectValue"
-                      control={control}
-                      render={({ field: { onChange, onBlur, value, ref } }) => (
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          className="form-control"
-                          placeholder="Project Value in ₹"
-                          value={value ? formatINRCurrency(value) : ""}
-                          onChange={(e) => {
-                            const input = e.target;
-                            const cursorPosition = input.selectionStart;
-                            const raw = e.target.value.replace(/[^0-9]/g, '');
-                            const formatted = formatINRCurrency(raw);
-                            const prevCommas = (formatINRCurrency(value || "").slice(0, cursorPosition).match(/,/g) || []).length;
-                            const newCommas = (formatted.slice(0, cursorPosition).match(/,/g) || []).length;
-                            const commaDiff = newCommas - prevCommas;
-
-                            onChange(raw);
-
-                            setTimeout(() => {
-                              const newPos = cursorPosition + commaDiff;
-                              input.setSelectionRange(newPos, newPos);
-                            }, 0);
-                          }}
-                          onBlur={onBlur}
-                          ref={(el) => {
-                            ref(el);
-                            inputRef.current = el;
-                          }}
-                          onKeyDown={(e) => {
-                            if (["e", "E", "+", "-", "."].includes(e.key)) {
-                              e.preventDefault();
-                            }
-                          }}
-                        />
-                      )}
-                    />
-                  {errors.ProjectValue && <p className="text-danger">{errors.ProjectValue.message}</p>}
-                </Form.Group>
-                <Form.Group className="mb-3">
-                  <Form.Label className="fs-5 fw-bolder">Service Location<span className="text-danger">*</span></Form.Label>
-                  <Controller
-                    name="ServiceLoction"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder="Location from where Project will be Executed"/>}
-                  />
-                  {errors.ServiceLoction && <p className="text-danger">{errors.ServiceLoction.message}</p>}
-                </Form.Group>
-              </div>
-              <div className="col-sm-3 col-md-3 col-lg-3"> 
-                <Form.Group className="mb-3" controlId="PriojectName">
-                  <Form.Label className="fs-5 fw-bolder">Project Name<span className="text-danger">*</span></Form.Label>
-                  <Controller
-                    name="ProjectName"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Name" />}
-                  />
-                  {errors.ProjectName && <p className="text-danger">{errors.ProjectName.message}</p>}
-                </Form.Group>
                   <Form.Group className="mb-3">
                     <Form.Label className="fs-5 fw-bolder">Type Of Work<span className="text-danger">*</span></Form.Label>
                      <Controller
@@ -538,29 +546,29 @@ const HomePage = () => {
                       />
                        {errors.typeOfWork && <p className="text-danger">{errors.typeOfWork.message}</p>}
                     </Form.Group>
-                     <Form.Group className="mb-3">
-                  <Form.Label className="fs-5 fw-bolder">Project Manager<span className="text-danger">*</span></Form.Label>
-                  <Controller
-                    name="projectManager"
-                    control={control}
-                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Manager Name" />}
-                  />
-                  {errors.projectManager && <p className="text-danger">{errors.projectManager.message}</p>}
-                </Form.Group>
-              </div>
-              <div className="col-sm-3 col-md-3 col-lg-3 ">
-                <Form.Group className="mb-3" controlId="StartDate">
-                    <Form.Label className="fs-5 fw-bolder">Start Date<span className="text-danger">*</span></Form.Label>
-                    <div className="row px-2">
-                      <Controller
-                        name="startDate"
-                        control={control}
-                        render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select Start Date" />}
+                    <Form.Group className="mb-3">
+                      <Form.Label className="fs-5 fw-bolder">Project Manager<span className="text-danger">*</span></Form.Label>
+                        <Controller
+                          name="projectManager"
+                          control={control}
+                          render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Manager Name" />}
                         />
-                      {errors.startDate && <p className="text-danger">{errors.startDate.message}</p>}
-                    </div>
-                  </Form.Group>
-                    {disableScopeOfWork &&(
+                        {errors.projectManager && <p className="text-danger">{errors.projectManager.message}</p>}
+                      </Form.Group>
+                
+                
+              </div>
+              <div className="col-sm-3 col-md-3 col-lg-3"> 
+                <Form.Group className="mb-3" controlId="PriojectName">
+                  <Form.Label className="fs-5 fw-bolder">Project Name<span className="text-danger">*</span></Form.Label>
+                  <Controller
+                    name="ProjectName"
+                    control={control}
+                    render={({ field }) => <input {...field} className="form-control" placeholder="Enter Project Name" />}
+                  />
+                  {errors.ProjectName && <p className="text-danger">{errors.ProjectName.message}</p>}
+                </Form.Group>
+                  {disableScopeOfWork &&(
                 <Form.Group className="mb-3" >
                     <Form.Label className="fs-5 fw-bolder">Scope Of Work<span className="text-danger">*</span></Form.Label>
                     {projectTypes && Array.isArray(projectTypes) && projectTypes.length > 0 ? (
@@ -635,21 +643,20 @@ const HomePage = () => {
                   preview={preview}
                   fileType={fileType}
                 />
+                
               </div>
               <div className="col-sm-3 col-md-3 col-lg-3 ">
-                <Form.Group className="mb-3" controlId="EndDate">
-                      <Form.Label className="fs-5 fw-bolder">End Date<span className="text-danger">*</span></Form.Label>
-                      <div className="row px-2">
-                         
-                          <Controller
-                            name="endDate"
-                            control={control}
-                            render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select End Date" />}
-                          />
-                          {errors.endDate && <p className="text-danger">{errors.endDate.message}</p>}
-                       
-                      </div>
-                    </Form.Group>
+                <Form.Group className="mb-3" controlId="StartDate">
+                    <Form.Label className="fs-5 fw-bolder">Start Date<span className="text-danger">*</span></Form.Label>
+                    <div className="row px-2">
+                      <Controller
+                        name="startDate"
+                        control={control}
+                        render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select Start Date" />}
+                        />
+                      {errors.startDate && <p className="text-danger">{errors.startDate.message}</p>}
+                    </div>
+                  </Form.Group>
                     <Form.Group className="mb-3" controlId="directrate">
                           <Form.Label className="fs-5 fw-bolder">Directorates<span className="text-danger">*</span></Form.Label>
                           <Controller
@@ -669,8 +676,181 @@ const HomePage = () => {
                           />
                           {errors.DirectrateName && <p className="text-danger">{errors.DirectrateName.message}</p>}
                     </Form.Group>
+                  <Form.Group className="mb-3">
+                    <Form.Label className="fs-5 fw-bolder">Payment Method<span className="text-danger">*</span></Form.Label>
+                    <Controller
+                      name="paymentMethod"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          options={paymentMethodOptions}
+                          value={selectPaymentMethodOptions}
+                          isClearable
+                          isDisabled={loading}
+                          placeholder="Select Payment Method"
+                          onChange={handlePaymentMethodChange}
+                        />
+                      )}
+                    />
+                    {errors.paymentMethod && <p className="text-danger">{errors.paymentMethod.message}</p>}
+                  </Form.Group>
+                
+              </div>
+              <div className="col-sm-3 col-md-3 col-lg-3 ">
+                <Form.Group className="mb-3" controlId="EndDate">
+                      <Form.Label className="fs-5 fw-bolder">End Date<span className="text-danger">*</span></Form.Label>
+                      <div className="row px-2">
+                         
+                          <Controller
+                            name="endDate"
+                            control={control}
+                            render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select End Date" />}
+                          />
+                          {errors.endDate && <p className="text-danger">{errors.endDate.message}</p>}
+                       
+                      </div>
+                    </Form.Group>
+                  <Form.Group className="mb-3">
+                  <Form.Label className="fs-5 fw-bolder">Service Location<span className="text-danger">*</span></Form.Label>
+                  <Controller
+                    name="ServiceLoction"
+                    control={control}
+                    render={({ field }) => <input {...field} className="form-control" placeholder="Location from where Project will be Executed"/>}
+                  />
+                  {errors.ServiceLoction && <p className="text-danger">{errors.ServiceLoction.message}</p>}
+                </Form.Group>
+                {disableProjectValue &&(
+                <Form.Group className="mb-3" controlId="ProjectValue">
+                  <Form.Label className="fs-5 fw-bolder">Project value With (GST)<span className="text-danger">*</span></Form.Label>
+                   <Controller
+                      name="ProjectValue"
+                      control={control}
+                      render={({ field: { onChange, onBlur, value, ref } }) => (
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          className="form-control"
+                          placeholder="Project Value in ₹"
+                          value={value ? formatINRCurrency(value) : ""}
+                          onChange={(e) => {
+                            const input = e.target;
+                            const cursorPosition = input.selectionStart;
+                            const raw = e.target.value.replace(/[^0-9]/g, '');
+                            const formatted = formatINRCurrency(raw);
+                            const prevCommas = (formatINRCurrency(value || "").slice(0, cursorPosition).match(/,/g) || []).length;
+                            const newCommas = (formatted.slice(0, cursorPosition).match(/,/g) || []).length;
+                            const commaDiff = newCommas - prevCommas;
+
+                            onChange(raw);
+
+                            setTimeout(() => {
+                              const newPos = cursorPosition + commaDiff;
+                              input.setSelectionRange(newPos, newPos);
+                            }, 0);
+                          }}
+                          onBlur={onBlur}
+                          ref={(el) => {
+                            ref(el);
+                            inputRef.current = el;
+                          }}
+                          onKeyDown={(e) => {
+                            if (["e", "E", "+", "-", "."].includes(e.key)) {
+                              e.preventDefault();
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  {errors.ProjectValue && <p className="text-danger">{errors.ProjectValue.message}</p>}
+                </Form.Group> 
+                )}
 
               </div>
+              {disableProjectValueYearly && (
+                <div>
+                  <Form.Label className="fs-5 fw-bolder">
+                    Project Values Yearly Wise With (GST) <span className="text-danger">*</span>
+                  </Form.Label>
+
+                <Table bordered hover responsive className="mt-2">
+                    <thead className="custom-thead">
+                    <tr>
+                      <th style={{ width: "50%" }}>Financial Year</th>
+                      <th style={{ width: "50%" }}>Project Value (₹)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {yearlyFields.map((fieldData, index) => (
+                      <tr key={fieldData.yearRange}>
+                        <td className="align-middle">{fieldData.yearRange}</td>
+                        <td>
+                          <Controller
+                            name={`yearlyProjectValues[${index}].value`}
+                            control={control}
+                            defaultValue=""
+                            render={({ field: { onChange, onBlur, value, ref } }) => (
+                              <>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                className="form-control"
+                                placeholder={`Enter value for ${fieldData.yearRange}`}
+                                value={value ? formatINRCurrency(value) : ""}
+                                onChange={(e) => {
+                                  const input = e.target;
+                                  const cursorPosition = input.selectionStart;
+                                  const raw = e.target.value.replace(/[^0-9]/g, "");
+                                  const formatted = formatINRCurrency(raw);
+                                  const prevCommas =
+                                    (formatINRCurrency(value || "")
+                                      .slice(0, cursorPosition)
+                                      .match(/,/g) || []).length;
+                                  const newCommas =
+                                    (formatted.slice(0, cursorPosition).match(/,/g) || [])
+                                      .length;
+                                  const commaDiff = newCommas - prevCommas;
+
+                                  onChange(raw);
+
+                                  setTimeout(() => {
+                                    const newPos = cursorPosition + commaDiff;
+                                    input.setSelectionRange(newPos, newPos);
+                                  }, 0);
+                                }}
+                                onBlur={onBlur}
+                                ref={ref}
+                                onKeyDown={(e) => {
+                                  if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                />
+                                {errors.yearlyProjectValues &&
+                                  errors.yearlyProjectValues[index] &&(
+                                    <p className="text-danger">
+                                      {errors.yearlyProjectValues.message }
+                                    </p>
+                                )}
+                                </>
+                            )}
+                          />
+
+                          {/* Hidden field for yearRange */}
+                          <Controller
+                            name={`yearlyProjectValues[${index}].yearRange`}
+                            control={control}
+                            defaultValue={fieldData.yearRange}
+                            render={({ field }) => <input type="hidden" {...field} />}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+                </div>
+
+              )}
             </div>
             <h1 className="pt-5 fw-bolder">Contact Details Of Client</h1>
             <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>

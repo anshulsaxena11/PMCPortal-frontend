@@ -498,7 +498,7 @@ const ReportPdfGenerator = () => {
                             
                             <tr>
                               <td style={{ backgroundColor:"#b6dde8" }}>Vulnerable Parameter</td>
-                              <td>{item.vulnerableParameter}</td>
+                              <td>{item.vulnerabilityName}</td>
                             </tr>
                             <tr>
                               <td style={{ backgroundColor:"#b6dde8" }}>References</td>

@@ -3,9 +3,12 @@ import axiosInstance from "../axiosconfig";
 export const postPerseonlData = async (payload) => {
   const formData = new FormData();
 
+  
   Object.keys(payload).forEach((key) => {
-    if (key !== 'workOrder') {
-      formData.append(key, payload[key]);
+    if (key === 'projectValueYearly') {
+      formData.append(key, JSON.stringify(payload[key])); 
+    } else if (key !== 'workOrder') {
+      formData.append(key, payload[key]); 
     }
   });
 
