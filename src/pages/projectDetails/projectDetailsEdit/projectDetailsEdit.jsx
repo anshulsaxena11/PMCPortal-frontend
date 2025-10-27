@@ -770,7 +770,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                         </Form.Group>
                         {disableProjectValue &&(
                             <Form.Group>
-                                <Form.Label className="fs-5 fw-bolder pt-3">Project Value ₹ (GST) <span className="text-danger">*</span></Form.Label>
+                                <Form.Label className="fs-5 fw-bolder pt-3">Project Value in ₹ with (GST) <span className="text-danger">*</span></Form.Label>
                                 <div className="position-relative">
                                     <Controller
                                     name="projectValue"
