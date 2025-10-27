@@ -315,7 +315,9 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                     }));
 
                 if (formattedYearlyValues.length === 0 || !formattedYearlyValues[0].amount) {
-                    toast.error("Please enter the first year's project value before submitting.");
+                    toast.error("Please enter the first year's project value before submitting.",{
+                        className: 'custom-toast custom-toast-error',
+                    });
                     setLoading(false);
                     return;
                 }
