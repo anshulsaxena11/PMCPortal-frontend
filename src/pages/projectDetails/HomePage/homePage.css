@@ -32,3 +32,8 @@
   .custom-toast-warning {
     background: #ffc107; 
   }
+ .custom-thead th {
+    background-color: #AAC9D5 !important;
+    font-weight: bold;
+    text-align: center;
+  }
