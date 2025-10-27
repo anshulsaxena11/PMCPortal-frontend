@@ -10,7 +10,6 @@ import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import ProjectsDashboard from '../../components/dashboard/ProjectsDashboard'; 
 import SalesTrackingDashboard from '../../components/dashboard/SalesTrackingDashboard'; 
 import CertificateDashboard from '../../components/dashboard/CertificateDashboard'; 
-import SkillsMappingDashboard from '../../components/dashboard/SkillsMappingDashboard'; 
 import UsersDashboard from '../../components/dashboard/UsersDashboard'; 
 import "./dashboard.css"; 
 
@@ -19,7 +18,6 @@ const tabData = [
   { label: 'Sales Tracking', icon: <RequestQuoteIcon />, key: 'salesTracking' },
   { label: 'Users', icon: <CgProfile />, key: 'users' },
   { label: 'Certificates', icon: <TbCertificate />, key: 'certificates' },
-  { label: 'Skills Mapping', icon: <GiSkills />, key: 'skillsmapping' },
 ];
 
 export default function Dashboard() {
@@ -35,8 +33,6 @@ export default function Dashboard() {
         return <UsersDashboard />;
          case 3:
         return <CertificateDashboard />;
-        case 4:
-        return <SkillsMappingDashboard />;
       default:
         return <ProjectsDashboard />;
     }
