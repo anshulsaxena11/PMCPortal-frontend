@@ -81,8 +81,7 @@ yearlyProjectValues: yup
         })
         .typeError("Must be a number")
         .positive("Value must be positive")
-        .nullable()
-        .required("Project Value is required"),
+        .nullable(),
     })
   )
   .when("paymentMethod", {
@@ -91,7 +90,16 @@ yearlyProjectValues: yup
       schema.test(
         "first-required",
         "Project Value for first year is required",
-        (yearlyArray) => yearlyArray && yearlyArray[0]?.value !== undefined
+        (yearlyArray) => {
+          // Ensure array exists
+          if (!yearlyArray || yearlyArray.length === 0) return false;
+
+          // ✅ Only first element required
+          const firstValue = yearlyArray[0]?.value;
+
+          // Pass validation only if first value is filled
+          return firstValue !== undefined && firstValue !== null && firstValue !== "";
+        }
       ),
     otherwise: (schema) => schema.notRequired(),
   }),
