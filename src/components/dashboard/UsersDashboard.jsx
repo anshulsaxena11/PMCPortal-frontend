@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Box, Typography, TextField, Stack, Button } from '@mui/material';
 import { Card } from 'react-bootstrap';
 // Assuming you have a CustomDataGrid component and user columns defined elsewhere
@@ -11,9 +11,14 @@ import 'jspdf-autotable';
 const userCols = [
     { field: 'sno', headerName: 'S.No', width: 80 },
     { field: 'ename', headerName: 'Name', flex: 1 },
-    { field: 'empId', headerName: 'Employee ID', flex: 1 },
-    { field: 'email', headerName: 'Email', flex: 1.5 },
-   
+    { field: 'email', headerName: 'Email', flex: 1.2 },
+    // NEW: State Coordinator column (shows Yes/No)
+    {
+        field: 'StateCordinator',
+        headerName: 'State Coordinator',
+        width: 150,
+        renderCell: (params) => (params.value === true || String(params.value).toLowerCase() === 'true') ? 'Yes' : 'No'
+    },
     { 
         field: 'taskForceMember', 
         headerName: 'Task Force Member', 
@@ -22,9 +27,10 @@ const userCols = [
     },
     { 
         field: 'StatusNoida', 
-        headerName: 'Status Noida', 
-        width: 150,
-        renderCell: (params) => (params.value === true || String(params.value).toLowerCase() === 'true') ? 'True' : 'False'
+        headerName: 'VAPT Team Member', 
+        width: 130,
+        // show "Yes" / "No" instead of "True"/"False"
+        renderCell: (params) => (params.value === true || String(params.value).toLowerCase() === 'true') ? 'Yes' : 'No'
     },
 ];
 // ----------------------------------------------------
@@ -41,21 +47,18 @@ function getFilteredRows(rows, term) {
 }
 // --- Export Functionality (Placeholder for CSV/PDF) ---
 const exportToCsv = (data, filename = 'user_data') => {
-    // Helper function to convert data to CSV string
     const convertToCSV = (arr) => {
         const headers = userCols.map(col => col.headerName).join(',');
         const rows = arr.map(row => 
             userCols.map(col => {
                 let value = col.valueGetter ? col.valueGetter({row}) : row[col.field];
-
-                // Simple boolean/string formatting for display
                 if (col.field === 'taskForceMember') {
                     value = String(value || '').trim().toLowerCase() === 'yes' ? 'Yes' : 'No';
                 } else if (col.field === 'StatusNoida') {
-                    value = (value === true || String(value).toLowerCase() === 'true') ? 'True' : 'False';
+                    value = (value === true || String(value).toLowerCase() === 'true') ? 'Yes' : 'No';
+                } else if (col.field === 'StateCordinator') {
+                    value = (value === true || String(value).toLowerCase() === 'true') ? 'Yes' : 'No';
                 }
-
-                // Handle commas in text fields
                 return `"${String(value || '').replace(/"/g, '""')}"`;
             }).join(',')
         );
@@ -77,7 +80,6 @@ const exportToCsv = (data, filename = 'user_data') => {
 };
 
 const exportToPdf = (data, filename = 'user_data') => {
-    // PDF export logic remains the same (uses jspdf and jspdf-autotable)
     const doc = new jsPDF({ orientation: 'landscape' });
     doc.text(`User Report - Filter: ${data.length} users`, 14, 10);
 
@@ -85,14 +87,13 @@ const exportToPdf = (data, filename = 'user_data') => {
     const body = data.map(row => 
         userCols.map(col => {
             let value = col.valueGetter ? col.valueGetter({row}) : row[col.field];
-
-            // Simple boolean/string formatting for display
             if (col.field === 'taskForceMember') {
                 value = String(value || '').trim().toLowerCase() === 'yes' ? 'Yes' : 'No';
             } else if (col.field === 'StatusNoida') {
-                value = (value === true || String(value).toLowerCase() === 'true') ? 'True' : 'False';
+                value = (value === true || String(value).toLowerCase() === 'true') ? 'Yes' : 'No';
+            } else if (col.field === 'StateCordinator') {
+                value = (value === true || String(value).toLowerCase() === 'true') ? 'Yes' : 'No';
             }
-            
             return String(value || 'N/A');
         })
     );
@@ -106,8 +107,6 @@ const exportToPdf = (data, filename = 'user_data') => {
     });
     doc.save(`${filename}.pdf`);
 };
-
-// ----------------------------------------------------
 
 // Simplified/New Styles (matching the target dashboard)
 const statCardStyle = {
@@ -125,15 +124,17 @@ export default function UsersDashboard() {
     const [page, setPage] = useState(0); // for CustomDataGrid
     const [pageSize, setPageSize] = useState(10); // for CustomDataGrid
 
+    // new state: which user subset to show in list
+    // default to state coordinators as requested
+    const [selectedUserFilter, setSelectedUserFilter] = useState('stateCoordinator'); // 'all' | 'taskForce' | 'vapt' | 'stateCoordinator'
+    const gridRef = useRef(null);
+
     const fetchUsers = async () => {
         setLoading(true);
         try {
            const res = await getLoginList({ page: 1, limit: 10000, search: '' });
             const all = res?.data?.data || [];
-            
-            // Add an ID to each user for the DataGrid
             const processedUsers = all.map((u, i) => ({ ...u, id: u._id || i + 1 }));
-
             setUsers(processedUsers);
             const dirs = Array.from(new Set(all.map(u => u.dir || u.directrate || 'Unknown')));
             setDirectorates(dirs.filter(Boolean));
@@ -168,51 +169,61 @@ export default function UsersDashboard() {
     const dirArray = Object.keys(dirMap).map(k => ({ directorate: k, ...dirMap[k] }));
     dirArray.sort((a, b) => b.count - a.count);
 
-    // --- Right Content Stats Array (Matching target dashboard's stats structure) ---
+    // --- Right Content Stats Array (clickable) ---
     const stats = [
-        { title: "Total Users", value: totalUsers },
-        { title: "Task Force User", value: taskForceYes},
-        { title: "VAPT User", value: taskForceNo },       
-        { title: "State Coordinator", value: StateCordinatorCount},
+        { key: 'all', title: "Total Users", value: totalUsers },
+        { key: 'taskForce', title: "Task Force User", value: taskForceYes},
+        { key: 'vapt', title: "VAPT User", value: statusNoidaCount },       
+        { key: 'stateCoordinator', title: "State Coordinator", value: StateCordinatorCount},
     ];
     
-    // --- Filtering Logic (Combined original and target component structure) ---
+    // --- Filtering Logic --- (directorate & search first, then selectedUserFilter)
     let filteredUsers = users;
 
-    // 1. Directorate Filter
     if (selectedDirectorate !== 'All') {
         filteredUsers = filteredUsers.filter(u => {
             const dir = u.dir || u.directrate || 'Unknown';
             return dir === selectedDirectorate;
         });
     }
-
-    // 2. Search Term Filter (Simplified to use the utility function)
     filteredUsers = getFilteredRows(filteredUsers, search);
-    // ----------------------------------------------------
+
+    // apply selectedUserFilter
+    if (selectedUserFilter === 'taskForce') {
+        filteredUsers = filteredUsers.filter(u => String(u.taskForceMember || '').trim().toLowerCase() === 'yes');
+    } else if (selectedUserFilter === 'vapt') {
+        filteredUsers = filteredUsers.filter(u => u.StatusNoida === true || String(u.StatusNoida).toLowerCase() === 'true');
+    } else if (selectedUserFilter === 'stateCoordinator') {
+        filteredUsers = filteredUsers.filter(u => u.StateCordinator === true || String(u.StateCordinator).toLowerCase() === 'true');
+    } // 'all' => no additional filter
+
+    // helper to handle stat card click: set filter, reset directorate to All and scroll to grid
+    const onStatCardClick = (key) => {
+        setSelectedUserFilter(key);
+        setSelectedDirectorate('All');
+        setSearch('');
+        // scroll to grid
+        if (gridRef.current) {
+            gridRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
 
     return (
         <>
-            {/* Header/Filter Section - Matching target component's filter bar style */}
             <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
                 <Box>
                     <Typography variant="subtitle1" fontWeight="bold">Users Dashboard</Typography>
                 </Box>
                 <Box sx={{ flex: 1 }} />
-                
             </Stack>
 
-            <div className="dashboard-wrapper">
-
-                {/* Left Sidebar: Directorate Wise Users - Matching target component style */}
+            <div className="dashboard-wrapper" >
                 <aside className="left-sidebar">
                     <h5 className="left-title">Directorate Wise Users</h5>
                     <div className="left-scroll">
-                        
-                        {/* All Directorates Card */}
                         <Card
                             className="mb-2 left-item"
-                            onClick={() => setSelectedDirectorate('All')}
+                            onClick={() => { setSelectedDirectorate('All'); setSelectedUserFilter('all'); }}
                             style={{ cursor: 'pointer', background: selectedDirectorate === 'All' ? '#e0f7fa' : 'white', ...statCardStyle }}
                         >
                             <Card.Body className="py-2 px-3">
@@ -221,13 +232,11 @@ export default function UsersDashboard() {
                                 </div>
                                 <div className="mt-1 d-flex justify-content-between small">
                                     <span>Task Force User: {taskForceYes}</span>
-                                  
                                     <span>VAPT User: {statusNoidaCount}</span>
                                 </div>
                             </Card.Body>
                         </Card>
 
-                        {/* Individual Directorate Cards */}
                         {dirArray.map((d, i) => (
                             <Card
                                 key={i}
@@ -252,32 +261,32 @@ export default function UsersDashboard() {
                     </div>
                 </aside>
 
-
-<main className="right-content">
-          <h5 className="mb-3">Users Overview</h5> 
-          <div className="stats-grid">
-             {stats.map((s, i) => (
-              <Card key={i} className="stat-card">
-                <div className={`stat-header`}>
-                  {s.title}
-                </div>
-                <div className="stat-content">
-                  <div className={`stat-value`}>{s.value}</div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </main>
+                <main className="right-content">
+                    
+                    <h5 className="mb-3">Users Overview</h5> 
+                    <div className="stats-grid">
+                        
 
 
+                          {stats.map((s, i) => (
+                                      <Card   key={s.key} className="stat-card" onClick={() => onStatCardClick(s.key)}>
+                                        <div className={`stat-header`}>
+                                          {s.title}
+                                        </div>
+                                        <div className="stat-content">
+                                          <div className={`stat-value`}>{s.value}</div>
+                                        </div>
+                                      </Card>
+                                    ))}
 
-               
+                        
+                        
+                    </div>
+                </main>
             </div>
             
-            {/* User Details DataGrid Section (NEW) */}
-            
             <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 1 }}>
-                User Details ({selectedDirectorate !== 'All' ? selectedDirectorate : 'All Users'})
+                User Details ({selectedDirectorate !== 'All' ? selectedDirectorate : (selectedUserFilter === 'all' ? 'All Users' : selectedUserFilter === 'taskForce' ? 'Task Force Users' : selectedUserFilter === 'vapt' ? 'VAPT Users' : 'State Coordinators')})
             </Typography>
 
             <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
@@ -329,7 +338,7 @@ export default function UsersDashboard() {
                 </Button>
             </Stack>
 
-            <Box sx={{ height: 400 }}>
+            <Box sx={{ height: 400 }} ref={gridRef}>
                 <CustomDataGrid
                     rows={filteredUsers.map((row, index) => ({...row, sno: index + 1}))}
                     columns={userCols}

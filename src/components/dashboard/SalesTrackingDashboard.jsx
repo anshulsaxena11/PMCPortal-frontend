@@ -530,37 +530,9 @@ export default function SalesTrackingDashboard() {
         <main className="right-content">
           <h5 className="mb-3">Sales Overview</h5>
 
-          {/* NEW: Current Tenders box */}
-          <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
-            <Card style={{ minWidth: 260, borderRadius: 10 }}>
-              <div style={{ padding: '12px 16px', background: '#0b8b84', color: '#fff', fontWeight: 600 }}>
-                Current Tenders
-              </div>
-              <div style={{ padding: '12px 16px', background: '#fff' }}>
-                <div>Total: {currentSummary ? currentSummary.total : '...'}</div>
-                <div>Upload: {currentSummary ? currentSummary.upload : '...'}</div>
-                <div>Bidding: {currentSummary ? currentSummary.bidding : '...'}</div>
-                <div>Not Bidding: {currentSummary ? currentSummary.notBidding : '...'}</div>
-              </div>
-            </Card>
-
-            {/* NEW: Deleted Tenders box */}
-            <Card style={{ minWidth: 260, borderRadius: 10 }}>
-              <div style={{ padding: '12px 16px', background: '#6b5b95', color: '#fff', fontWeight: 600 }}>
-                Deleted Tenders
-              </div>
-              <div style={{ padding: '12px 16px', background: '#fff' }}>
-                <div>Total: {deletedSummary ? deletedSummary.total : '...'}</div>
-                <div>Upload: {deletedSummary ? deletedSummary.upload : '...'}</div>
-                <div>Bidding: {deletedSummary ? deletedSummary.bidding : '...'}</div>
-                <div>Not Bidding: {deletedSummary ? deletedSummary.notBidding : '...'}</div>
-                <div style={{ marginTop: 8 }}>Won: {deletedSummary ? deletedSummary.won : '...'} Lost: {deletedSummary ? deletedSummary.lost : '...'}</div>
-              </div>
-            </Card>
-          </div>
-
           <div className="stats-grid">
-            {stats.map((s, i) => (
+
+              {stats.map((s, i) => (
               <Card key={i} className="stat-card">
                 <div className={`stat-header`}>
                   {s.title}
@@ -570,6 +542,32 @@ export default function SalesTrackingDashboard() {
                 </div>
               </Card>
             ))}
+            
+            <Card  className="stat-card">
+                <div className= 'Current Tenders'>
+                 <h5>Current Tenders </h5>
+                 </div>
+                <div className="stat-content">
+                  Total : {currentSummary ? currentSummary.total : '...'}<br></br>
+                 Upload / Bidding: {currentSummary ? currentSummary.upload : '...'} / {currentSummary ? currentSummary.bidding : '...'}
+                </div>
+                <div>Not Bidding: {currentSummary ? currentSummary.notBidding : '...'}</div>
+                
+              </Card>
+
+              <Card  className="stat-card">
+                <div className= 'Deleted Tenders'>
+                  <h5>Deleted Tenders </h5>
+                 Total : {deletedSummary ? deletedSummary.total : '...'}<br></br>
+                 Upload / Bidding: {deletedSummary ? deletedSummary.upload : '...'} / {deletedSummary ? deletedSummary.bidding : '...'}
+                </div>
+                <div>Not Bidding: {deletedSummary ? deletedSummary.notBidding : '...'}</div>
+                <div className="stat-content">
+                   <div style={{ marginTop: 8 }}>Won / Lost: {deletedSummary ? deletedSummary.won : '...'} / {deletedSummary ? deletedSummary.lost : '...'}</div>
+                </div>
+              </Card>
+
+          
           </div>
         </main>
       </div>
