@@ -24,10 +24,29 @@ const validationSchema = yup.object({
   }),
   ProjectName: yup.string().required("Project Name is required"),
   device:yup.string(),
-  ProjectValue: yup.number().transform((value, originalValue) =>originalValue === "" ? undefined : value).positive().required("Project Value is required"),
+  ProjectValue: yup
+  .mixed()
+  .transform((value, originalValue) => {
+    if (originalValue === "" || originalValue === null) return undefined;
+    return Number(originalValue);
+  })
+  .when("paymentMethod", {
+    is: (val) => val === "Fixed Payment",
+    then: (schema) =>
+      schema
+        .typeError("Project Value is required")
+        .required("Project Value is required")
+        .test("is-positive", "Project Value must be positive", (val) => val > 0),
+    otherwise: (schema) =>
+      schema
+        .nullable()
+        .transform(() => "") 
+        .notRequired(),
+  }),
   ServiceLoction: yup.string().required("Service Location is required"),
   DirectrateName: yup.string().required("Directrate Name is required"),
   typeOfWork: yup.string().required("Type Of Work Required"),
+  paymentMethod: yup.string().required("Payment Method is required"),
   PrimaryFullName: yup.string().required("Primary Full Name is required"),
   SecondaryFullName: yup.string(),
   PrimaryPhoneNo: yup.string().matches(/^\d{10}$/, "Primary Phone Number must be 10 digits").required("Primary Phone Number is required"),
@@ -48,7 +67,34 @@ const validationSchema = yup.object({
       return value && value instanceof File && value.size <= 5 * 1024 * 1024;
     }).test('fileType', 'Unsupported file format', (value) => {
       return value && ['application/pdf', 'image/jpeg', 'image/jpg'].includes(value.type);
+    }),
+yearlyProjectValues: yup
+  .array()
+  .of(
+    yup.object({
+      yearRange: yup.string().required(),
+      value: yup
+        .number()
+        .transform((value, originalValue) => {
+          if (originalValue === "" || originalValue === null) return undefined;
+          return Number(originalValue);
+        })
+        .typeError("Must be a number")
+        .positive("Value must be positive")
+        .nullable()
+        .required("Project Value is required"),
     })
+  )
+  .when("paymentMethod", {
+    is: (val) => val === "Yearly Payment",
+    then: (schema) =>
+      schema.test(
+        "first-required",
+        "Project Value for first year is required",
+        (yearlyArray) => yearlyArray && yearlyArray[0]?.value !== undefined
+      ),
+    otherwise: (schema) => schema.notRequired(),
+  }),
 });
 
 export default validationSchema;
