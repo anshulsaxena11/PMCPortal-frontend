@@ -11,10 +11,9 @@ import 'jspdf-autotable';
 const certificateCols = [
     { field: 'sno', headerName: 'S.No', width: 80 },
     { field: 'certificateName', headerName: 'Certificate', flex: 1 },
-    { field: 'userName', headerName: 'User', flex: 1 },
-    { field: 'userId', headerName: 'User ID', flex: 1 },
+    { field: 'assignedPerson', headerName: 'User', flex: 1 },
     { field: 'issuedDate', headerName: 'Issued Date', width: 140 },
-    { field: 'expiryDate', headerName: 'Expiry Date', width: 140 },
+    { field: 'validUpto', headerName: 'Expiry Date', width: 140 },
     {
         field: 'status',
         headerName: 'Status',
@@ -99,10 +98,10 @@ export default function CertificateDashboard() {
                 id: c._id || i + 1,
                 sno: i + 1,
                 certificateName: c.certificateName || c.name || c.title || 'Certificate',
-                userName: c.userName || c.userFullName || c.username || c.user || 'N/A',
+                assignedPerson: c.assignedPerson || c.assignedPerson || c.assignedPerson || c.assignedPerson || 'N/A',
                 userId: c.userId || c.user_id || c.empId || '',
                 issuedDate: c.issuedDate ? new Date(c.issuedDate).toISOString() : (c.issueDate ? new Date(c.issueDate).toISOString() : ''),
-                expiryDate: c.expiryDate ? new Date(c.expiryDate).toISOString() : (c.validTill ? new Date(c.validTill).toISOString() : ''),
+                validUpto: c.validUpto ? new Date(c.validUpto).toISOString() : (c.validTill ? new Date(c.validTill).toISOString() : ''),
                 status: c.status || (c.isCertified ? 'Certified' : '')
             }));
             setCertificates(processed);
@@ -292,7 +291,7 @@ export default function CertificateDashboard() {
                                 ...row,
                                 sno: idx + 1,
                                 issuedDate: row.issuedDate ? new Date(row.issuedDate).toLocaleDateString() : '',
-                                expiryDate: row.expiryDate ? new Date(row.expiryDate).toLocaleDateString() : ''
+                                validUpto: row.validUpto ? new Date(row.validUpto).toLocaleDateString() : ''
                             }))}
                             columns={certificateCols}
                             loading={loading}
