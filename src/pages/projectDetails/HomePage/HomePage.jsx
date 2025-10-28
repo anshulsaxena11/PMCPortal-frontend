@@ -774,7 +774,12 @@ const HomePage = () => {
                   <Form.Label className="fs-5 fw-bolder">
                     Project Values Yearly Wise With (GST) <span className="text-danger">*</span>
                   </Form.Label>
-
+                  <div
+                      style={{
+                        maxHeight: yearlyFields.length > 4 ? "270px" : "auto", 
+                        overflowY: yearlyFields.length > 4 ? "auto" : "visible",
+                      }}
+                    >
                 <Table bordered hover responsive className="mt-2">
                     <thead className="custom-thead">
                     <tr>
@@ -849,6 +854,7 @@ const HomePage = () => {
                     ))}
                   </tbody>
                 </Table>
+                </div>
                 </div>
               )}
             </div>

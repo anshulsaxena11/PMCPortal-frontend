@@ -307,15 +307,15 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                 formDataToSubmit.append("workOrder", file, file.name);
             } 
             if (paymentMethod === "Yearly Payment") {
-                const formattedYearlyValues = currentYearlyData
-                    .filter(item => item.financialYear && item.amount)
+               const formattedYearlyValues = currentYearlyData
+                    .filter(item => item.amount !== undefined && item.amount !== null && item.amount !== "")
                     .map(item => ({
-                        financialYear: item.financialYear,
+                        financialYear: item.financialYear || "", // optional if missing
                         amount: Number(item.amount)
                     }));
 
-                if (formattedYearlyValues.length === 0 || !formattedYearlyValues[0].amount) {
-                    toast.error("Please enter the first year's project value before submitting.",{
+               if (formattedYearlyValues.length === 0) {
+                    toast.error("Please enter at least one year's project value before submitting.", {
                         className: 'custom-toast custom-toast-error',
                     });
                     setLoading(false);
@@ -844,76 +844,104 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                      {disableProjectValueYearly && (
                         <div className="mt-3">
                             <Form.Label className="fs-5 fw-bolder">
-                            Project Values Yearly Wise With (GST) <span className="text-danger">*</span>
+                            Project Values Yearly Wise With (GST){" "}
+                            <span className="text-danger">*</span>
                             </Form.Label>
-
+                            <div
+                            style={{
+                                maxHeight: yearlyFields.length > 4 ? "250px" : "auto",
+                                overflowY: yearlyFields.length > 4 ? "auto" : "visible",
+                            }}
+                            >
                             <Table bordered hover responsive className="mt-2">
-                            <thead className="custom-thead">
+                                <thead className="custom-thead">
                                 <tr>
-                                <th style={{ width: "50%" }}>Financial Year</th>
-                                <th style={{ width: "50%" }}>Project Value (₹)</th>
+                                    <th style={{ width: "50%" }}>Financial Year</th>
+                                    <th style={{ width: "50%" }}>Project Value (₹)</th>
                                 </tr>
-                            </thead>
-                            <tbody>
+                                </thead>
+                                <tbody>
                                 {yearlyFields.map((fieldData, index) => (
-                                <tr key={fieldData.yearRange || index}>
+                                    <tr key={fieldData.yearRange || index}>
                                     <td className="align-middle">
-                                    {fieldData.yearRange}
-                                    <Controller
+                                        {fieldData.yearRange}
+                                        <Controller
                                         name={`projectValueYearly[${index}].financialYear`}
                                         control={control}
                                         defaultValue={fieldData.yearRange}
-                                        render={({ field }) => <input type="hidden" {...field} />}
-                                    />
+                                        render={({ field }) => (
+                                            <input type="hidden" {...field} />
+                                        )}
+                                        />
                                     </td>
                                     <td>
-                                    <Controller
+                                        <Controller
                                         name={`projectValueYearly[${index}].amount`}
                                         control={control}
-                                        defaultValue={fieldData.value}
-                                        render={({ field: { onChange, value, ref } }) => (
-                                        <Form.Control
-                                            type="text"
-                                            inputMode="numeric"
-                                            className="form-control"
-                                            placeholder={`Enter value for ${fieldData.yearRange}`}
-                                            value={value ? formatINRCurrency(value) : ""}
-                                            onChange={(e) => {
-                                            const input = e.target;
-                                            const cursorPosition = input.selectionStart;
-                                            const raw = e.target.value.replace(/[^0-9]/g, "");
-                                            const formatted = formatINRCurrency(raw);
-                                            const prevCommas =
-                                                (formatINRCurrency(value || "")
-                                                .slice(0, cursorPosition)
-                                                .match(/,/g) || []).length;
-                                            const newCommas =
-                                                (formatted.slice(0, cursorPosition).match(/,/g) || []).length;
-                                            const commaDiff = newCommas - prevCommas;
+                                        defaultValue={fieldData.value ?? ""}
+                                        render={({ field: { onChange, value, ref } }) => {
+                                            // Safe formatting for INR values
+                                            const formatINRCurrency = (val) => {
+                                            if (val === undefined || val === null || val === "")
+                                                return "";
+                                            const num = typeof val === "number"
+                                                ? val
+                                                : Number(val.toString().replace(/[^0-9]/g, ""));
+                                            if (isNaN(num)) return "";
+                                            return num.toLocaleString("en-IN");
+                                            };
 
-                                            onChange(raw);
+                                            const formattedValue = formatINRCurrency(value);
 
-                                            setTimeout(() => {
-                                                const newPos = cursorPosition + commaDiff;
-                                                input.setSelectionRange(newPos, newPos);
-                                            }, 0);
-                                            }}
-                                            ref={ref}
-                                            onKeyDown={(e) => {
-                                            if (["e", "E", "+", "-", "."].includes(e.key)) {
-                                                e.preventDefault();
-                                            }
-                                            }}
+                                            return (
+                                            <Form.Control
+                                                type="text"
+                                                inputMode="numeric"
+                                                className="form-control"
+                                                placeholder={`Enter value for ${fieldData.yearRange}`}
+                                                value={formattedValue}
+                                                onChange={(e) => {
+                                                const input = e.target;
+                                                const cursorPosition = input.selectionStart;
+                                                const raw = e.target.value.replace(/[^0-9]/g, "");
+                                                const formatted = formatINRCurrency(raw);
+
+                                                const prevCommas =
+                                                    (formatINRCurrency(value || "")
+                                                    .slice(0, cursorPosition)
+                                                    .match(/,/g) || []).length;
+                                                const newCommas =
+                                                    (formatted
+                                                    .slice(0, cursorPosition)
+                                                    .match(/,/g) || []).length;
+                                                const commaDiff = newCommas - prevCommas;
+
+                                                // Convert to number or empty string
+                                                onChange(raw ? Number(raw) : "");
+
+                                                setTimeout(() => {
+                                                    const newPos = cursorPosition + commaDiff;
+                                                    input.setSelectionRange(newPos, newPos);
+                                                }, 0);
+                                                }}
+                                                ref={ref}
+                                                onKeyDown={(e) => {
+                                                if (["e", "E", "+", "-", "."].includes(e.key)) {
+                                                    e.preventDefault();
+                                                }
+                                                }}
+                                            />
+                                            );
+                                        }}
                                         />
-                                        )}
-                                    />
                                     </td>
-                                </tr>
+                                    </tr>
                                 ))}
-                            </tbody>
+                                </tbody>
                             </Table>
+                            </div>
                         </div>
-                    )}
+                        )}
                 </div>
                 <h1 className="pt-5 fw-bolder">Contact Details Of Client</h1>
                 <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
