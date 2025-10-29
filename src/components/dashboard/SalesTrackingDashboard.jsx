@@ -24,13 +24,13 @@ const tenderCols = [
   { field: 'stateName', headerName: 'State', flex: 1 },
   {
     field: 'valueINR',
-    headerName: 'Value (Cr INR)',
+    headerName: 'Value (Lakhs INR)',
     flex: 1,
     align: 'right',
     renderCell: (params) => {
       const val = params?.row?.valueINR;
       if (!val || isNaN(val)) return 'N/A';
-      const croreValue = Number(val) / 10000000;
+      const croreValue = Number(val) / 100000;
       const formattedCr = croreValue.toLocaleString('en-IN', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -38,7 +38,7 @@ const tenderCols = [
       const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
       return (
         <Tooltip title={fullValue} INR>
-          <span>{formattedCr} Cr</span>
+          <span>{formattedCr} Lakhs</span>
         </Tooltip>
       );
     }
@@ -82,7 +82,7 @@ function groupByFinancialYearTender(data) {
     return Object.values(yearMap)
         .map(({ financialYear, Total, startYear }) => ({
             financialYear,
-            Total: +(Total / 10000000).toFixed(2), // Convert to Cr
+            Total: +(Total / 100000).toFixed(2), // Convert to Lakhs
             startYear,
         }))
         .sort((a, b) => a.startYear - b.startYear)
@@ -154,7 +154,7 @@ export default function SalesTrackingDashboard() {
                 if (col.field === 'lastDate' && value) {
                     value = dayjs(value).format('YYYY-MM-DD');
                 } else if (col.field === 'valueINR') {
-                    value = (Number(value) / 10000000).toFixed(2); // Export as Crore value
+                    value = (Number(value) / 100000).toFixed(2); // Export as Lakhs value
                 }
 
                 // Handle commas in text fields
@@ -191,7 +191,7 @@ export default function SalesTrackingDashboard() {
             }
             if (col.field === 'valueINR') {
                 const val = Number(row.valueINR) || 0;
-                return (val / 10000000).toFixed(2) + ' Cr';
+                return (val / 100000).toFixed(2) + ' Lakhs';
             }
             return String(row[col.field] || 'N/A');
         })
@@ -370,7 +370,7 @@ export default function SalesTrackingDashboard() {
       // only keep primary summary cards (Total Tenders + Total Value)
       setStats([
         { title: "Total Tenders", value: processedTenderRows.length, icon: "📁" },
-        { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰" },
+        { title: "Total Value", value: (totalValue / 1e5).toFixed(2) + " Lakhs", icon: "💰" },
       ]);
       // ------------------------------------------
 
@@ -425,7 +425,7 @@ export default function SalesTrackingDashboard() {
 
 
         const valueAxis = chart.yAxes.push(new charts.ValueAxis());
-        valueAxis.title.text = 'Tender Value (Cr INR)';
+        valueAxis.title.text = 'Tender Value (Lakhs INR)';
         valueAxis.renderer.grid.template.strokeOpacity = 0.3;
 
 
@@ -436,10 +436,10 @@ export default function SalesTrackingDashboard() {
         series.columns.template.fill = core.color("#ff9800"); 
         series.columns.template.strokeOpacity = 0;
         series.columns.template.width = core.percent(10); 
-        series.columns.template.tooltipText = '{categoryX}: [bold]{valueY} Cr[/]';
+        series.columns.template.tooltipText = '{categoryX}: [bold]{valueY} Lakhs[/]';
         
         const labelBullet = series.bullets.push(new charts.LabelBullet());
-        labelBullet.label.text = '{valueY} Cr';
+        labelBullet.label.text = '{valueY} Lakhs';
         labelBullet.label.fontSize = 12;
         labelBullet.label.fontWeight = 'normal';
         labelBullet.label.fill = core.color('#000');
@@ -517,7 +517,7 @@ export default function SalesTrackingDashboard() {
                     <div className="small"><strong>{d.directorate}</strong></div>
                     <div className="text-end">
                       <div className="fw-bold">{d.count} Tenders</div>
-                      <div className="small">Value: {(d.value / 1e7).toFixed(2)} Cr</div>
+                      <div className="small">Value: {(d.value / 1e5).toFixed(2)} Lakhs</div>
                     </div>
                   </div>                 
                 </Card.Body>
@@ -574,7 +574,7 @@ export default function SalesTrackingDashboard() {
       
       {/* Chart Section */}
       <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 1 }}>
-        Tender Value Overview (Cr INR)
+        Tender Value Overview (Lakhs INR)
       </Typography>
       <div id="chartdiv" ref={chartDivRef} style={{ width: '100%', height: 420 }} />
 
