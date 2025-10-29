@@ -24,25 +24,20 @@ const validationSchema = yup.object({
   }),
   ProjectName: yup.string().required("Project Name is required"),
   device:yup.string(),
-  ProjectValue: yup
+ ProjectValue: yup
   .mixed()
   .transform((value, originalValue) => {
+    // Allow empty string or null as "no value"
     if (originalValue === "" || originalValue === null) return undefined;
-    return Number(originalValue);
+    const num = Number(originalValue);
+    return isNaN(num) ? undefined : num;
   })
-  .when("paymentMethod", {
-    is: (val) => val === "Fixed Payment",
-    then: (schema) =>
-      schema
-        .typeError("Project Value is required")
-        .required("Project Value is required")
-        .test("is-positive", "Project Value must be positive", (val) => val > 0),
-    otherwise: (schema) =>
-      schema
-        .nullable()
-        .transform(() => "") 
-        .notRequired(),
-  }),
+  // .test(
+  //   "is-positive",
+  //   "Project Value must be a positive number",
+  //   (value) => value === undefined || value > 0
+  // )
+  .required("Project Value is required"),
   ServiceLoction: yup.string().required("Service Location is required"),
   DirectrateName: yup.string().required("Directrate Name is required"),
   typeOfWork: yup.string().required("Type Of Work Required"),
@@ -91,13 +86,10 @@ yearlyProjectValues: yup
         "first-required",
         "Project Value for first year is required",
         (yearlyArray) => {
-          // Ensure array exists
           if (!yearlyArray || yearlyArray.length === 0) return false;
 
-          // ✅ Only first element required
           const firstValue = yearlyArray[0]?.value;
 
-          // Pass validation only if first value is filled
           return firstValue !== undefined && firstValue !== null && firstValue !== "";
         }
       ),
