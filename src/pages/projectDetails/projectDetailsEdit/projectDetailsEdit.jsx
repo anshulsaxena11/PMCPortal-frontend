@@ -47,6 +47,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
     const [typeOfWorkOption,setTypeOfWorkOption] = useState([]);
     const [savedYearlyFields, setSavedYearlyFields] = useState([]); 
     const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
+    const watchedYearly = watch("projectValueYearly");
     const inputRef = useRef(null);
     const OrderTypeOption =[
         {value:"GeM",label:"GeM"},
@@ -173,6 +174,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                     if (fetchedData.paymentMethod === 'Fixed Payment') {
                         setDisableProjectValue(true);
                         setDisableProjectValueYearly(false);    
+                          setValue("ProjectValue","");
                     }else if (fetchedData.paymentMethod === 'Yearly Payment') { 
                         setDisableProjectValue(false);
                         setDisableProjectValueYearly(true);
@@ -183,6 +185,8 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                             }));
                             setYearlyFields(yearlyMapped);
                         }
+                        setValue("ProjectValue", fetchedData.projectValue || "");
+                    
                     }
                     setFile(fetchedData.workOrder || null);
                     const selectedOrderType = Array.isArray(fetchedData.orderType) 
@@ -258,6 +262,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             const orderType = formData.orderType || getValues("orderType");
             const domain = formData.domain || getValues("domain");
             const endDate = formData.endDate || getValues("endDate");
+            const ProjectValue = formData.ProjectValue || getValues("projectValue");
             const projectValue = formData.projectValue || getValues("projectValue");
             const serviceLocation = formData.serviceLocation || getValues("serviceLocation");
             const projectType= formData.projectType || getValues("projectType");
@@ -323,7 +328,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                 }
 
                 formDataToSubmit.append("projectValueYearly", JSON.stringify(formattedYearlyValues));
-                formDataToSubmit.append("projectValue", ""); 
+                formDataToSubmit.append("projectValue", ProjectValue); 
             } else {
                 formDataToSubmit.append("projectValueYearly", "[]");
                 formDataToSubmit.append("projectValue", projectValue);
@@ -354,14 +359,16 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
         }
         setLoading(false)
     };
-    const formatINRCurrency = (value) => {
-    const x = value.replace(/,/g, "");
-    const len = x.length;
-    if (len <= 3) return x;
-    const lastThree = x.slice(len - 3);
-    const rest = x.slice(0, len - 3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
-    return rest + "," + lastThree;
-    };
+   const formatINRCurrency = (value) => {
+        if (value === null || value === undefined) return "";
+        const strValue = value.toString().replace(/[^0-9]/g, "");
+        if (strValue === "") return "";
+        const len = strValue.length;
+        if (len <= 3) return strValue;
+        const lastThree = strValue.slice(len - 3);
+        const rest = strValue.slice(0, len - 3).replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+        return rest + "," + lastThree;
+        };
     const projectTypeOptions = projectTypes.map((type) => ({
         value: type._id,
         label: type.ProjectTypeName,
@@ -435,6 +442,7 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
             generateYearlyFields()
             setDisableProjectValue(true);
             setDisableProjectValueYearly(false);
+            setValue("projectValue","");
             if (savedProjectValue) {
                 setValue("projectValue", savedProjectValue || "");
             }
@@ -509,6 +517,19 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
 
         setYearlyFields(fields);
     };
+    useEffect(() => {
+
+    const yearlyData = getValues("projectValueYearly");
+
+    if (!Array.isArray(yearlyData)) return;
+
+    const total = yearlyData.reduce((sum, item) => {
+        const val = parseFloat(item?.amount) || 0;
+        return sum + val;
+    }, 0);
+
+    setValue("ProjectValue", total, { shouldValidate: true, shouldDirty: true });
+    }, [JSON.stringify(watchedYearly)]);
     return (
         <div className="container-fluid">
             <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
@@ -840,6 +861,18 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                                 </div>
                             </Form.Group>
                         )}
+                        {disableProjectValueYearly && (
+                            <Form.Group>
+                                <Form.Label className="fs-5 fw-bolder pt-3">Total Project Value in ₹ with (GST) <span className="text-danger">*</span></Form.Label>
+                               <Form.Control
+                                    type="text"
+                                    readOnly
+                                    disabled
+                                    value={formatINRCurrency(watch("ProjectValue") || 0)}
+                                    style={{ cursor: "not-allowed" }}
+                                />
+                            </Form.Group>   
+                        )}
                     </div>
                      {disableProjectValueYearly && (
                         <div className="mt-3">
@@ -880,7 +913,6 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                                         control={control}
                                         defaultValue={fieldData.value ?? ""}
                                         render={({ field: { onChange, value, ref } }) => {
-                                            // Safe formatting for INR values
                                             const formatINRCurrency = (val) => {
                                             if (val === undefined || val === null || val === "")
                                                 return "";
@@ -918,6 +950,10 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
 
                                                 // Convert to number or empty string
                                                 onChange(raw ? Number(raw) : "");
+                                                setValue(`yearlyProjectValues.${index}.value`, raw, {
+                                                    shouldValidate: true,
+                                                    shouldDirty: true,
+                                                });
 
                                                 setTimeout(() => {
                                                     const newPos = cursorPosition + commaDiff;

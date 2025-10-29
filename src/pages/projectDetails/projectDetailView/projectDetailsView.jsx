@@ -37,7 +37,7 @@ const ProjectDetailView = () => {
     'endDate',
     'paymentMethod',
      ...(project.paymentMethod === 'Yearly Payment'
-      ? ['projectValueYearly']
+      ? ['projectValueYearly','projectValue']
       : ['projectValue']),
     'projectManager', 
     'typeOfWork',
@@ -69,7 +69,9 @@ const ProjectDetailView = () => {
     startDate: 'Start Date',
     endDate: 'End Date',
     paymentMethod: 'Payment Method',  
-    projectValue: 'Project Value with (GST)',
+    projectValue: project.paymentMethod === 'Yearly Payment'
+      ? 'Total Project Value with (GST)'
+      : 'Project Value with (GST)',
     projectValueYearly: 'Project Value Yearly with (GST)',
     projectManager: 'Project Manager',
     typeOfWork: 'Type Of Work',
