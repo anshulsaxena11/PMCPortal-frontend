@@ -39,7 +39,6 @@ const HomePage = () => {
       projectValue:""
     },
   });
-
   const [preview, setPreview] = useState(null);
   const [uploadedFile, setUploadedFile] = useState(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -51,6 +50,7 @@ const HomePage = () => {
   const [yearlyFields, setYearlyFields] = useState([]);
   const [selectPaymentMethodOptions, setSelectPaymentMethodOptions]= useState([])
   const [disableProjectValue,setDisableProjectValue] = useState(false)
+  const [disableTotalProjectValue,setDisableTotalProjectValue] = useState(false)
   const [disableProjectValueYearly,setDisableProjectValueYearly] = useState(false)
   const [error, setError] = useState(null);
   const [projectTypes, setProjectTypes] = useState([]);
@@ -75,6 +75,7 @@ const HomePage = () => {
     { value: 'Fixed Payment', label: 'Fixed Payment' },
     { value: 'Yearly Payment', label: 'Yearly Payment' },
   ];
+  const yearlyProjectValues = watch("yearlyProjectValues"); 
 
    useEffect(() => {
       fetchData();
@@ -260,6 +261,7 @@ const HomePage = () => {
         setSelectedTypeOptions(null)
         setSelectPaymentMethodOptions(null)
         setDisableProjectValue(false);
+        setDisableTotalProjectValue(false);
         setDisableProjectValueYearly(false);
         setUploadedFile(null);
         setFileType("");
@@ -350,22 +352,27 @@ const HomePage = () => {
   }
 
   const formatINRCurrency = (value) => {
-    const number = value.replace(/,/g, '');
+    if (value === null || value === undefined || value === "") return "";
+    const numberStr = typeof value === "number" ? value.toString() : value.toString();
+    const number = numberStr.replace(/,/g, "");
+    if (isNaN(number)) return numberStr;
     const x = number.length;
     if (x <= 3) return number;
     const lastThree = number.slice(x - 3);
     const rest = number.slice(0, x - 3);
-    const formattedRest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ',');
-    return formattedRest + ',' + lastThree;
+    const formattedRest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",");
+    return formattedRest + "," + lastThree;
   };
   const handlePaymentMethodChange = (selected) =>{
     if (selected?.value === "Fixed Payment") {
       setDisableProjectValue(true);
+      setDisableTotalProjectValue(false)
       setDisableProjectValueYearly(false);
       setValue("yearlyProjectValues", [])
     } else if (selected?.value === "Yearly Payment") {
       setDisableProjectValueYearly(true);
       setDisableProjectValue(false);
+      setDisableTotalProjectValue(true)
       setValue("ProjectValue", "")
     } else {
       setDisableProjectValue(false);
@@ -402,8 +409,19 @@ const HomePage = () => {
 
   setYearlyFields(fields);
 };
+useEffect(() => {
+  if (!Array.isArray(yearlyProjectValues)) return;
+  const totalAmount = yearlyProjectValues.reduce((sum, item) => {
+    if (!item?.value) return sum;
+    const numericValue = parseInt(item.value.toString().replace(/[^0-9]/g, ""), 10);
+    return sum + (isNaN(numericValue) ? 0 : numericValue);
+  }, 0);
 
-
+  setValue("ProjectValue", totalAmount.toString(), {
+    shouldValidate: true,
+    shouldDirty: true,
+  });
+}, [JSON.stringify(yearlyProjectValues), setValue]);
   return (
     <div className="home-page">
       <ToastContainer  position="top-center" autoClose={5000} hideProgressBar={false} />
@@ -734,7 +752,11 @@ const HomePage = () => {
                           inputMode="numeric"
                           className="form-control"
                           placeholder="Project Value in ₹"
-                          value={value ? formatINRCurrency(value) : ""}
+                          value={
+                            value === undefined || value === null || value === "" || Number(value) === 0
+                              ? ""
+                              : formatINRCurrency(value)
+                          }
                           onChange={(e) => {
                             const input = e.target;
                             const cursorPosition = input.selectionStart;
@@ -767,7 +789,26 @@ const HomePage = () => {
                   {errors.ProjectValue && <p className="text-danger">{errors.ProjectValue.message}</p>}
                 </Form.Group> 
                 )}
-
+                  {disableTotalProjectValue && (
+                    <Form.Group className="mb-3">
+                      <Form.Label className="fs-5 fw-bolder">
+                        Total value With (GST) <span className="text-danger">*</span>
+                      </Form.Label>
+                      <Controller
+                        name="ProjectValue"
+                        control={control}
+                        render={({ field: { value } }) => (
+                          <input
+                            value={formatINRCurrency(value || 0)}
+                            readOnly
+                            className="form-control"
+                            placeholder="Total Project Value"
+                            style={{ backgroundColor: "#f8f9fa", cursor: "not-allowed" }}
+                          />
+                        )}
+                      />
+                    </Form.Group>
+                  )}
               </div>
               {disableProjectValueYearly && (
                 <div>
@@ -819,6 +860,10 @@ const HomePage = () => {
                                   const commaDiff = newCommas - prevCommas;
 
                                   onChange(raw);
+                                  setValue(`yearlyProjectValues.${index}.value`, raw, {
+                                    shouldValidate: true,
+                                    shouldDirty: true,
+                                  });
 
                                   setTimeout(() => {
                                     const newPos = cursorPosition + commaDiff;
