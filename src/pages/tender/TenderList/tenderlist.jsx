@@ -196,13 +196,13 @@ const TenderDetailsList = () => {
         { field: 'directorateName', headerName: 'Directorate', flex: 1 },
         {
                   field: 'valueINR',
-                  headerName: 'Value (Cr INR)',
+                  headerName: 'Value (Lakhs INR)',
                   flex: 1,
                   align: 'right',
                   renderCell: (params) => {
                     const val = params.row.valueINR; 
                     if (!val || isNaN(val)) return 'N/A';
-                    const croreValue = Number(val) / 10000000;
+                    const croreValue = Number(val) / 100000;
                     const formattedCr = croreValue.toLocaleString('en-IN', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
@@ -210,7 +210,7 @@ const TenderDetailsList = () => {
                     const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
                     return (
                       <Tooltip title={fullValue} INR>
-                        <span>{formattedCr} Cr</span>
+                        <span>{formattedCr} Lakhs</span>
                       </Tooltip>
                     );
                   }

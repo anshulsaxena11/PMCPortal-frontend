@@ -31,13 +31,13 @@ const workTypeCols = [
   },
   {
     field: 'projectValue',
-    headerName: 'Project Value (Cr INR)',
+    headerName: 'Project Value (Lakhs INR)',
     flex: 1,
     align: 'right',
     renderCell: (params) => {
       const val = params?.row?.projectValue;
       if (!val || isNaN(val)) return 'N/A';
-      const croreValue = Number(val) / 10000000;
+      const croreValue = Number(val) / 100000;
       const formattedCr = croreValue.toLocaleString('en-IN', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -45,7 +45,7 @@ const workTypeCols = [
       const fullValue = 'Rs. ' + Number(val).toLocaleString('en-IN');
       return (
         <Tooltip title={fullValue}>
-          <span>{formattedCr} Cr</span>
+          <span>{formattedCr} Lakhs</span>
         </Tooltip>
       );
     },
@@ -76,7 +76,7 @@ function groupByFinancialYear(data) {
     return Object.values(yearMap)
         .map(({ financialYear, Total, startYear }) => ({
             financialYear,
-            Total: +(Total / 10000000).toFixed(2),
+            Total: +(Total / 100000).toFixed(2),
             startYear,
         }))
         .sort((a, b) => a.startYear - b.startYear)
@@ -225,7 +225,7 @@ export default function ProjectsDashboard() {
 
        setStats([
          { title: "Total Projects", value: projectsData.length, icon: "📁" },
-         { title: "Total Value", value: (totalValue / 1e7).toFixed(2) + " Cr", icon: "💰" },
+         { title: "Total Value", value: (totalValue / 100000).toFixed(2) + " Lakhs", icon: "💰" },
          { title: "Completed", value: completed, icon: "✅" },
          { title: "Ongoing", value: ongoing, icon: "⏳" }
        ]);
@@ -300,21 +300,21 @@ export default function ProjectsDashboard() {
        categoryAxis.title.text = 'Financial Year';
 
        const valueAxis = chart.yAxes.push(new charts.ValueAxis());
-       valueAxis.title.text = 'Project Value (Cr INR)';
+       valueAxis.title.text = 'Project Value (Lakhs INR)';
 
        const series = chart.series.push(new charts.ColumnSeries());
        series.dataFields.valueY = 'value';
        series.dataFields.categoryX = 'category';
        series.columns.template.width = 50;
        const labelBullet = series.bullets.push(new charts.LabelBullet());
-       labelBullet.label.text = '{valueY} Cr';
+       labelBullet.label.text = '{valueY} Lakhs';
        labelBullet.label.fontSize = 12;
        labelBullet.label.fontWeight = '600';
        labelBullet.label.fill = core.color('#000');
        labelBullet.label.dy = -5;
        labelBullet.label.horizontalCenter = 'middle';
        series.name = 'Project Value';
-       series.columns.template.tooltipText = '{categoryX}: [bold]{valueY} Cr[/]';
+       series.columns.template.tooltipText = '{categoryX}: [bold]{valueY} Lakhs[/]';
        
        return () => {
          if (chartRef.current) {
@@ -372,7 +372,7 @@ export default function ProjectsDashboard() {
                      <div className="small"><strong>{d.directorate}</strong></div>
                      <div className="text-end">
                        <div className="fw-bold">{d.count} Projects</div>
-                       <div className="small">Value: {(d.value / 1e7).toFixed(2)} Cr</div>
+                       <div className="small">Value: {(d.value / 100000).toFixed(2)} Lakhs</div>
                      </div>
                    </div>
                    <div className="mt-1 d-flex justify-content-between small">
@@ -404,7 +404,7 @@ export default function ProjectsDashboard() {
        
        {/* Chart */}
        <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-         Project Value Overview (Cr INR)
+         Project Value Overview (Lakhs INR)
        </Typography>
        <Box id="chartdiv" sx={{ width: '100%', height: 300 }} />
 
