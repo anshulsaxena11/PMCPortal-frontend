@@ -8,48 +8,48 @@ import Select from "react-select";
 import { Controller } from "react-hook-form";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import CircularProgress from '@mui/material/CircularProgress';
-import { TiArrowBack } from "react-icons/ti";
 import EditIcon from '@mui/icons-material/Edit';
 import {updateUserRegistration} from '../../../api/loginApi/loginApi'
 import Swal from 'sweetalert2';
+
+const roles = [
+    { value: 'Admin', label: 'Admin' },
+    { value: 'SubAdmin', label: 'Sub Admin' },
+    { value: 'User', label: 'User' }
+];
 
 const UserAdminEdit = ({ ID }) => {
     const { id } = useParams();
     const userId = ID || id;
     const navigate = useNavigate();
-    const [userDetails, setUserDetails] = useState(null);
-    const { register, handleSubmit, setValue, formState: { errors },control,trigger } = useForm();
+    const { register, handleSubmit, setValue, control, trigger } = useForm();
     const [loading, setLoading] = useState(false);
-    const roles = [
-        { value: 'Admin', label: 'Admin' },
-        { value: 'SubAdmin', label: 'Sub Admin' },
-        { value: 'User', label: 'User' }
-    ];
 
     useEffect(() => {
         const fetchuserDetails = async () => {
+            setLoading(true);
             try {
-            const data = await getUserDetailsById(userId);
-            const item = data?.data;
+                const data = await getUserDetailsById(userId);
+                const item = data?.data;
 
-            if (item) {
-                Object.entries(item).forEach(([key, value]) => {
-                    setValue(key, value);  
-                });
+                if (item) {
+                    Object.entries(item).forEach(([key, value]) => {
+                        setValue(key, value);
+                    });
 
-                const matchedRole = roles.find(role => role.value === item.role);
-                if (matchedRole) {
-                    setValue("role", matchedRole.value); 
+                    const matchedRole = roles.find(role => role.value === item.role);
+                    if (matchedRole) {
+                        setValue("role", matchedRole.value);
+                    }
                 }
-            }
-
-            setUserDetails(item);
             } catch (error) {
-            console.error("Error fetching project details:", error);
+                console.error("Error fetching project details:", error);
+            } finally {
+                setLoading(false);
             }
         };
         fetchuserDetails();
-        }, []);
+    }, [setValue, userId]);
 
         const handleBackClick = ()=>{
             navigate(`/register-list`) 
@@ -73,24 +73,27 @@ const UserAdminEdit = ({ ID }) => {
             if (!result.isConfirmed) return;
 
             try {
+                setLoading(true);
                 const payload = {
-                role: formData.role,
+                    role: formData.role,
                 };
 
                 const response = await updateUserRegistration(userId, payload);
 
                 if (response.statusCode === 401) {
-                Swal.fire('Unauthorized', `${response.message}`, 'error');
+                    Swal.fire('Unauthorized', `${response.message}`, 'error');
                 } else if (response.statusCode === 200) {
-                Swal.fire('Success!', `${response.message}`, 'success');
+                    Swal.fire('Success!', `${response.message}`, 'success');
                 } else {
-                Swal.fire('Failed', 'Unexpected response from server.', 'warning');
+                    Swal.fire('Failed', 'Unexpected response from server.', 'warning');
                 }
 
-                console.log(response); 
+                console.log(response);
             } catch (error) {
                 console.error('Error:', error);
                 Swal.fire('Error', `Request failed: ${error.message}`, 'error');
+            } finally {
+                setLoading(false);
             }
         };
 

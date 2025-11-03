@@ -2,8 +2,6 @@ import React, { useState,useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import Form from "react-bootstrap/Form";
-import { Spinner } from 'react-bootstrap'; 
-import { TiArrowBack } from "react-icons/ti";
 import { postTenderTrackingData, getEmpList } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
 import { getStateList } from '../../../api/stateApi/stateApi';
 import PreviewModal from '../../../components/previewfile/preview';

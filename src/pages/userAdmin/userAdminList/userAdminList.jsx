@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLoginList } from '../../../api/loginApi/loginApi';
 import dayjs from 'dayjs';
@@ -29,7 +29,7 @@ const UserAdminList = () => {
     taskForceMember: 'Task Force Member Status'
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await getLoginList({
@@ -56,11 +56,11 @@ const UserAdminList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, searchQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [page, searchQuery, pageSize]);
+  }, [fetchData]);
 
   const handleAddNewClick = () => {
     navigate("/register");

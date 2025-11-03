@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import { Box, Paper, Typography } from '@mui/material'; 
-import { GiSkills } from "react-icons/gi";
 import { TbCertificate } from "react-icons/tb";
-import { CgListTree, CgProfile } from "react-icons/cg";
+import { CgProfile } from "react-icons/cg";
 import WorkIcon from '@mui/icons-material/Work';
 import RequestQuoteIcon from '@mui/icons-material/RequestQuote';
 import ProjectsDashboard from '../../components/dashboard/ProjectsDashboard'; 

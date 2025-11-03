@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, CircularProgress, TextField, Typography, IconButton, Stack } from '@mui/material';
+import { Box, Button, TextField, IconButton, Stack } from '@mui/material';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 import Heading from '../../../components/Heading/heading';
 import Swal from 'sweetalert2';
@@ -31,29 +31,27 @@ const TenderDetailsList = () => {
         setUserRole(role);;
     }, []);
 
-    const fetchDirectorateOptions = async () => {
+    const fetchDirectorateOptions = useCallback(async () => {
         try {
-           
             const allTendersResponse = await getTenderDetailsList({
                 page: 1,
-                limit: 10000, 
+                limit: 10000,
                 isDeleted: showDeleted,
             });
-            
+
             const uniqueDirectorates = Array.from(new Set(
                 (allTendersResponse?.data || [])
                     .map(item => item?.directorateName)
-                    .filter(name => name) 
+                    .filter(name => name)
             )).sort();
 
             setDirectorateOptions(uniqueDirectorates);
-
         } catch (error) {
             console.error('Error fetching directorate options:', error);
         }
-    };
+    }, [showDeleted]);
 
-    const fetchData = async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
         try {
             const response = await getTenderDetailsList({
@@ -93,15 +91,15 @@ const TenderDetailsList = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, pageSize, searchQuery, showDeleted, selectedDirectorate]);
 
     useEffect(() => {
         fetchDirectorateOptions();
-    }, [showDeleted]); 
+    }, [fetchDirectorateOptions]); 
 
     useEffect(() => {
         fetchData();
-    }, [page, searchQuery, showDeleted, selectedDirectorate]); 
+    }, [fetchData]); 
 
     const handleViewClick = (id) => {
         navigate(`/tender-View`, { state: { id } });
