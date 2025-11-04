@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from "react-hook-form";
-import { Spinner, InputGroup  } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import { IoIosSave } from "react-icons/io";
 import Form from 'react-bootstrap/Form';
-import { TiArrowBack } from "react-icons/ti";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import Select from 'react-select';
 import {postRegister} from "../../../api/loginApi/loginApi"
 import {empList} from '../../../api/syncEmp/syncEmp'
-import { BsEye, BsEyeSlash } from 'react-icons/bs';
 import { yupResolver } from '@hookform/resolvers/yup';
 import userRegistrationValidation from '../../../validation/userRegistrationValidation';
 import withReactContent from 'sweetalert2-react-content';
@@ -19,12 +16,11 @@ import Swal from 'sweetalert2'
 
 const UserLoginForm = () => {
 
-    const {register, handleSubmit, control,reset, formState: { errors }} = useForm({
+    const { handleSubmit, control, formState: { errors }} = useForm({
         resolver: yupResolver(userRegistrationValidation)
     });
 
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
     const [option, setOption] = useState([])
     const [selectedEmp, setSelectedEmp] = useState(null);
     const MySwal = withReactContent(Swal);
@@ -189,6 +185,7 @@ const UserLoginForm = () => {
                                             value={selectedEmp?.dir || ""}
                                             readOnly   
                                             disabled 
+                                            style={{ cursor: "not-allowed" }}
                                         />
                                     </Form.Group>
                                     <Form.Group className='pb-3'>
@@ -197,7 +194,8 @@ const UserLoginForm = () => {
                                             type="text"
                                             value={selectedEmp?.edesg || ""}
                                             readOnly   
-                                            disabled 
+                                            disabled
+                                            style={{ cursor: "not-allowed" }} 
                                         />
                                     </Form.Group>
                                     <Form.Group>
@@ -206,7 +204,8 @@ const UserLoginForm = () => {
                                             type="text"
                                             value={selectedEmp?.email || ""}
                                             readOnly   
-                                            disabled 
+                                            disabled
+                                            style={{ cursor: "not-allowed" }} 
                                         />
                                     </Form.Group>
                                 </div>
@@ -217,7 +216,8 @@ const UserLoginForm = () => {
                                             type="text"
                                             value={selectedEmp?.centre || ""}
                                             readOnly   
-                                            disabled 
+                                            disabled
+                                            style={{ cursor: "not-allowed" }} 
                                         />
                                     </Form.Group>
                                     <Form.Group className='py-3'>
@@ -226,7 +226,8 @@ const UserLoginForm = () => {
                                             type="text"
                                             value={selectedEmp?.etpe || ""}
                                             readOnly   
-                                            disabled 
+                                            disabled
+                                            style={{ cursor: "not-allowed" }} 
                                         />
                                     </Form.Group>
                                     <Form.Group>

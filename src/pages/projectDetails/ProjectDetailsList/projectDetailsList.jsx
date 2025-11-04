@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
@@ -9,7 +9,6 @@ import {
   Button,
   Stack,
   TextField,
-  Typography,
   IconButton,
   Tooltip
 } from '@mui/material';
@@ -34,7 +33,7 @@ const ProjectDetailsList = () => {
     setUserRole(role);
   }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const response = await getProjectDetailsList({
@@ -67,11 +66,11 @@ const ProjectDetailsList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, searchQuery]);
 
   useEffect(() => {
     fetchData();
-  }, [page, pageSize, searchQuery]);
+  }, [fetchData]);
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -88,7 +87,7 @@ const ProjectDetailsList = () => {
 
     try {
       const response = await deleteProjectsById(id);
-      if (response.data.statuscode==401) {
+        if (response.data.statuscode === 401) {
         Swal.fire({
           icon: 'error',
           title: 'Warning!',
@@ -98,7 +97,7 @@ const ProjectDetailsList = () => {
         });
         fetchData();
       }
-      if (response.data.statuscode==200) {
+        if (response.data.statuscode === 200) {
         Swal.fire({
           icon: 'success',
           title: 'Deleted!',

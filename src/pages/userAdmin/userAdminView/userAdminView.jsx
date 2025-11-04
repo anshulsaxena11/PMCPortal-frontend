@@ -39,7 +39,7 @@ const UserAdminView = ({ ID }) => {
           }
        };
        fetchuserDetails();
-     }, []);
+  }, [userId]);
 
      const handleBackClick = ()=>{
         navigate(`/register-list`) 
