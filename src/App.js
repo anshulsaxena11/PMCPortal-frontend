@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {BrowserRouter as Router,Routes,Route,useNavigate,useLocation} from "react-router-dom";
+import {BrowserRouter as Router,Routes,Route,useLocation} from "react-router-dom";
 import Sidebar from "./layout/Sidebar/Sidebar";
 import ContentBody from "./components/contentBody/ContentBody";
 import LoginPanel from "./pages/login/loginPannel/LoginPanel.jsx";

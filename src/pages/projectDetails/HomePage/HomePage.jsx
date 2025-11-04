@@ -162,12 +162,13 @@ const HomePage = () => {
   
       try {
         const response = await getdirectrate();
+        console.log("Directrate response:", response);
   
         if (response && response.data && response.data.data && Array.isArray(response.data.data)) {
 
           const options = response.data.data.map((directrate) => ({
-            label: directrate.directrate, 
-            value: directrate._id, 
+            label: directrate, 
+            value: directrate, 
           }));
   
           setDirectrateOptions(options);

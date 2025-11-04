@@ -134,7 +134,8 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                 const response = await getdirectrate();
                 if (response?.data?.data && Array.isArray(response.data.data)) {
                     const options = response.data.data.map((item) => ({
-                        label: item.directrate,
+                        label: item,
+                        value: item,
                     }));
                     setDirectrateList(options);
                 } else {
@@ -233,7 +234,8 @@ const ProjectDetailsEdit = ({ ID, onClose }) => {
                     ? fetchedData.directrate
                     : [fetchedData.directrate];
                     const matchedDirectrate = selectedDirectrate.map(type =>({
-                        label:type
+                        label: type,
+                        value: type,
                     }));
                     setSelectedDirectorate(matchedDirectrate || null);
                     const selectedTypeOfWork = Array.isArray(fetchedData.typeOfWork) 
