@@ -6,7 +6,6 @@ import { useLocation } from 'react-router-dom';
 import dayjs from 'dayjs';
 
 const TenderTrackingView = ({ ID }) => {
-  const { id } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
   const trackingId = ID || location.state?.id;

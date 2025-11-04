@@ -1,20 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { Form,} from "react-bootstrap";
-import { useParams } from "react-router-dom";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Controller } from "react-hook-form";
 import { useNavigate } from 'react-router-dom';
 import PreviewModal from '../../../components/previewfile/preview';  
 import Select from "react-select";
-import { TiArrowBack } from "react-icons/ti";
 import { PiImagesSquareBold } from "react-icons/pi";
-import {getTrackingById,updateTenderById,updatetendermessage} from '../../../api/TenderTrackingAPI/tenderTrackingApi'
+import {getTrackingById,updateTenderById} from '../../../api/TenderTrackingAPI/tenderTrackingApi'
 import { getStateList } from '../../../api/stateApi/stateApi';
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import { getEmpList } from '../../../api/TenderTrackingAPI/tenderTrackingApi';
-import withReactContent from 'sweetalert2-react-content';
 import CircularProgress from '@mui/material/CircularProgress';
 import Table from "react-bootstrap/Table";
 import EditIcon from '@mui/icons-material/Edit'
@@ -37,18 +34,14 @@ const TenderTrackingEdit =({ID}) =>{
     const [fileUrl, setFileUrl] = useState(null);
     const [filePreviewUrl, setFilePreviewUrl] = useState("");
     const [previewFileType, setPreviewFileType] = useState("");
-    const [oneTime,setOneTime]=useState(true)
-    const [oneTimeStatus,setOneTimeStatus]=useState(true)
-    const [oneTimeTaskForce,setOneTimeTaskForce]=useState(true)
     const [oneTimeFull,setOneTimeFull]=useState(true)
     const [showModal, setShowModal] = useState(false);
     const [uploadedPreviewUrl, setUploadedPreviewUrl] = useState('');
-    const [valueINR, setValueINR] = useState("");
+    
     const [taskForceError, setTaskForceError] = useState("");
     const [fileError, setFileError] = useState("");
     const [statusError, setStatusError] = useState("");
     const [stateError, setStateError] = useState("");
-    const MySwal = withReactContent(Swal);
     const location = useLocation();
     const StatusOption =[
         {value:"Upload",label:"Upload"},
@@ -56,7 +49,6 @@ const TenderTrackingEdit =({ID}) =>{
         {value:"Not Bidding",label:"Not Bidding"},
     ]
 
-    const { id } = useParams();
     const trackingId = ID || location.state?.id;
     const navigate = useNavigate();
 
@@ -65,16 +57,84 @@ const TenderTrackingEdit =({ID}) =>{
         fetchStateList();
     }, []);
 
-    useEffect(() => {
-        if (
-            oneTimeFull &&
-            empListOption.length > 0 &&
-            stateOption.length > 0
-        ) {
-            fetchTrackingTenderDetails();
-            setOneTimeFull(false);
+  const fetchTrackingTenderDetails = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await getTrackingById(trackingId);
+      const fetchedData = response.data;
+      if (fetchedData) {
+        const formattedLastDate = fetchedData.lastDate
+          ? fetchedData.lastDate.split("T")[0]
+          : "";
+
+        reset({
+          ...fetchedData,
+          lastDate: formattedLastDate,
+        });
+
+        if (oneTimeFull && fetchedData.tenderDocument) {
+          const isAbsolute = fetchedData.tenderDocument.startsWith("http");
+          const fullUrl = isAbsolute
+            ? fetchedData.tenderDocument
+            : `${window.location.origin}${fetchedData.tenderDocument}`;
+          setFileUrl(fullUrl);
+          setFilePreviewUrl(fullUrl);
         }
-    }, [empListOption, stateOption, oneTimeFull]);
+
+        const handleSelectField = (fieldValue, optionsList, setSelectedFn, fieldName) => {
+          const values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
+          const matched = values
+            .map((val) => optionsList.find((opt) => opt.value === val))
+            .filter(Boolean);
+
+          setSelectedFn(matched);
+          setValue(fieldName, fieldValue);
+        };
+                
+        if (fetchedData.taskForceemp && empListOption.length > 0) {
+                  
+          handleSelectField(fetchedData.taskForceemp, empListOption, setSelectedEmpList, "taskForceemp");
+        }
+        if (fetchedData.state ) {
+                    
+          console.log(setSelectedStateOption)
+          handleSelectField(fetchedData.state, stateOption, setSelectedStateOption, "state");
+        }
+        if (fetchedData.status && StatusOption.length > 0) {
+          handleSelectField(fetchedData.status, StatusOption, setSelectedStatus, "status");
+        }
+        if (fetchedData.comment && fetchedData.comment.length > 0) {
+          const sortedComments = [...fetchedData.comment].sort(
+            (a, b) => new Date(b.commentedOn) - new Date(a.commentedOn)
+          );
+          setComments(sortedComments);
+        } else {
+          setComments([]);
+        }
+        setOneTimeFull(false);
+      }
+    } catch (error) {
+      console.error("Error fetching project details:", error);
+    Swal.fire({
+    icon: 'error',
+    title: 'Oops...',
+    text: 'Error fetching project details',
+    });
+    } finally {
+      setLoading(false);
+    }
+  }, [trackingId, empListOption, stateOption, oneTimeFull, reset, setValue]);
+
+  useEffect(() => {
+    if (
+      oneTimeFull &&
+      empListOption.length > 0 &&
+      stateOption.length > 0
+    ) {
+      fetchTrackingTenderDetails();
+      setOneTimeFull(false);
+    }
+  }, [empListOption, stateOption, oneTimeFull, fetchTrackingTenderDetails]);
 
 
         const fetchEmpList = async() =>{
@@ -123,74 +183,6 @@ const TenderTrackingEdit =({ID}) =>{
         }
 
 
-    const fetchTrackingTenderDetails = async () => {
-        setLoading(true);
-        try {
-            const response = await getTrackingById(trackingId);
-            const fetchedData = response.data;
-            setValueINR(new Intl.NumberFormat("en-IN").format(fetchedData.valueINR || ''));
-            if (fetchedData) {
-                const formattedLastDate = fetchedData.lastDate
-                    ? fetchedData.lastDate.split("T")[0]
-                    : "";
-
-                reset({
-                    ...fetchedData,
-                    lastDate: formattedLastDate,
-                });
-
-                if (oneTimeFull && fetchedData.tenderDocument) {
-                    const isAbsolute = fetchedData.tenderDocument.startsWith("http");
-                    const fullUrl = isAbsolute
-                        ? fetchedData.tenderDocument
-                        : `${window.location.origin}${fetchedData.tenderDocument}`;
-                    setFileUrl(fullUrl);
-                    setFilePreviewUrl(fullUrl);
-                }
-
-                const handleSelectField = (fieldValue, optionsList, setSelectedFn, fieldName) => {
-                    const values = Array.isArray(fieldValue) ? fieldValue : [fieldValue];
-                    const matched = values
-                        .map((val) => optionsList.find((opt) => opt.value === val))
-                        .filter(Boolean);
-
-                    setSelectedFn(matched);
-                    setValue(fieldName, fieldValue);
-                };
-                
-                if (fetchedData.taskForceemp && empListOption.length > 0) {
-                  
-                    handleSelectField(fetchedData.taskForceemp, empListOption, setSelectedEmpList, "taskForceemp");
-                }
-                if (fetchedData.state ) {
-                    
-                    console.log(setSelectedStateOption)
-                    handleSelectField(fetchedData.state, stateOption, setSelectedStateOption, "state");
-                }
-                if (fetchedData.status && StatusOption.length > 0) {
-                    handleSelectField(fetchedData.status, StatusOption, setSelectedStatus, "status");
-                }
-                if (fetchedData.comment && fetchedData.comment.length > 0) {
-                  const sortedComments = [...fetchedData.comment].sort(
-                      (a, b) => new Date(b.commentedOn) - new Date(a.commentedOn)
-                    );
-                    setComments(sortedComments);
-                } else {
-                  setComments([]);
-                }
-                setOneTimeFull(false);
-            }
-        } catch (error) {
-            console.error("Error fetching project details:", error);
-      Swal.fire({
-        icon: 'error',
-        title: 'Oops...',
-        text: 'Error fetching project details',
-      });
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleBackClick = ()=>{
         navigate(`/tender-list`) 
@@ -288,7 +280,6 @@ const TenderTrackingEdit =({ID}) =>{
     const response = await updateTenderById(trackingId, formDataToSubmit);
     if (response.data.statusCode === 200) {
       setOneTimeFull(true);
-      setOneTime(true);
       Swal.fire({
         icon: "success",
         title: "Form Updated successfully!!",
@@ -299,7 +290,6 @@ const TenderTrackingEdit =({ID}) =>{
        navigate(`/tender-list`); 
     } else {
       setOneTimeFull(true);
-      setOneTime(true);
       Swal.fire({
       icon: 'error',
       title: 'Failed to submit the form',
