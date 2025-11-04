@@ -128,6 +128,7 @@ const UserProfile = ({ ID }) => {
             <div className="card-header fw-bold">Basic Info</div>
             <div className="card-body">
               <div className="d-flex align-items-center mb-4">
+                 <div className="col-md-1"> 
                 <img
                   src={userDetails.photo}
                   alt="profile"
@@ -135,12 +136,19 @@ const UserProfile = ({ ID }) => {
                   width="80"
                   height="80"
                 />
-                <div>
+                </div>
+                
+                <div className="col-md-3"> 
                   <h5 className="mb-1">{userDetails.ename}</h5>
-                  <p className="text-muted mb-1">ID: {userDetails.empid}</p>
-                 {/* <button className="btn btn-outline-secondary btn-sm">
-                    Change Password
-                  </button> */ }
+                  <p className="text-muted mb-1"><b>ID: </b> {userDetails.empid}</p>                
+                </div>
+                 <div className="col-md-4"> 
+                  <p className="text-muted mb-1"><b>Email:</b>{userDetails.email}</p>
+                  <p className="text-muted mb-1"><b>E-Type:</b> {userDetails.etpe}</p>                
+                </div>
+                 <div className="col-md-4"> 
+                  <p className="text-muted mb-1"><b>VAPT Member: </b>{userDetails.StatusNoida ? "Yes" : "No"}</p>
+                  <p className="text-muted mb-1"><b>Task Force Member:</b>{userDetails.taskForceMember}</p>
                 </div>
               </div>
 

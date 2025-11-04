@@ -56,23 +56,43 @@ const workTypeCols = [
 // --- Utility Functions (Moved to child component) ---
 function groupByFinancialYear(data) {
     const yearMap = {};
-    data.forEach((project) => {
-        const { startDate, projectValue } = project;
-        if (!startDate) return;
-        const date = new Date(startDate);
-        const month = date.getMonth();
-        const year = date.getFullYear();
-        const fyStartYear = month < 3 ? year - 1 : year;
-        const fyEndYear = fyStartYear + 1;
-        const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
-        const value = parseFloat(projectValue || "0");
 
-        if (!yearMap[fyLabel]) {
-            yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, startYear: fyStartYear };
+    data.forEach((project) => {
+        const { startDate, projectValue, projectValueYearly } = project;
+
+        // ✅ CASE 1: If projectValueYearly exists and not empty
+        if (Array.isArray(projectValueYearly) && projectValueYearly.length > 0) {
+            projectValueYearly.forEach(({ financialYear, amount }) => {
+                if (!financialYear || !amount) return;
+                const value = parseFloat(amount || "0");
+                const fyLabel = `FY-${financialYear}`;
+                const fyStartYear = parseInt(financialYear.split("-")[0]);
+
+                if (!yearMap[fyLabel]) {
+                    yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, startYear: fyStartYear };
+                }
+                yearMap[fyLabel].Total += value;
+            });
+        } 
+        
+        // ✅ CASE 2: Fallback to projectValue + startDate
+        else if (startDate) {
+            const date = new Date(startDate);
+            const month = date.getMonth();
+            const year = date.getFullYear();
+            const fyStartYear = month < 3 ? year - 1 : year;
+            const fyEndYear = fyStartYear + 1;
+            const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
+            const value = parseFloat(projectValue || "0");
+
+            if (!yearMap[fyLabel]) {
+                yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, startYear: fyStartYear };
+            }
+            yearMap[fyLabel].Total += value;
         }
-        yearMap[fyLabel].Total += value;
     });
 
+    // ✅ Format result: convert to lakhs and sort by year
     return Object.values(yearMap)
         .map(({ financialYear, Total, startYear }) => ({
             financialYear,
@@ -82,6 +102,7 @@ function groupByFinancialYear(data) {
         .sort((a, b) => a.startYear - b.startYear)
         .map(({ financialYear, Total }) => ({ financialYear, Total }));
 }
+
 
 function getFilteredRows(rows, term) {
     const lower = term.toLowerCase().trim();
