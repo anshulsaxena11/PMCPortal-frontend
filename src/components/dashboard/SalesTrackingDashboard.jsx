@@ -234,8 +234,12 @@ export default function SalesTrackingDashboard() {
       }));
       setTendereRows(processedTenderRows);
       
-      const uniqueTenderDirectorates = Array.from(new Set(processedTenderRows.map(t => t.directrate).filter(Boolean)));
-      setDirectorateTenderOptions(uniqueTenderDirectorates);
+      const uniqueTenderDirectorates = Array.from(
+  new Set(processedTenderRows.map(t => t.directrate).filter(Boolean))
+)
+  .sort((a, b) => a.localeCompare(b)); // 👈 Sort alphabetically ascending
+
+setDirectorateTenderOptions(uniqueTenderDirectorates);
 
       // --- STATS AND SIDEBAR CALCULATION ---
       const dirMap = {};
@@ -591,7 +595,7 @@ export default function SalesTrackingDashboard() {
             onChange={(e) => setSelectedDirectorateTender(e.target.value)}
             style={{ padding: "6px 10px", borderRadius: "6px", minWidth: "200px" }}
           >
-            <option value="All">All ({tenderRows.length})</option>
+            <option value="All">All</option>
             {directorateTenderOptions.map((dir, i) => (
               <option key={i} value={dir}>{dir}</option>
             ))}
