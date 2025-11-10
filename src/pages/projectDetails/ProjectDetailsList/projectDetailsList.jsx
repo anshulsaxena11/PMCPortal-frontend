@@ -130,6 +130,7 @@ const ProjectDetailsList = () => {
     { field: 'orderType', headerName: 'Order Type', flex: 1, minWidth: 110 },    
     { field: 'projectName', headerName: 'Project Name', flex: 1.5, minWidth: 180 },
     { field: 'typeOfWork', headerName: 'Type Of Work', flex: 1, minWidth: 120 },
+    { field: 'directrate', headerName: 'Directorates', flex: 1.5, minWidth: 180 },
     { field: 'amountStatus', headerName: 'Status', flex: 1, minWidth: 110 },
     {
       field: 'projectValue',
