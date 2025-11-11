@@ -25,7 +25,6 @@ const UserProfile = ({ ID }) => {
 
   // Fetch user details
   useEffect(() => {
-    console.log(id);
     if (!id) return;
 
     const fetchUserDetails = async () => {

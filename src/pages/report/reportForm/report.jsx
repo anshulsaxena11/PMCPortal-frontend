@@ -7,7 +7,7 @@ import 'react-quill/dist/quill.snow.css';
 import Form from 'react-bootstrap/Form';
 import { useNavigate } from 'react-router-dom';
 import {getDeviceList} from '../../../api/deviceListAPI/decicelistApi'
-import {Spinner, Table } from 'react-bootstrap';
+import { Table } from 'react-bootstrap';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getVulnerabilityList } from '../../../api/vulnerabilityApi/vulnerability'
@@ -16,7 +16,6 @@ import PreviewModal from "../../../components/previewfile/preview"
 import { PiImagesSquareBold } from "react-icons/pi";
 import { getProjectNameList, getProjectTypeList } from '../../../api/ProjectDetailsAPI/projectDetailsApi'
 import {getAllRound, postAddRound} from '../../../api/roundApi/round'
-import FormComponent from '../../../components/formComponent/formcomponent'
 import PopupForm from '../../../components/PopBoxForm/PopupBoxForm'
 import { CiViewList } from "react-icons/ci";
 import { IoIosSave,IoMdAdd } from "react-icons/io";
@@ -26,7 +25,6 @@ import { TbPlaylistAdd } from "react-icons/tb";
 import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
-import { TiArrowBack } from "react-icons/ti";
 import { FaEye } from "react-icons/fa";
 import debounce from 'lodash.debounce';
 import { FcDocument } from 'react-icons/fc'; 

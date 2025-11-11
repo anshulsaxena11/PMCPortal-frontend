@@ -14,6 +14,7 @@ import Select from 'react-select';
 import {getCertificateMasterList} from '../../../api/certificateMaster/certificateMaster'
 import { useNavigate } from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
+import {getCertificateTypeMasterList} from "../../../api/certificateTypeMasterApi/certificateTypeMaster"
 import { IoIosSave } from "react-icons/io";
 
 import DatePicker from "react-datepicker";
@@ -32,20 +33,44 @@ const CertificateForm = () => {
     const [certificateOption , setCertificateOption] = useState([])
     const [option, setOption] = useState([])
     const [selectedCertificateOption, setSelectedCertificateOption] = useState([])
+    const [certificateTypeOptions, setCertificateTypeOptions] = useState([]);
+    const [selectCertificateTypeOption, setSelectedCertificateTypeOption] = useState([]);
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false); 
     const navigate = useNavigate();
     const [userId, setUserId] = useState(null);
-  const [userRole, setUserRole] = useState(null);
+    const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    // Get current user ID and role from localStorage/sessionStorage
     const currentUserId = localStorage.getItem("userId") || sessionStorage.getItem("userId");
     const currentUserRole = localStorage.getItem("userRole") || sessionStorage.getItem("userRole");
 
     setUserId(currentUserId);
     setUserRole(currentUserRole);
   }, []);
+  useEffect(() => {
+    const fetchCertificateType = async () => {
+    setLoading(true);  
+    try {
+        const response = await getCertificateTypeMasterList({});
+        const certificateTypes = response.data;
+
+        const options = certificateTypes.map(certType => ({
+            value: certType._id,  
+            label: certType.certificateType,  
+        }));
+
+        setCertificateTypeOptions(options);   
+
+    } catch (error) {
+        console.error('Error fetching vulnerabilities:', error);
+    } finally {
+        setLoading(false); 
+    }
+    };
+
+    fetchCertificateType();
+}, []);
 
     const handleCloseModal = () => {
         setShowPreviewModal(false); 
@@ -85,6 +110,7 @@ const CertificateForm = () => {
     };
     const handleFormdataSubmit = async (data) => {
         const payload={
+            certificateType:data.certificateType,
             certificateName:data.certificateName,
             assignedPerson:data.assignedPerson,
             issuedDate:data.issuedDate,
@@ -162,29 +188,35 @@ const CertificateForm = () => {
             const fetchCertificateList = async() =>{
                 setLoading(true);
                  try{
-                    const response = await getCertificateMasterList({})
-                    const fetchList = response?.data
-                    console.log(fetchList)
-                    if(fetchList && Array.isArray(fetchList) ){
-                        const option = fetchList.map((emp)=>({
+                    if(selectCertificateTypeOption?.value){
+                    const certificateType=selectCertificateTypeOption?.value;
+                        const response = await getCertificateMasterList({certificateType})
+                        const fetchList = response?.data
+                        if(fetchList && Array.isArray(fetchList) ){
+                            const option = fetchList.map((emp)=>({
                                 label: emp.certificateName,
                                 value:emp._id,
                             }))
                         setCertificateOption(option)
                     }
+                }
                 }catch(error){
                     console.error('Failed to fetch employee list:');
                 }
                  setLoading(false);
             }
             fetchCertificateList()
-        }, []); 
+        }, [selectCertificateTypeOption]); 
 
         const handleCertificate = (selected) =>{
             setSelectedCertificateOption(selected)
             const selectedString = selected?.value || '';
             setValue('certificateName',selectedString)
             trigger('certificateName');
+        }
+        const handleCertificateTypeChange = (selectedOption) => {
+            setSelectedCertificateTypeOption(selectedOption);
+            setValue('certificateType', selectedOption ? selectedOption.value : '');
         }
 
     return(
@@ -228,58 +260,6 @@ const CertificateForm = () => {
                         <div className='row'>
                             <div className='col-sm-6 col-md-6 col-lg-6'>
                                 <Form.Group className="mb-3">
-                                    <Form.Label className="fs-5 fw-bolder">Certificate Name<span className="text-danger">*</span></Form.Label>
-                                     <Controller
-                                        name="certificateName"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <Select
-                                                {...field}
-                                                options={certificateOption}
-                                                isLoading={loading}
-                                                value={selectedCertificateOption}
-                                                placeholder="Search Certificate Name"
-                                                onChange={handleCertificate}
-                                            />
-                                        )}
-                                    />
-                                    {errors.certificateName && <p className="text-danger">{errors.certificateName.message}</p>}
-                                </Form.Group>
-                                <div className='row'>
-                                    <div className='col-sm-6 col-md-6 col-lg-6'>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="fs-5 fw-bolder">Issued Date<span className="text-danger">*</span></Form.Label>
-                                            <div className="row">
-                                                <div className='col-sm-11 col-md-11 col-lg-11'>
-                                                    <Controller
-                                                        name="issuedDate"
-                                                        control={control}
-                                                        render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select Issued Date" />}
-                                                    />
-                                                {errors.issuedDate && <p className="text-danger">{errors.issuedDate.message}</p>}
-                                                </div>
-                                            </div>
-                                        </Form.Group>
-                                    </div>
-                                    <div className='col-sm-6 col-md-6 col-lf-6'>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label className="fs-5 fw-bolder">Valid Upto<span className="text-danger">*</span></Form.Label>
-                                            <div className="row">
-                                                <div className='col-sm-11 col-md-11 col-lg-11'>
-                                                    <Controller
-                                                        name="validUpto"
-                                                        control={control}
-                                                        render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Valid Upto" />}
-                                                    />
-                                                    {errors.validUpto && <p className="text-danger">{errors.validUpto.message}</p>}
-                                                </div>
-                                            </div>
-                                        </Form.Group>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className='col-sm-6 col-md-6 col-lg-6'>
-                                <Form.Group className="mb-3">
                                     <Form.Label className="fs-5 fw-bolder">Assigned Person Name<span className="text-danger">*</span></Form.Label>
                                     <Controller
                                     name="assignedPerson"
@@ -310,7 +290,25 @@ const CertificateForm = () => {
                                     />
                                     {errors.assignedPerson && <p className="text-danger">{errors.assignedPerson.message}</p>}
                                 </Form.Group>
-                                <Form.Group className="mt-3">
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="fs-5 fw-bolder">Certificate Name<span className="text-danger">*</span></Form.Label>
+                                     <Controller
+                                        name="certificateName"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Select
+                                                {...field}
+                                                options={certificateOption}
+                                                isLoading={loading}
+                                                value={selectedCertificateOption}
+                                                placeholder="Search Certificate Name"
+                                                onChange={handleCertificate}
+                                            />
+                                        )}
+                                    />
+                                    {errors.certificateName && <p className="text-danger">{errors.certificateName.message}</p>}
+                                </Form.Group>
+                                 <Form.Group className="mt-3">
                                     <Form.Label className="fs-5 fw-bolder">Upload Certificate (PDF, Image)<span className="text-danger">*</span></Form.Label>
                                         <Controller
                                             name="uploadeCertificate"
@@ -358,6 +356,59 @@ const CertificateForm = () => {
                                     preview={preview}
                                     fileType={fileType}
                                 />
+                            </div>
+                            <div className='col-sm-6 col-md-6 col-lg-6'>
+                                <Form.Group className="mb-3">
+                                    <Form.Label className="fs-5 fw-bolder">Certificate Type</Form.Label>
+                                    <Controller
+                                            name="certificateType"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Select
+                                                    {...field}
+                                                    options={certificateTypeOptions}
+                                                    value={selectCertificateTypeOption}
+                                                    isClearable
+                                                    placeholder="Select Certificate Type"
+                                                    onChange={handleCertificateTypeChange}
+                                                />
+                                            )}
+                                        />
+                                        {errors.certificateType && <p className="text-danger">{errors.certificateType.message}</p>}
+                                </Form.Group>
+                                  <div className='row'>
+                                    <div className='col-sm-6 col-md-6 col-lg-6'>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="fs-5 fw-bolder">Issued Date<span className="text-danger">*</span></Form.Label>
+                                            <div className="row">
+                                                <div className='col-sm-11 col-md-11 col-lg-11'>
+                                                    <Controller
+                                                        name="issuedDate"
+                                                        control={control}
+                                                        render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Select Issued Date" />}
+                                                    />
+                                                {errors.issuedDate && <p className="text-danger">{errors.issuedDate.message}</p>}
+                                                </div>
+                                            </div>
+                                        </Form.Group>
+                                    </div>
+                                    <div className='col-sm-6 col-md-6 col-lf-6'>
+                                        <Form.Group className="mb-3">
+                                            <Form.Label className="fs-5 fw-bolder">Valid Upto<span className="text-danger">*</span></Form.Label>
+                                            <div className="row">
+                                                <div className='col-sm-11 col-md-11 col-lg-11'>
+                                                    <Controller
+                                                        name="validUpto"
+                                                        control={control}
+                                                        render={({ field }) => <DatePicker {...field} selected={field.value} onChange={(date) => field.onChange(date)} className="form-control" dateFormat="MMMM d, yyyy" placeholderText="Valid Upto" />}
+                                                    />
+                                                    {errors.validUpto && <p className="text-danger">{errors.validUpto.message}</p>}
+                                                </div>
+                                            </div>
+                                        </Form.Group>
+                                    </div>
+                                </div>
+                               
                             </div>
                         </div>
                         <div className="py-3">

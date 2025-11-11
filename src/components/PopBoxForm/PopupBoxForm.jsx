@@ -3,7 +3,7 @@ import { Modal, Button, Spinner } from 'react-bootstrap';
 import toast from 'react-hot-toast';
 import './popupBoxForm.css'
 
-const PopupForm = ({ show, handleClose, title, children, showFooter, footerText, handleAdd ,dialogClassName, dimmed = false  }) => {
+const PopupForm = ({ show, handleClose, title, children, showFooter, footerText, handleAdd, addButtonText, dialogClassName, dimmed = false  }) => {
   const [loading, setLoading] = useState(false);
 
   
@@ -35,7 +35,7 @@ const PopupForm = ({ show, handleClose, title, children, showFooter, footerText,
                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" /> Adding...
               </>
             ) : (
-              "ADD +"
+              (addButtonText || "ADD +")
             )}
           </Button>
           <Button variant="secondary" onClick={handleClose} disabled={loading}>

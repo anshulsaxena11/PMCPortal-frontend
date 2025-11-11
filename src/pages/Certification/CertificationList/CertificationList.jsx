@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import CustomDataGrid from '../../../components/DataGrid/CustomDataGrid';
 import Heading from '../../../components/Heading/heading';
-
+import { getCertificateByUserId } from "../../../api/certificateApi/certificate";
 import {
   Box,
   Button,
@@ -23,15 +23,19 @@ const CertificateList = () => {
   const [loading, setLoading] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const navigate = useNavigate();
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    const currentUserId = localStorage.getItem("userId");
     const role = localStorage.getItem("userRole");
+    setUserId(currentUserId);
     setUserRole(role);
   }, []);
 
   const fetchData = async () => {
     setLoading(true);
     try {
+      if (userRole === 'Admin' ) {
       const response = await getCertificateDetailsList({
         page: page + 1,
         limit: pageSize,
@@ -50,6 +54,29 @@ const CertificateList = () => {
 
       setData(transformedData);
       setTotalCount(response.total);
+    } else {
+        const response = await getCertificateByUserId(userId, {
+          page: page + 1,
+          limit: pageSize,
+          search: searchQuery.trim()
+        });
+        
+        const transformedData = response.data.map((item, index) => {
+          return {
+            id: item._id,
+            serial: page * pageSize + index + 1,
+            ...item,
+            issuedDate: item?.issuedDate?.split('T')[0] || 'N/A',
+            validUpto: item?.validUpto?.split('T')[0] || 'N/A',
+            assignedPerson: item?.assignedPerson?.ename || 'N/A',
+            certificateName: item?.certificateName?.certificateName || 'N/A',
+            certificateType: item?.certificateType?.certificateType || 'N/A',
+          };
+        });
+
+        setData(transformedData);
+        setTotalCount(response?.pagination?.total);
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -59,7 +86,7 @@ const CertificateList = () => {
 
   useEffect(() => {
     fetchData();
-  }, [page, pageSize, searchQuery]);
+  }, [page, pageSize, searchQuery,userRole,userId]);
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -105,6 +132,7 @@ const CertificateList = () => {
       sortable: false,
       filterable: false
     },
+    { field: 'certificateType', headerName: 'Certificate Type', flex: 1.5, minWidth: 200 },
     { field: 'certificateName', headerName: 'Certificate Name', flex: 1.5, minWidth: 200 },
     { field: 'assignedPerson', headerName: 'Assigned Person', flex: 1, minWidth: 100 },
     { field: 'issuedDate', headerName: 'Issued Date', flex: 1, minWidth: 110 },    
@@ -129,11 +157,13 @@ const CertificateList = () => {
               >
                 <Edit />
               </IconButton>
+            </>
+          )}
+           {(userRole === 'Admin') && (
               <IconButton onClick={() => handleDelete(params.row.id)} size="small">
                 <Delete color="error" />
               </IconButton>
-            </>
-          )}
+           )}
         </Stack>
       )
     }
