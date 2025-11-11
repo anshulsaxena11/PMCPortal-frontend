@@ -6,19 +6,45 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Form,} from "react-bootstrap";
 import { useForm } from "react-hook-form";
+import {getCertificateTypeMasterList} from "../../../api/certificateTypeMasterApi/certificateTypeMaster"
 import Select from 'react-select';
 import CircularProgress from '@mui/material/CircularProgress';
 import EditIcon from '@mui/icons-material/Edit' 
 
 const CertificateMasterEdit = () =>{
-    const { register, handleSubmit, reset, getValues, formState: { errors }, } = useForm();
+    const { register, handleSubmit, reset, getValues, formState: { errors },setValue } = useForm();
     const [loading, setLoading] = useState(true);
+    const [selectCertificateTypeOption, setSelectedCertificateTypeOption] = useState([]);
+    const [certificateTypeOptions, setCertificateTypeOptions] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
     const id = location.state?.id;
     const handleBackClick = ()=>{
         navigate(`/Certificate-Master`) 
     }
+    useEffect(() => {
+        const fetchCertificateType = async () => {
+            setLoading(true);  
+            try {
+                const response = await getCertificateTypeMasterList({});
+                const certificateTypes = response.data;
+
+                const options = certificateTypes.map(certType => ({
+                value: certType._id,  
+                label: certType.certificateType,  
+                }));
+
+                setCertificateTypeOptions(options);   
+
+            } catch (error) {
+            console.error('Error fetching vulnerabilities:', error);
+            } finally {
+            setLoading(false); 
+            }
+        };
+    
+        fetchCertificateType();
+    }, []);
   
     const fetchCertificateSector = async () => {
         try {
@@ -28,6 +54,13 @@ const CertificateMasterEdit = () =>{
                 reset({
                     ...fetchdata,
                 })
+                if (fetchdata?.certificateType && certificateTypeOptions.length > 0) {
+                    const matchedCertificateType = certificateTypeOptions.find(
+                        (option) => option.value === fetchdata.certificateType
+                    );
+                    setSelectedCertificateTypeOption(matchedCertificateType || null);
+                    setValue('certificateType', fetchdata?.certificateType);
+                }
             }
         } catch (error) {
             console.error('Error fetching project details:',);
@@ -37,14 +70,16 @@ const CertificateMasterEdit = () =>{
     };
     useEffect(() => {
         fetchCertificateSector();
-    }, [id]);
+    }, [id,certificateTypeOptions]);
 
     const onSubmit = async (formData) => {
         setLoading(true);
         try{
             const formDataToSubmit = new FormData();
             const certificateName = formData.certificateName || getValues("certificateName");
+            const certificateType = formData.certificateType || getValues("certificateType");
 
+            formDataToSubmit.append("certificateType", certificateType);
             formDataToSubmit.append("certificateName", certificateName);
 
             const response = await updateCertificate(id,formDataToSubmit)
@@ -66,6 +101,11 @@ const CertificateMasterEdit = () =>{
            setLoading(false);  
         }
     }
+    const handleCertificateTypeChange=(selected) =>{
+        setSelectedCertificateTypeOption(selected); 
+        const certificateType = selected?.value
+        setValue('certificateType',certificateType)
+    }    
 
     return(
         <div className='container-fluid'>
@@ -95,9 +135,21 @@ const CertificateMasterEdit = () =>{
                     </Typography> 
                 </Box>
             </div>
-            <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
+            <hr className="my-1" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
             <Form onSubmit={handleSubmit(onSubmit)}>
-                <div className="row pt-4">
+                <div className="row">
+                    <div className="col-sm-6 col-md-6 col-lg-6">
+                        <Form.Group className="pt-4">
+                            <Form.Label className="fs-5 fw-bolder">Certificate Type<span className="text-danger">*</span></Form.Label>
+                            <Select
+                                name="certificateType"
+                                options={certificateTypeOptions}
+                                value={selectCertificateTypeOption}
+                                onChange={handleCertificateTypeChange}
+                                isLoading={loading}
+                            />
+                        </Form.Group>
+                    </div>
                     <div className="col-sm-6 col-md-6 col-lg-6">
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Certificate Name<span className="text-danger">*</span></Form.Label>

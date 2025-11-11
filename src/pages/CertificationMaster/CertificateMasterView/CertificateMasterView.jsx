@@ -25,9 +25,11 @@ const CertificateMasterView = () => {
         fetchDomain();
     }, [id]);
     const fields = [
+        'certificateTypeName',
         'certificateName',
     ];
     const labels = {
+        certificateTypeName:'Certificate Type',
         certificateName:'Certificate Name',
     };
     const handleBackClick = ()=>{

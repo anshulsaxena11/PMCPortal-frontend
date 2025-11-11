@@ -27,8 +27,9 @@ const CertificateView = () => {
     }, [id]);
 
     const fields = [
-        'certificateName',
-        'assignedPerson', 
+        'certificateTypeView',
+        'certificateView',
+        'assignedPersonView', 
         'issuedDate', 
         'validUpto', 
         'certificateUrl',
@@ -37,8 +38,9 @@ const CertificateView = () => {
 
 
     const labels = {
-        certificateName: 'Certificate Name',
-        assignedPerson: 'Assigned Person Name',
+        certificateTypeView: 'Certificate Type',
+        certificateView: 'Certificate Name',
+        assignedPersonView: 'Assigned Person Name',
         issuedDate: 'Issued Date',
         validUpto: 'Valid Upto',
         certificateUrl: 'Certificate Preview',
