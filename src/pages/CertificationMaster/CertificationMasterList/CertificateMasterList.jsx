@@ -29,8 +29,8 @@ const CertificateMasterList = () => {
                 limit: pageSize,
                 search: searchQuery.trim()
             });
-            console.log(response)
             const data = response?.data
+            console.log("Certificate Master List",data)
             const transformedData = data.map((item, index) => {
                 return {
                     id: item._id,
@@ -64,6 +64,7 @@ const CertificateMasterList = () => {
           sortable: false,
           filterable: false
         },
+        { field: 'certificateType', headerName: 'Certificate Type', flex: 1.5, minWidth: 200 },
         { field: 'certificateName', headerName: 'Certificate Name', flex: 1.5, minWidth: 200 },
         {
           field: 'actions',

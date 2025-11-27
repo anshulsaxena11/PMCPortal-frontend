@@ -1,6 +1,7 @@
 import * as yup from 'yup';
 
 const certificateValidation = yup.object({
+    certificateType:yup.string().required("Certificate Type required"),
     certificateName: yup.string().required("Name of Certifiicate is required"),
     assignedPerson: yup.string().required("Name of Assigned Person is required"),
     issuedDate: yup.date().required("Issued Date is required").nullable(),

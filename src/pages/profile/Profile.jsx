@@ -16,7 +16,7 @@ const UserProfile = ({ ID }) => {
   const [userId, setUserId] = useState(null);
   const [projects, setProjects] = useState([]);
   const [certificates, setCertificates] = useState([]);
-  const [ setError] = useState(null);
+  const [error, setError] = useState(null);
 
   // Preview modal states
   const [showModal, setShowModal] = useState(false);

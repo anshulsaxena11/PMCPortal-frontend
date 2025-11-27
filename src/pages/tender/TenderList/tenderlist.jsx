@@ -15,7 +15,7 @@ import { getTenderDetailsList, deleteTenderById, updatetendermessage } from '../
 
 const TenderDetailsList = () => {
     const [data, setData] = useState([]);
-    const [page, setPage] = useState(0); // DataGrid uses 0-based index
+    const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [totalCount, setTotalCount] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
@@ -257,8 +257,7 @@ const TenderDetailsList = () => {
             </Box>
             <hr></hr>
            
-            <Box display="flex" gap={2} mb={2}>
-             
+            <Box display="flex" gap={2} mb={2}> 
                <Box display="flex" gap={2} mb={2} style={{width:'30%'}}>
                     <label style={{ marginRight: '8px' }}>Directorate:</label>
                     <select
@@ -309,7 +308,6 @@ const TenderDetailsList = () => {
 
                 </Box>
             </Box>
-
             <div style={{ height: 600, width: '100%' }}>
                 <CustomDataGrid
                         rows={data}

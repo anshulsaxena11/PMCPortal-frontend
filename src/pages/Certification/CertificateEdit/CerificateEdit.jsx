@@ -12,12 +12,14 @@ import EditIcon from '@mui/icons-material/Edit'
 import { PiImagesSquareBold } from "react-icons/pi";
 import {getCertificateDetailsById, updateCertificate} from '../../../api/certificateApi/certificate'
 import {empList} from '../../../api/syncEmp/syncEmp'
+import {getCertificateTypeMasterList} from "../../../api/certificateTypeMasterApi/certificateTypeMaster"
 import Select from 'react-select';
 import {getCertificateMasterList} from '../../../api/certificateMaster/certificateMaster'
 
 const CerificateEdit = ({ID}) => {
-    const { register, handleSubmit, setValue, reset, getValues, control, formState: { errors }, } = useForm();
+    const { register, handleSubmit, setValue, reset, getValues, watch, formState: { errors }, } = useForm();
     const [oneTimeFull,setOneTimeFull]=useState(true)
+    const [oneTimeType,setOneTimeType]=useState(true)
     const [fileUrl, setFileUrl] = useState(null);
     const [filePreviewUrl, setFilePreviewUrl] = useState("");
     const [previewFileType, setPreviewFileType] = useState("");
@@ -25,6 +27,8 @@ const CerificateEdit = ({ID}) => {
     const [certificateOption , setCertificateOption] = useState([])
     const [option, setOption] = useState([])
     const [selectedCertificateOption, setSelectedCertificateOption] = useState([])
+    const [certificateTypeOptions, setCertificateTypeOptions] = useState([]);
+    const [selectCertificateTypeOption, setSelectedCertificateTypeOption] = useState([]);
     const [fileError, setFileError] = useState("");
     const [file, setFile] = useState(null);
     const [showModal, setShowModal] = useState(false);
@@ -32,7 +36,37 @@ const CerificateEdit = ({ID}) => {
     const { id } = useParams();
     const certificateId = ID || id;
     const [loading, setLoading] = useState(true);
+    const [userRole, setUserRole] = useState(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const role = localStorage.getItem("userRole");
+        setUserRole(role);
+    }, []);
+
+    useEffect(() => {
+        const fetchCertificateType = async () => {
+        setLoading(true);  
+        try {
+            const response = await getCertificateTypeMasterList({});
+            const certificateTypes = response.data;
+    
+            const options = certificateTypes.map(certType => ({
+                value: certType._id,  
+                label: certType.certificateType,  
+            }));
+    
+            setCertificateTypeOptions(options);   
+    
+        } catch (error) {
+            console.error('Error fetching vulnerabilities:', error);
+        } finally {
+            setLoading(false); 
+        }
+        };
+    
+        fetchCertificateType();
+    }, []);
 
     useEffect(() => {
         const fetchEmpList = async() =>{
@@ -60,26 +94,28 @@ const CerificateEdit = ({ID}) => {
         const fetchCertificateList = async() =>{
             setLoading(true);
                 try{
-                const response = await getCertificateMasterList()
-                const fetchList = response?.data
-                if(fetchList && Array.isArray(fetchList) ){
-                    const option = fetchList.map((emp)=>({
-                            label: emp.certificateName,
-                            value:emp._id,
-                        }))
-                    setCertificateOption(option)
-                }
+                    if(selectCertificateTypeOption?.value ){
+                        const response = await getCertificateMasterList({certificateType: selectCertificateTypeOption ? selectCertificateTypeOption.value : ""})
+                        const fetchList = response?.data
+                        if(fetchList && Array.isArray(fetchList) ){
+                            const option = fetchList.map((emp)=>({
+                                label: emp.certificateName,
+                                value:emp._id,
+                            }))
+                            setCertificateOption(option)
+                        }
+                    }
             }catch(error){
                 console.error('Failed to fetch employee list:');
             }
                 setLoading(false);
         }
         fetchCertificateList()
-    }, []); 
+    }, [selectCertificateTypeOption]); 
 
     useEffect(() => {
         fetchCertificate();
-    }, [option]);
+    }, [option,certificateTypeOptions,certificateOption]);
 
     const fetchCertificate = async () => {
         try {
@@ -88,16 +124,16 @@ const CerificateEdit = ({ID}) => {
             if(fetchData){
                 const formattedIssuedDate = fetchData.issuedDate? fetchData.issuedDate.split("T")[0]: "";
                 const formattedValidUpto = fetchData.validUpto? fetchData.validUpto.split("T")[0]: "";
-                const matchedCertificate = certificateOption.find(opt => opt.label === fetchData.certificateName);
+                const matchedCertificate = certificateOption.find(opt => opt.value === fetchData.certificateName);
                 const certificateNameId = matchedCertificate ? matchedCertificate.value : "";
-                const matchedEmp = option.find(opt => opt.raw?.ename === fetchData.assignedPerson);
+                const matchedEmp = option.find(opt => opt.value === fetchData.assignedPerson);
                 const assignedPersonId = matchedEmp ? matchedEmp.value : "";
                  reset({
                     ...fetchData,
                     issuedDate: formattedIssuedDate,
                     validUpto:formattedValidUpto,
                     certificateName: certificateNameId,
-                    assignedPerson: assignedPersonId
+                    assignedPerson: assignedPersonId,
                 });
                 if (oneTimeFull && fetchData.certificateUrl) {
                     const isAbsolute = fetchData.certificateUrl.startsWith("http");
@@ -107,9 +143,16 @@ const CerificateEdit = ({ID}) => {
                     setFileUrl(fullUrl);
                     setFilePreviewUrl(fullUrl);
                 }
-                   setSelectedCertificateOption(matchedCertificate || null);
-                    setSelectedEmp(matchedEmp || null);
-                    
+                if (oneTimeType && fetchData?.certificateType && certificateTypeOptions.length > 0) {
+                    const matchedCertificateType = certificateTypeOptions.find(
+                        (option) => option.value === fetchData.certificateType
+                    );
+                    setSelectedCertificateTypeOption(matchedCertificateType || null);
+                    setValue('certificateType', fetchData?.certificateType);
+                }
+               
+                setSelectedCertificateOption(matchedCertificate || null);
+                setSelectedEmp(matchedEmp || null);
 
                 setOneTimeFull(false);
             }
@@ -165,14 +208,24 @@ const CerificateEdit = ({ID}) => {
     };
 
      const onSubmit = async (formData) => {
+         if (!formData.certificateName) {
+            toast.error("Certificate Name is required", {
+            className: "custom-toast custom-toast-error",
+        });
+        return; 
+        }
+        setValue("certificateType", selectCertificateTypeOption?.value || "");
+         const updatedFormData = getValues();
         setLoading(true);
         try{
             const formDataToSubmit = new FormData();
+            const certificateType = updatedFormData.certificateType || getValues("certificateType");
             const certificateName = formData.certificateName || getValues("certificateName");
             const assignedPerson = formData.assignedPerson || getValues("assignedPerson");
             const issuedDate = formData.issuedDate || getValues("issuedDate");
             const validUpto = formData.validUpto || getValues("validUpto");
 
+            formDataToSubmit.append("certificateType", certificateType);
             formDataToSubmit.append("certificateName", certificateName);
             formDataToSubmit.append("assignedPerson", assignedPerson);
             formDataToSubmit.append("issuedDate", issuedDate);
@@ -183,7 +236,6 @@ const CerificateEdit = ({ID}) => {
             }
 
             const response = await updateCertificate(certificateId,formDataToSubmit)
-            console.log(response)
             if (response?.data?.statusCode ===200){
                 toast.success(response?.data?.message, {
                     className: 'custom-toast custom-toast-success',
@@ -207,6 +259,12 @@ const CerificateEdit = ({ID}) => {
         setSelectedCertificateOption(selected)
         const selectedString = selected && selected.value ? String(selected.value) : '';
         setValue('certificateName',selectedString)
+    }
+    const handleCertificateTypeChange = (selectedOption) => {
+        setSelectedCertificateTypeOption(selectedOption);
+        setOneTimeType(false)
+        setSelectedCertificateOption([])
+        setValue('certificateType', selectedOption ? selectedOption.value : '');
     }
 
     const handleFilter = (option, inputValue) => {
@@ -256,9 +314,21 @@ const CerificateEdit = ({ID}) => {
             </Box>
           </div>
           <hr className="my-3" style={{ height: '4px', backgroundColor: '#000', opacity: 1 }}></hr>
-           <Form onSubmit={handleSubmit(onSubmit)}>
-                <div className="row pt-4" >
+         <Form onSubmit={handleSubmit(onSubmit)}>
+             <div className="row pt-4" >
                     <div className="col-sm-6 col-md-6 col-lg-6">
+                         <Form.Group className="pt-4">
+                            <Form.Label className="fs-5 fw-bolder">Assigned Person Name<span className="text-danger">*</span></Form.Label>
+                             <Select
+                                name="assignedPerson"
+                                options={option}
+                                value={selectedEmp}
+                                isLoading={loading} 
+                                onChange={handleEmp}
+                                isDisabled={loading || (userRole !== 'Admin')}
+                                filterOption={handleFilter}
+                            />
+                        </Form.Group>
                         <Form.Group className="pt-4">
                             <Form.Label className="fs-5 fw-bolder">Certificate Name<span className="text-danger">*</span></Form.Label>
                              <Select
@@ -270,7 +340,51 @@ const CerificateEdit = ({ID}) => {
                                 isDisabled={loading} 
                             />
                         </Form.Group>
-                        <div className="row">
+                           <Form.Group className="pt-4">
+                            <Form.Label className="fs-5 fw-bolder">Certificate Upload (PDF, Image)<span className="text-danger">*</span></Form.Label>
+                            <Form.Control 
+                                type="file" 
+                                accept=".jpg,.png,.pdf,.doc,.docx" 
+                                onChange={handleFileChange}
+                                className={fileError ? "is-invalid" : ""}
+                            />
+                            {fileError && <div className="invalid-feedback d-block">{fileError}</div>}
+                            {(uploadedPreviewUrl || fileUrl) && (
+                                <div className="mt-2" style={{ cursor: "pointer" }}>
+                                    <h6
+                                        onClick={() =>
+                                            uploadedPreviewUrl
+                                            ? handlePreviewClick(uploadedPreviewUrl, previewFileType)
+                                            : handlePreviewClick(fileUrl) 
+                                        }
+                                    >
+                                        <PiImagesSquareBold style={{ marginRight: "8px" }} />
+                                        Preview Uploaded File
+                                    </h6>
+                          </div>
+                        )}
+                        <PreviewModal
+                            show={showModal}
+                            onHide={() => setShowModal(false)}
+                            preview={filePreviewUrl}
+                            fileType={previewFileType}
+                        />
+
+                        </Form.Group>                     
+                    </div>
+                    <div className="col-sm-6 col-md-6 col-lg-6">
+                        <Form.Group className="pt-4">
+                            <Form.Label className="fs-5 fw-bolder">Certificate Type<span className="text-danger">*</span></Form.Label>
+                            <Select
+                                name="certificateType"
+                                options={certificateTypeOptions}
+                                value={selectCertificateTypeOption}
+                                isLoading={loading} 
+                                onChange={handleCertificateTypeChange}
+                                isDisabled={loading} 
+                            />
+                         </Form.Group>   
+                          <div className="row">
                             <div className="col-sm-6 col-md-6 col-lg-6">
                                 <Form.Group className="pt-3">
                                     <Form.Label className="fs-5 fw-bolder">Issued Date<span className="text-danger">*</span></Form.Label>
@@ -307,51 +421,6 @@ const CerificateEdit = ({ID}) => {
                                 </Form.Group>
                             </div>
                         </div>
-                    </div>
-                    <div className="col-sm-6 col-md-6 col-lg-6">
-                        <Form.Group className="pt-4">
-                            <Form.Label className="fs-5 fw-bolder">Assigned Person Name<span className="text-danger">*</span></Form.Label>
-                             <Select
-                                name="assignedPerson"
-                                options={option}
-                                value={selectedEmp}
-                                isLoading={loading} 
-                                onChange={handleEmp}
-                                isDisabled={loading} 
-                                filterOption={handleFilter}
-                            />
-                        </Form.Group>
-                         <Form.Group className="pt-4">
-                            <Form.Label className="fs-5 fw-bolder">Certificate Upload (PDF, Image)<span className="text-danger">*</span></Form.Label>
-                            <Form.Control 
-                                type="file" 
-                                accept=".jpg,.png,.pdf,.doc,.docx" 
-                                onChange={handleFileChange}
-                                className={fileError ? "is-invalid" : ""}
-                            />
-                            {fileError && <div className="invalid-feedback d-block">{fileError}</div>}
-                            {(uploadedPreviewUrl || fileUrl) && (
-                                <div className="mt-2" style={{ cursor: "pointer" }}>
-                                    <h6
-                                        onClick={() =>
-                                            uploadedPreviewUrl
-                                            ? handlePreviewClick(uploadedPreviewUrl, previewFileType)
-                                            : handlePreviewClick(fileUrl) 
-                                        }
-                                    >
-                                        <PiImagesSquareBold style={{ marginRight: "8px" }} />
-                                        Preview Uploaded File
-                                    </h6>
-                          </div>
-                        )}
-                        <PreviewModal
-                            show={showModal}
-                            onHide={() => setShowModal(false)}
-                            preview={filePreviewUrl}
-                            fileType={previewFileType}
-                        />
-
-                        </Form.Group>                     
                     </div>
                 </div>
                 <Box
