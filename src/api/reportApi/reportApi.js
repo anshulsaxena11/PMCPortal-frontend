@@ -24,6 +24,15 @@ export const postReport = async (payload) => {
     });
 };
 
+export const updateRoundStatus = async (payload) => {
+    // Send a PUT request to update the round status.
+    // The backend must use the identifying fields in the payload 
+    // (projectName, round, etc.) to locate the specific report.
+    return await axiosInstance.put("/user/report/status", payload, {
+        withCredentials: true,
+    });
+};
+
 export const getReportList = async ({ page = 1, limit = 10, search = "", round="", devices="",projectType="",projectName="" }) => axiosInstance.get("/user/report", { params: { page, limit, search, round, devices, projectType, projectName }, withCredentials: true, }).then(response => response.data);
 export const getAllReportList = async () => 
   axiosInstance.get("/user/allreport", {
