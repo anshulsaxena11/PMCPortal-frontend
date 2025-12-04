@@ -1,11 +1,8 @@
-// report.jsx
-
 import React, { useState, useEffect, useRef,useCallback   } from 'react';
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm, Controller } from "react-hook-form";
 import reportValidationSchema from '../../../validation/reportValidationSchema';
-// NOTE: I'm keeping these imports, but the internal logic below will use placeholders for the results
-import {postReport,getVulListSpecific,searhName,updateRoundStatus } from '../../../api/reportApi/reportApi'
+import {postReport,getVulListSpecific,searhName } from '../../../api/reportApi/reportApi'
 import 'react-quill/dist/quill.snow.css'; 
 import Form from 'react-bootstrap/Form';
 import { useNavigate } from 'react-router-dom';
@@ -25,7 +22,7 @@ import { IoIosSave,IoMdAdd } from "react-icons/io";
 import { CgPlayListRemove } from "react-icons/cg";
 import { MdOutlineAddModerator } from "react-icons/md";
 import { TbPlaylistAdd } from "react-icons/tb"; 
-import { Box, Typography, Button, IconButton, Tooltip, Switch, FormControlLabel } from '@mui/material';
+import { Box, Typography, Button, IconButton, Tooltip } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'; 
 import { FaEye } from "react-icons/fa";
@@ -71,7 +68,7 @@ const ReportPage = () => {
     { text: "", file: null, preview: null },
     { text: "", file: null, preview: null }
   ]);
-  const [selectDevice, setSelectDevice] = useState(null) // Initialize as null for safety
+  const [selectDevice, setSelectDevice] = useState([])
   const navigate = useNavigate();
   const [disableDevices, setDisableDevices] = useState("")
   const fileInputRefs = useRef([]); 
@@ -79,7 +76,7 @@ const ReportPage = () => {
   const [showModalPoc, setShowModalPoc] = useState(false);  
   const [showModalVulList, setShowModalVulList] = useState(false); 
   const [showVulLisst,setShowVulList] = useState([])
-  const roundValue = watch("round"); // Watch the selected round value
+  const roundValue = watch("round");
   const name = watch("name");
   const deviceValue = watch("device");
   const ipAddress = watch('ipAddress')
@@ -88,25 +85,10 @@ const ReportPage = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
-  // --- ROUND COMPLETION STATE RESTORED ---
-  const [isFormSaved, setIsFormSaved] = useState(false); 
-  const [showRoundCompletionModal, setShowRoundCompletionModal] = useState(false);
-  const [completionRounds, setCompletionRounds] = useState([
-    { name: 'Round 1', isComplete: false },
-    { name: 'Round 2', isComplete: false },
-    { name: 'Round 3', isComplete: false },
-    { name: 'Round 4', isComplete: false },
-  ]);
-  // ----------------------------------
-
-  // --- NEW STATE FOR COMPLETED ROUNDS ---
-  const [completedRounds, setCompletedRounds] = useState({});
-  // --------------------------------------
-
  
  useEffect(() => {
-  setValue("Path", ipAddress); 
-  setValue("VulnerableParameter", ipAddress); 
+  setValue("Path", ipAddress); // â† This would cause what you're describing
+  setValue("VulnerableParameter", ipAddress); // â† This would cause what you're describing
 }, [ipAddress]); 
 
   const savedSelectedProjectName = localStorage.getItem("selectedProjectName");
@@ -115,9 +97,7 @@ const ReportPage = () => {
   const savedSelectedProjectNameAdd = localStorage.getItem("selectedProjectNameAdd");
   const savedDeviceValue = localStorage.getItem("deviceValue");
   const savedIpAddress = localStorage.getItem("ipAddress");
-
-// --- MODIFIED fetchVulList TO ALSO FETCH ROUND STATUS ---
-const fetchVulList = async () => {
+  const fetchVulList = async () => {
     setLoading(true);
     try {
       const projectName = selectedProjectName || savedSelectedProjectName;
@@ -128,7 +108,6 @@ const fetchVulList = async () => {
       const ip = ipAddress || savedIpAddress;
 
        if (projectName || round || Name || projectType || devices || ip) {
-        // --- API CALL: getVulListSpecific (Placeholder) ---
         const response = await getVulListSpecific({
           projectName: selectedProjectName,
           projectType: selectedProjectNameAdd,
@@ -137,57 +116,14 @@ const fetchVulList = async () => {
           Name: name,
           ipAddress: ipAddress,
         });
-        /* API Response Placeholder for getVulListSpecific: 
-           response.data should be an array of vulnerability objects with fields like:
-           {
-               vulnerabilityName: 'XSS', 
-               sevirty: 'Medium', 
-               description: '...', 
-               roundStatus: [{ roundstep: 'Round 1', roundstepstatus: 'Complete' }, ...], // <-- NEWLY IMPORTANT
-               proofOfConcept: [{ noOfSteps: 'Step 1', description: '...', proof: 'https://proof_url.png' }] 
-           }
-        */
         setShowVulList(response.data); 
-        
-        // --- LOGIC TO EXTRACT AND SET COMPLETED ROUNDS ---
-        if (response.data && response.data.length > 0) {
-            // Assuming roundStatus is the same across all vulnerabilities for the same report context
-            const statusArray = response.data[0].roundStatus; 
-            if (Array.isArray(statusArray)) {
-                const completed = {};
-                statusArray.forEach(status => {
-                    if (status.roundstepstatus === 'Complete') {
-                        // 'Round 1' -> 'Round 1' : true
-                        completed[status.roundstep] = true;
-                    }
-                });
-                setCompletedRounds(completed);
-
-                // Also update completionRounds state for the modal
-                 const newCompletionRounds = completionRounds.map(r => ({
-                    ...r,
-                    isComplete: completed[r.name] || false
-                }));
-                setCompletionRounds(newCompletionRounds);
-                
-                // Mark form as saved if we found data
-                setIsFormSaved(true);
-            }
-        } else {
-             // If no vulnerabilities found, assume the current report context isn't saved yet
-             setIsFormSaved(false);
-             setCompletedRounds({});
-             setCompletionRounds(completionRounds.map(r => ({ ...r, isComplete: false })));
-        }
       }
     } catch (error) {
-      console.error("Error fetching vulnerabilities/round status:", error);
-       setIsFormSaved(false);
+      console.error("Error fetching vulnerabilities:");
     } finally {
       setLoading(false);
     }
   };
-// ----------------------------------------------------
 
   const handlePasteOnIndex = (e, index) => {
   const items = e.clipboardData?.items;
@@ -196,9 +132,9 @@ const fetchVulList = async () => {
       if (item.type.indexOf("image") !== -1) {
         const file = item.getAsFile();
         const preview = URL.createObjectURL(file);
-        const updatedProofs = [...proofOfConcepts]; 
+        const updatedProofs = [...proofs];
         updatedProofs[index] = { ...updatedProofs[index], preview, file };
-        setProofOfConcepts(updatedProofs); 
+        setProofs(updatedProofs);
       }
     }
   }
@@ -209,9 +145,9 @@ const handleFileUpload = (e, index) => {
   const file = e.target.files[0];
   if (file) {
     const preview = URL.createObjectURL(file);
-    const updatedProofs = [...proofOfConcepts]; 
+    const updatedProofs = [...proofs];
     updatedProofs[index] = { ...updatedProofs[index], preview, file };
-    setProofOfConcepts(updatedProofs); 
+    setProofs(updatedProofs);
   }
 };
 
@@ -219,51 +155,13 @@ const handleFileUpload = (e, index) => {
     loadRounds();
   }, []);
   
-// --- NEW useEffect to load status on initial Project/Round changes ---
-  useEffect(() => {
-    // This runs when the component mounts or when project/round changes
-    // Only fetch if required fields are present
-    if (getValues("selectedProjectName") && getValues("ProjectType")) {
-        fetchVulList();
-    }
-  }, [getValues("selectedProjectName"), getValues("ProjectType"), getValues("name"), getValues("device"), getValues("ipAddress")]);
-// -------------------------------------------------------------------
-
-
   useEffect(() => {
     const fetchVulnerabilities = async () => {
-      setLoading(true);
+      setLoading(true);  // Start loading
       try {
-        let fetch = false;
-        let projectTypeToFetch = ProjectType;
-
-        // FIX 1: Only fetch if we have enough info
-        // Condition 1: Non-Network Devices (ProjectType must be set)
-        if (ProjectType && ProjectType !== "Network Devices") {
-          fetch = true;
-        } 
-        // Condition 2: Network Devices (ProjectType AND selectDevice must be set)
-        else if (ProjectType === "Network Devices" && selectDevice?.label) {
-          fetch = true;
-          projectTypeToFetch = selectDevice.label; // Use device name for API call
-        }
-        
-        if (fetch) {
-          // --- API CALL: getVulnerabilityList (Placeholder) ---
-          const response = await getVulnerabilityList({ ProjectType: projectTypeToFetch });
-          /* API Response Placeholder for getVulnerabilityList:
-             response.data should be an array of vulnerability templates:
-             [{ 
-                 _id: '123', 
-                 vulnerabilityTypes: 'SQL Injection', 
-                 description: '...', 
-                 severity: 'High', 
-                 impact: '...', 
-                 vulnarabilityParameter: '...', 
-                 references: '...', 
-                 recommendation: '...' 
-             }]
-          */
+        if (ProjectType && (ProjectType !== "Network Devices" || selectDevice)){
+          const projectType = ProjectType === 'Network Devices' && selectDevice ? selectDevice.label : ProjectType;
+          const response = await getVulnerabilityList({ProjectType:projectType});
           const vulnerabilities = response.data;
           setVulnerabilityData(vulnerabilities)
   
@@ -274,15 +172,10 @@ const handleFileUpload = (e, index) => {
   
           setVulnerabilityOptions(options);   
         } else {
-          // Clear options if the required fields are not yet selected
-          setVulnerabilityOptions([]);
+          setVulnerabilityOptions()
         }
       } catch (error) {
-        console.error('Error fetching vulnerabilities:', error);
-        if (error.response) {
-            console.error('API Error details:', error.response.data);
-        }
-        setVulnerabilityOptions([]);
+        console.error('Error fetching vulnerabilities:');
       } finally {
         setLoading(false); 
       }
@@ -291,127 +184,40 @@ const handleFileUpload = (e, index) => {
     fetchVulnerabilities();
   }, [ProjectType,selectDevice]);
 
-// --- MODIFIED handleVulnerabilityChange TO PRIORITIZE REPORT DATA (WITH DEBUGGING AND SAFE MATCHING) ---
   const handleVulnerabilityChange = (selectedOption) => {
     setSelectedVulnerability(selectedOption); 
-    setValue('selectedVulnerability', selectedOption.value);
-    
-    const vulnerabilityName = selectedOption?.label;
-    
-    // --- DEBUG LOG: The name we are looking for ---
-    console.log("Selected Vulnerability Label (Search Key):", vulnerabilityName);
-    console.log("Current showVulLisst (Report Table Data):", showVulLisst);
-    // ---------------------------------------------
-
-    // 1. Check the 'Report Table' (showVulLisst) for an existing entry with this name.
-    // We prioritize the most recently saved one by reversing the array.
-    const savedVulnInstance = Array.isArray(showVulLisst) 
-        ? showVulLisst.slice().reverse().find(
-            (vuln) => vuln.vulnerabilityName && vulnerabilityName && 
-                      vuln.vulnerabilityName.trim().toLowerCase() === vulnerabilityName.trim().toLowerCase()
-        )
-        : null;
-    
-    // --- DEBUG LOG: Result of the search ---
-    console.log("Saved Vulnerability Instance Found:", !!savedVulnInstance, savedVulnInstance);
-    // --------------------------------------
-
-    // 2. Fallback: Find the generic Template data by ID (only if no saved instance exists)
-    const selectedTemplate = savedVulnInstance 
-        ? null // Do not fetch template if saved instance is found
-        : vulnerabilityData.find((vuln) => vuln._id === selectedOption?.value);
-    
-    // Determine the source data: Saved Report Data (priority) or Template Data
-    const sourceData = savedVulnInstance || selectedTemplate;
-
-    // Default Proof of Concept structure
-    const defaultPoc = [
-        { text: "", file: null, preview: null },
-        { text: "", file: null, preview: null },
-        { text: "", file: null, preview: null }
-    ];
-
-    if (sourceData) {
-      // --- AUTO-FILL FIELDS ---
-      
-      // Description (same name in both)
-      setValue("Description", sourceData.description || ""); 
-      
-      // Location/Path (Name in report: path, Name in template: N/A - default to IP)
-      setValue("Path", sourceData.path || getValues("ipAddress") || ""); 
-      
-      // Impact (same name in both)
-      setValue("Impact", sourceData.impact || "");
-      
-      // Vulnerable Parameter (Name in report: vulnerableParameter, Name in template: vulnarabilityParameter)
-      const paramValue = sourceData.vulnerableParameter || sourceData.vulnarabilityParameter || getValues("ipAddress") || "";
-      setValue("VulnerableParameter", paramValue); 
-      
-      // References (Name in report: references, Name in template: references)
-      setValue("Referance", sourceData.references || "");
-      
-      // Recommendation (Name in report: recomendation, Name in template: recommendation)
-      const recommendationValue = sourceData.recomendation || sourceData.recommendation || "";
-      setValue("Recomendation", recommendationValue);
-
-      // Severity (Name in report: sevirty, Name in template: severity)
-      const severityKey = sourceData.sevirty || sourceData.severity;
-      const severityValue = severityOptions.find((option) => option.value === severityKey);
+    setValue('selectedVulnerability', selectedOption.label);  
+    const selectedVuln = vulnerabilityData.find((vuln) => vuln._id === selectedOption?.value);
+    if (selectedVuln) {
+      setValue("Description", selectedVuln.description); 
+      setValue("Impact",selectedVuln.impact)
+      setValue("VulnerableParameter",selectedVuln.vulnarabilityParameter)
+      setValue("Referance",selectedVuln.references)
+      setValue("Recomendation",selectedVuln.recommendation)
+      const severityValue = severityOptions.find((option) => option.value === selectedVuln.severity);
       setValue("severity", severityValue ? severityValue.value : "");
-      
-      // Load Proof of Concept steps from the SAVED INSTANCE ONLY
-      if (savedVulnInstance && Array.isArray(savedVulnInstance.proofOfConcept)) {
-          const loadedPoc = savedVulnInstance.proofOfConcept.map(poc => ({
-              // Load description text
-              text: poc.description || "",
-              // File object cannot be re-loaded, but the proof URL/path is used for preview
-              file: null, 
-              preview: poc.proof || null
-          }));
-          
-          // Ensure at least the minimum 3 PoC slots are maintained
-          while (loadedPoc.length < 3) {
-              loadedPoc.push({ text: "", file: null, preview: null });
-          }
-          
-          setProofOfConcepts(loadedPoc);
-      } else {
-         // If no saved instance or PoC data, use default empty steps
-         setProofOfConcepts(defaultPoc);
-      }
-      
     } else {
-      // Clear all fields if neither a saved instance nor a template is found
       setValue("Description", "");
-      setValue("Path", getValues("ipAddress") || "");
       setValue("Impact", ""); 
-      setValue("VulnerableParameter", getValues("ipAddress") || "");
+      // setValue("VulnerableParameter", ""); 
       setValue("Referance", ""); 
       setValue("Recomendation", "");  
       setValue("severity", null);
-      setProofOfConcepts(defaultPoc);
     }
  
   };
-// ---------------------------------------------------------------------------
-
 
   useEffect(() => {
     setValue("selectedProjectName", ""); 
     localStorage.removeItem("selectedProjectName"); 
   }, [setValue]);
 
-  useEffect(() => {
+  useEffect(()=>{
     const fetchDevices = async () => {
       setLoading(true)
       setError("")
       try{
-        // --- API CALL: getDeviceList (Placeholder) ---
         const data = await getDeviceList()
-        /* API Response Placeholder for getDeviceList:
-           data.data should be an array of device objects:
-           [{ _id: 'd1', devicesName: 'Firewall A' }, { _id: 'd2', devicesName: 'Load Balancer' }]
-        */
         const deviceOption = data.data
         if (deviceOption && Array.isArray(deviceOption)){
           const option = deviceOption.map((item)=>({
@@ -438,11 +244,7 @@ const handleFileUpload = (e, index) => {
       setError("");
 
       try {
-        // --- API CALL: getProjectNameList (Placeholder) ---
         const data = await getProjectNameList();
-        /* API Response Placeholder for getProjectNameList:
-           [{ _id: 'p1', projectName: 'E-Commerce Site' }, { _id: 'p2', projectName: 'Internal Network' }]
-        */
 
         if (data && data.statusCode === 200 && Array.isArray(data.data)) {
           setProjectName(data.data);
@@ -469,12 +271,7 @@ const handleFileUpload = (e, index) => {
         try {
           const selectedProjectId = selectedProjectName; 
 
-          // --- API CALL: getProjectTypeList (Placeholder) ---
           const data = await getProjectTypeList(selectedProjectId);
-          /* API Response Placeholder for getProjectTypeList:
-             data.data should be an array of project type strings:
-             ['Web Application', 'Mobile Application', 'Network Devices']
-          */
 
           if (data && data.statusCode === 200 && Array.isArray(data.data)) {
             setSelectedTypes(data.data);
@@ -493,83 +290,23 @@ const handleFileUpload = (e, index) => {
     fetchProjectTypes();
   }, [selectedProjectName]);
 
-
-// --- MODIFIED loadRounds to apply disabled status AND SORT ---
   const loadRounds = async () => {
     try {
-      // --- API CALL: getAllRound (Placeholder) ---
       const res = await getAllRound();
-      /* API Response Placeholder for getAllRound:
-         res.data.data should be an array of round objects:
-         [{ label: 'Round 1', value: 'r1' }, { label: 'Round 2', value: 'r2' }]
-      */
-      let options = res.data.data || []; // Use let for sorting
-      
-      // 1. Ascending Order Sort: Ensure rounds are sorted by number in label (e.g., 'Round 1' before 'Round 10')
-      options.sort((a, b) => {
-          // Extracts the number from the label (e.g., 'Round 3' -> 3)
-          const numA = parseInt(a.label.match(/\d+/)?.[0] || '0', 10);
-          const numB = parseInt(b.label.match(/\d+/)?.[0] || '0', 10);
-          return numA - numB;
-      });
-
-      let isPreviousRoundComplete = true; // Assume the first round (Round 1) is enabled by default
-      
-      // 2. Map and apply the disabled status based on completedRounds state and sequential check
-      const mappedOptions = options.map((round) => {
-          const roundNumberMatch = round.label.match(/\d+/);
-          const currentRoundNumber = roundNumberMatch ? parseInt(roundNumberMatch[0], 10) : Infinity;
-          
-          let isDisabled = false;
-
-          // Determine the completion status of the current round from state
-          const isCurrentRoundCompleted = completedRounds[round.label] === true;
-
-          // NEW LOGIC 1: Disable the round if it is already COMPLETE (as per user request)
-          if (isCurrentRoundCompleted) {
-              isDisabled = true;
-          }
-          
-          // NEW LOGIC 2: Sequential Check: Disable the round if current number > 1 AND the immediately preceding round is not complete
-          if (!isDisabled && currentRoundNumber > 1 && !isPreviousRoundComplete) {
-              isDisabled = true;
-          }
-          
-          // Update the tracker for the next iteration.
-          isPreviousRoundComplete = isCurrentRoundCompleted;
-          
-          return {
-              ...round,
-              isDisabled: isDisabled, 
-          };
-      });
-
+      const options = res.data.data || [];
       const withAddOption = [
-        ...mappedOptions,
-        { label: "➕ Add Round", value: "add_round", isAddOption: true, isDisabled: false },
+        ...options,
+        { label: "âž• Add Round", value: "add_round", isAddOption: true },
       ];
       setRoundOptions(withAddOption);
-
     } catch (err) {
       console.error("Error loading rounds:", err);
     }
   };
-// ----------------------------------------------------
-
-// --- NEW useEffect to re-run loadRounds when completedRounds changes ---
-  useEffect(() => {
-    loadRounds();
-  }, [completedRounds]);
-// ----------------------------------------------------------------------
-
 
   const addNewRound = async () => {
     try {
-      // --- API CALL: postAddRound (Placeholder) ---
       const res = await postAddRound();
-      /* API Response Placeholder for postAddRound:
-         res.data should contain a success message and potentially the new round data.
-      */
       loadRounds();
       toast.success(res.data.message || 'Round added successfully!');
       return res.data.data;
@@ -624,88 +361,50 @@ const handleFileChange = (index, event) => {
 };
   
 
-  // report.jsx (Modified section within ReportPage component)
-// ... (rest of the component state and hooks)
-const handleFormSubmit = async (data) =>{
-    
-    // 1. Separate Files into an array for the API payload
-    const filesToUpload = proofOfConcepts
-        .map(poc => poc.file && poc.file.size > 0 ? poc.file : null)
-        .filter(file => file !== null);
-
-    // 2. Create JSON structure for Proof of Concept (using placeholders for files)
-    const pocDataStructure = proofOfConcepts.map((proof, index) => {
-        let proofValueForJSON = "";
-        
-        if (proof.file && typeof proof.file === 'object' && proof.file.size > 0) {
-            proofValueForJSON = `file_attached_step_${index}`; 
-        } else if (proof.preview && typeof proof.preview === 'string') {
-           // Keep the existing URL if it's a previously loaded proof (URL)
-           proofValueForJSON = proof.preview;
-        }
-        
-        return {
-            noOfSteps: `Step ${index + 1}`,
-            description: proof.text,
-            proof: proofValueForJSON,
-        };
-    });
-    
-    // Filter out empty proof of concept steps (where text and proof are both empty)
-    const filteredPocDataStructure = pocDataStructure.filter(poc => poc.description.trim() !== '' || poc.proof.trim() !== '');
-
-    // 3. Format Round Statuses
-    const formattedRoundStatuses = completionRounds.map(round => ({
-        roundstep: round.name, 
-        roundstepstatus: round.isComplete ? 'Complete' : 'Incomplete', 
+  const handleFormSubmit = async (data) =>{
+    const formattedProofOfConcept = proofOfConcepts.map((proof, index) => ({
+      noOfSteps: `Step ${index + 1}`,
+      description: proof.text,
+      proof: proof.file ? proof.file : "",
     }));
 
-    // 4. Construct the Payload object
-    // FIX APPLIED: JSON.stringify is REQUIRED for complex arrays in multipart/form-data.
-    const payload = {
-        // Simple fields
-        projectName: data.selectedProjectName || '',
-        projectType: data.ProjectType || '',
-        round: data.round || '',
-        vulnerabilityName: selectedVulnerability?.label || '', // Use label for the name
-        sevirty: data.severity || '',
-        description: data.Description || '',
-        path: data.Path || '',
-        impact: data.Impact || '',
-        vulnerableParameter: data.VulnerableParameter || '',
-        references: data.Referance || '',
-        recomendation: data.Recomendation || '',
-
-        // Conditional fields based on Project Type
-        Name: data.ProjectType === 'Network Devices' ? (data.name || '') : '',
-        ipAddress: data.ProjectType === 'Network Devices' ? (data.ipAddress || '') : '',
-        devices: data.ProjectType === 'Network Devices' ? (selectDevice?.label || '') : '',
-        
-        // --- MANDATORY JSON STRINGIFICATION FOR FILE UPLOADS ---
-        roundStatus: JSON.stringify(formattedRoundStatuses), 
-        proofOfConcept: JSON.stringify(filteredPocDataStructure), // Use filtered PoC data
-        
-        // File array (MUST be named 'proof' for your API)
-        proof: filesToUpload, 
-    };
+    const payload={
+      projectName:data.selectedProjectName,
+      projectType:data.ProjectType,
+      Name:data.name,
+      ipAddress:data.ipAddress,
+      round:data.round,
+      vulnerabilityName:data.selectedVulnerability,
+      sevirty:data.severity,
+      description:data.Description,
+      path:data.Path,
+      impact:data.Impact,
+      vulnerableParameter:data.VulnerableParameter,
+      references:data.Referance,
+      recomendation:data.Recomendation,
+      proofOfConcept: formattedProofOfConcept,
+      devices:selectDevice?.label || null,
+      proof: formattedProofOfConcept.map((item) => item.proof),
+    }
     
     setLoading(true);
     try{
-    // Ensure postReport client function serializes 'payload' into FormData
-    // AND ensures files in 'proof' are correctly appended.
     await postReport(payload);
-    
-      // ... (Success logic)
-      setIsFormSaved(true); 
-      // Reset form fields on successful submission
       setValue("selectedVulnerability", null);
+      // setValue("ProjectType",null);
       setValue("Description", "");
       setValue("Impact", "");
+      // setValue("device",null)
       setValue("VulnerableParameter", "");
       setValue("Referance", "");
       setValue("Recomendation", "");
       setValue("severity", null);
+      // setValue("selectedProjectName", null)
+      // setValue("Path","")
+      // setValue("round",null)
+      setRoundOptions(null)
       setSelectedVulnerability(null);
+      // setSelectDevice(null);
       setShowModalVul(false)
       setProofOfConcepts([
         { text: "", file: null, preview: null },
@@ -718,11 +417,8 @@ const handleFormSubmit = async (data) =>{
       toast.success('Form submitted successfully!', {
         className: 'custom-toast custom-toast-success',
       });
-      fetchVulList() // Re-fetch list and status after saving
+      fetchVulList()
     } catch(error){
-      // Enhanced error logging
-      console.error("Submission Error Details:", error.response?.data || error); 
-      
       const message = error?.response?.data?.message || "Something went wrong";
       toast.error(message, {
         className: 'custom-toast custom-toast-error',
@@ -730,19 +426,18 @@ const handleFormSubmit = async (data) =>{
     }
     setLoading(false);
   }
-
-// ... (rest of the component)
   const handleDevice = (selected) =>{
     setValue("selectedVulnerability", null);
     setValue("Description", "");
     setValue("Impact", "");
+    // setValue("VulnerableParameter", "");
     setValue("Referance", "");
     setValue("Recomendation", "");
     setValue("severity", null);
     setSelectedVulnerability(null);
     setSelectDevice(selected)
-    const selectedOption = selected?.label || null;
-    setValue("device", selectedOption);
+    const selectedOption = selected.label
+    setValue("device",selectedOption)
   }
 
   const handleButtonClick = (e) => {
@@ -772,24 +467,18 @@ const handleFormSubmit = async (data) =>{
  const handleShowModal = () => {
   const selectedProject = getValues("selectedProjectName");
   const selectedRound = getValues("round");
+  const selectedDevice = getValues("device");
   const selectedProjectType = getValues("ProjectType");
-  
-  // Conditionally check required fields for Network Devices
-  let isNetworkValid = true;
-  if (selectedProjectType === 'Network Devices') {
-    const selectedDevice = getValues("device");
-    const enteredName = getValues("name");
-    const ip = getValues('ipAddress');
-    if (!selectedDevice || !enteredName || !ip) {
-      isNetworkValid = false;
-    }
-  }
-
-    if (selectedProject && selectedRound && selectedProjectType && isNetworkValid) {
+  const enteredName = getValues("name");
+  const ipAddress = getValues('ipAddress')
+    if (selectedProject && selectedRound && selectedDevice && selectedProjectType === 'Network Devices' && enteredName && ipAddress) {
+      setShowModalVul(true);
+    } 
+    else if(selectedProject && selectedRound && selectedProjectType !== 'Network Devices'){
       setShowModalVul(true);
     }
     else {
-      toast.error('All required fields must be filled in the header section.', {
+      toast.error('All field must be filed', {
         className: 'custom-toast custom-toast-error',
       });
     }
@@ -798,25 +487,16 @@ const handleFormSubmit = async (data) =>{
   const handleShowModalVulList =()=>{
     const selectedProject = getValues("selectedProjectName");
     const selectedRound = getValues("round");
+    const selectedDevice = getValues("device");
     const selectedProjectType = getValues("ProjectType");
-    
-    // Conditionally check required fields for Network Devices
-    let isNetworkValid = true;
-    if (selectedProjectType === 'Network Devices') {
-      const selectedDevice = getValues("device");
-      const enteredName = getValues("name");
-      const ip = getValues('ipAddress');
-      if (!selectedDevice || !enteredName || !ip) {
-        isNetworkValid = false;
-      }
-    }
-
-    if (selectedProject && selectedRound && selectedProjectType && isNetworkValid) {
+    const enteredName = getValues("name");
+    const ipAddress = getValues('ipAddress')
+    if (selectedProject && selectedRound && selectedDevice && selectedProjectType && enteredName && ipAddress) {
       fetchVulList()
       setShowModalVulList(true)
     }
     else{
-      toast.error('All required fields must be filled in the header section.', {
+      toast.error('All field must be filed', {
         className: 'custom-toast custom-toast-error',
       });
     }
@@ -859,8 +539,7 @@ const handleFormSubmit = async (data) =>{
   const handleDeleteImage = (indexToDelete) => {
   const updatedProofs = [...proofOfConcepts];
   if (updatedProofs[indexToDelete]) {
-    updatedProofs[indexToDelete].preview = null; 
-    updatedProofs[indexToDelete].file = null; 
+    updatedProofs[indexToDelete].preview = null; // or undefined
   }
   setProofOfConcepts(updatedProofs);
 };
@@ -873,16 +552,14 @@ const handlePreviewClick = (url) => {
   };
 
   const getFileTypeFromUrl = (url) => {
-    // Logic to determine file type from URL (assuming server returns URL with extension)
-    const extension = url?.split('.').pop()?.toLowerCase(); 
+    const extension = url?.split('.').pop(); 
 
     if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {
       return 'image/'; 
     } else if (extension === 'pdf') {
       return 'application/pdf'; 
     } else {
-      // Default to assuming image if it's a base64 or internal blob URL
-      return url && url.includes('data:image') ? 'image/' : 'unknown';
+      return 'unknown';
     }
   };
 
@@ -912,12 +589,7 @@ const handleDropOnIndex = (e, targetIndex) => {
         return;
       }
       try {
-        // --- API CALL: searhName (Placeholder) ---
-        const results = await searhName({ search: value });
-        /* API Response Placeholder for searhName:
-           results should be an array of matching name objects:
-           [{ Name: 'Router A' }, { name: 'Switch B' }]
-        */
+        const results = await searhName  ({ search: value });
         setSuggestions(results);
         setShowSuggestions(true);
       } catch (err) {
@@ -929,108 +601,6 @@ const handleDropOnIndex = (e, targetIndex) => {
     []
   );
 
-  // --- ROUND COMPLETION LOGIC RESTORED ---
-  const handleRoundToggle = (index) => {
-    setCompletionRounds(prevRounds => {
-        const newRounds = [...prevRounds];
-        
-        // Cannot toggle incomplete if next round is complete
-        if (newRounds[index].isComplete && newRounds[index + 1] && newRounds[index + 1].isComplete) {
-            toast.error(`Please unmark ${newRounds[index + 1].name} first.`, { className: 'custom-toast custom-toast-error' });
-            return prevRounds;
-        }
-
-        // Toggle the current round
-        newRounds[index].isComplete = !newRounds[index].isComplete;
-
-        // If toggling off, disable all subsequent rounds
-        if (!newRounds[index].isComplete) {
-            for (let i = index + 1; i < newRounds.length; i++) {
-                newRounds[i].isComplete = false;
-            }
-        }
-        
-        return newRounds;
-    });
-  };
-
-  const handleRoundCompletionSubmit = async () => {
-    
-    
-    // 1. Ensure the main form has been saved at least once (i.e., a report exists)
-    if (!isFormSaved) {
-        toast.error('Please save the report first before updating the round status.', { className: 'custom-toast custom-toast-error' });
-        return;
-    }
-    
-    // 2. Collect identifying data (required to find the report in the database)
-   const identifyingData = {
-  selectedProjectName: getValues("selectedProjectName"),
-  ProjectType: getValues("ProjectType"),
-  round: getValues("round"),
-  name: getValues("name"),
-  ipAddress: getValues("ipAddress"),
-  device: getValues("device"),
-};
-console.log("Identifying Data for Round Status Update:", identifyingData);
-console.log(identifyingData.selectedProjectName);
-    // Validation check for essential identifying fields
-    if (!identifyingData.selectedProjectName || !identifyingData.ProjectType || !identifyingData.round) {
-         toast.error('Missing project details. Cannot update report status.', { className: 'custom-toast custom-toast-error' });
-         return;
-    }
-    
-    // 3. Format Round Statuses based on the local state (completionRounds)
-    // Only send the rounds that are currently being shown in the modal (up to maxRoundNumber)
-    const formattedRoundStatuses = roundsForModal.map(round => ({
-        roundstep: round.name, 
-        // Use 'Complete' or 'Incomplete' strings as required by your Mongoose model
-        roundstepstatus: round.isComplete ? 'Complete' : 'Incomplete', 
-    }));
-    
-    // 4. Construct the payload for the API
-    const payload = {
-        projectName: identifyingData.selectedProjectName,
-        projectType: identifyingData.ProjectType,
-        round: identifyingData.round,
-        Name: identifyingData.name, 
-        ipAddress: identifyingData.ipAddress,
-        devices: identifyingData.device,
-        roundStatus: formattedRoundStatuses // The array to update
-    };
-    
-    setLoading(true);
-    try {
-        // 5. Call the API to update the database
-        await updateRoundStatus(payload); 
-        
-        setShowRoundCompletionModal(false);
-        toast.success('Round status updated successfully in the report!', { className: 'custom-toast custom-toast-success' });
-        
-        // --- NEW: Update the completedRounds state after successful update ---
-        const updatedCompletedRounds = {};
-        formattedRoundStatuses.forEach(status => {
-            if (status.roundstepstatus === 'Complete') {
-                updatedCompletedRounds[status.roundstep] = true;
-            }
-        });
-        setCompletedRounds(updatedCompletedRounds);
-        // -------------------------------------------------------------------
-        
-    } catch (error) {
-        const message = error?.response?.data?.message || "Failed to update round status.";
-        toast.error(message, { className: 'custom-toast custom-toast-error' });
-    } finally {
-        setLoading(false);
-    }
-  };
-  
-
-  // ----------------------------------
-  const selectedRoundLabel = roundOptions.find(o => o.value === roundValue)?.label;
-  const maxRoundNumber = selectedRoundLabel ? parseInt(selectedRoundLabel.match(/\d+/)[0], 10) : 0;
-  const roundsForModal = completionRounds.slice(0, maxRoundNumber);
-
   
   return (
     <div className="report-page">
@@ -1041,54 +611,6 @@ console.log(identifyingData.selectedProjectName);
         preview={filePreview} 
         fileType={previewFileType} 
       />
-      
-      {/* --- ROUND COMPLETION MODAL RESTORED --- */}
-
-      {/* --- NEW ROUND COMPLETION MODAL --- */}
-      <PopupForm 
-          show={showRoundCompletionModal} 
-          handleClose={() => setShowRoundCompletionModal(false)} 
-          title="Complete Rounds Status" 
-          showFooter={true}
-          handleCustomSubmit={handleRoundCompletionSubmit} // <-- Executes DB Update
-          submitButtonText="Update Status" // Changed for clarity
-      >
-      
-          <Table striped bordered hover>
-              <thead>
-                  <tr>
-                      <th>Round</th>
-                      <th>Status</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {roundsForModal.map((round, index) => {
-                      // Check based on the *visible* index in the modal
-                      const isDisabled = index > 0 && !roundsForModal[index - 1].isComplete && !round.isComplete;
-
-                      return (
-                          <tr key={index} className={isDisabled ? 'table-secondary' : ''}>
-                              <td>{round.name}</td>
-                              <td>
-                                  <FormControlLabel
-                                      control={
-                                          <Switch
-                                              checked={round.isComplete}
-                                              onChange={() => handleRoundToggle(round.name.match(/\d+/)[0] - 1)} // Use original index (0-3) for state update
-                                              disabled={isDisabled}
-                                          />
-                                      }
-                                      label={round.isComplete ? 'Complete' : 'Incomplete'}
-                                  />
-                              </td>
-                          </tr>
-                      );
-                  })}
-              </tbody>
-          </Table>
-      </PopupForm>
-      {/* ---------------------------------- */}
-
      <PopupForm show={showModalVulList} handleClose={handleCloseModal} title="Vulnerability List" showFooter={false}  dialogClassName="modal-xl" dimmed={showModalVulFull}>
         <div>
           {showVulLisst.length > 0 ? (
@@ -1229,23 +751,17 @@ console.log(identifyingData.selectedProjectName);
                       isSearchable
                       placeholder="Select a project"
                       onChange={(selectedOption) => {
-                        // Reset vulnerability fields on key change
                         setValue("selectedVulnerability", null);
                         setValue("ProjectType",null);
                         setValue("Description", "");
                         setValue("Impact", "");
+                        // setValue("VulnerableParameter", "");
                         setValue("Referance", "");
                         setValue("Recomendation", "");
                         setValue("severity", null);
                         setSelectedVulnerability(null);
-                        
                         field.onChange(selectedOption?.value); 
                         setSelectedProjectName(selectedOption?.value); 
-
-                         // Also reset round-related fields and status
-                        setValue("round", null);
-                        setCompletedRounds({});
-                        setCompletionRounds(completionRounds.map(r => ({ ...r, isComplete: false })));
                       }}
                     />
                   )}
@@ -1264,12 +780,7 @@ console.log(identifyingData.selectedProjectName);
                         value={roundOptions?.find((option) => option.value === field.value)}
                         options={roundOptions}
                         placeholder="Select Round"
-                        onChange={(selected) => {
-                          handleround(selected);
-                        }}
-                        // --- IMPORTANT: Add getOptionDisabled prop ---
-                        getOptionDisabled={(option) => option.isDisabled}
-                        // ---------------------------------------------
+                        onChange={handleround}
                       />
                     )}
                   />
@@ -1352,7 +863,7 @@ console.log(identifyingData.selectedProjectName);
                   render={({ field }) => (
                     <Select
                       {...field}
-                      value={selectedTypes.find(type => type === field.value) ? { value: field.value, label: field.value } : null}
+                      value={selectedTypes.find(type => type === field.value) ? { value: field.value, label: field.value } : null} // Ensure selected value is structured correctly
                       options={selectedTypes.map(type => ({
                         value: type,  
                         label: type,  
@@ -1361,37 +872,21 @@ console.log(identifyingData.selectedProjectName);
                       isSearchable
                       placeholder="Select Project Type"
                       onChange={(selectedOption) => {
-                        const selection = selectedOption ? selectedOption.value : "";
-                        
-                        // Reset vulnerability fields
+                        const selection = selectedOption ? selectedOption.label : "";
                         setValue("selectedVulnerability", null);
                         setValue("Description", "");
+                        // setValue("device",null)
                         setValue("Impact", "");
+                        // setValue("VulnerableParameter", "");
                         setValue("Referance", "");
                         setValue("Recomendation", "");
                         setValue("severity", null);
                         setSelectedVulnerability(null);
-                        
-                        // FIX: Reset Network Device fields if switching away from Network Devices
-                        if (selection !== "Network Devices") {
-                          setValue("name", "");        // Reset Device Name
-                          setValue("ipAddress", "");   // Reset IP Address
-                          setValue("device", null);    // Reset the Device Select field value
-                          setSelectDevice(null);       // Reset local state for the Device Select field
-                        }
-
-
                         field.onChange(selection);
                         setProjectType(selection);
                         setDisableDevices(selection);
-                        setSelectedProjectNameAdd(selectedOption?.value)
-                        setValue("ProjectType",selectedOption.value)
-                        
-                        // Also reset round-related fields and status
-                        setValue("round", null);
-                        setCompletedRounds({});
-                        setCompletionRounds(completionRounds.map(r => ({ ...r, isComplete: false })));
-
+                        setSelectedProjectNameAdd(selectedOption?.label)
+                        setValue("ProjectType",selectedOption.label)
                       }}
                     />
                   )}
@@ -1412,9 +907,7 @@ console.log(identifyingData.selectedProjectName);
                           id="device"
                           options={device}
                           value={selectDevice}
-                          onChange={(selected) => {
-                            handleDevice(selected);
-                          }}
+                          onChange={handleDevice}
                           isLoading={loading}
                           isSearchable={true}
                           onInputChange={(newValue) => setSearchQuery(newValue)}
@@ -1432,14 +925,7 @@ console.log(identifyingData.selectedProjectName);
                         name="ipAddress"
                         control={control}
                         render={({field})=>(
-                          <input 
-                            {...field} 
-                            className="form-control"  
-                            placeholder="Enter IPAddress"
-                            onChange={(e) => {
-                              field.onChange(e);
-                            }}
-                          />
+                          <input {...field} className="form-control"  placeholder="Enter IPAddress"/>
                         )}
                       />
                       {errors.ipAddress && <p className="text-danger">{errors.ipAddress.message}</p>}
@@ -1473,58 +959,36 @@ console.log(identifyingData.selectedProjectName);
                    List Of Vulnerability
                   </Button>
   
-                  {/* Buttons on the right side */}
-                  <Box sx={{ display: 'flex', gap: 2 }}>
-                       {/* 'Complete Round' Button RESTORED */}
-                       <Button
-                          variant="contained"
-                          color="error"
-                          onClick={() => setShowRoundCompletionModal(true)}
-                          startIcon={<MdOutlineAddModerator />} 
-                          // 🛑 Disabled unless the form has been successfully saved
-                          disabled={!isFormSaved || loading} 
-                          sx={{
-                              paddingX: 3,
-                              paddingY: 1,
-                              fontWeight: 'bold',
-                              borderRadius: 3,
-                              fontSize: '1rem',
-                              letterSpacing: '0.5px',
-                              boxShadow: 3,
-                          }}
-                        >
-                          Complete Round
-                        </Button>
-                       {/* End 'Complete Round' Button */}
+                  {/* SAVE Button on the right */}
+                   {!showModalVul && (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={handleShowModal}
+                      disabled={loading}
+                      startIcon={!loading && <MdOutlineAddModerator  />}
+                      sx={{
+                        paddingX: 3,
+                        paddingY: 1,
+                        fontWeight: 'bold',
+                        borderRadius: 3,
+                        fontSize: '1rem',
+                        letterSpacing: '0.5px',
+                        boxShadow: 3,
+                      }}
+                    >
+                     Add Vulnerability
+                    </Button>
 
-                       {!showModalVul && (
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleShowModal}
-                            disabled={loading}
-                            startIcon={!loading && <MdOutlineAddModerator  />}
-                            sx={{
-                              paddingX: 3,
-                              paddingY: 1,
-                              fontWeight: 'bold',
-                              borderRadius: 3,
-                              fontSize: '1rem',
-                              letterSpacing: '0.5px',
-                              boxShadow: 3,
-                            }}
-                          >
-                           Add Vulnerability
-                          </Button>
-
-                       )}
-                  </Box>
+                   )}
                 </Box>
             </div>
             {showModalVul && (
             <div className="row pt-5">
               <div className='col-sm-6 col-md-6 col-lg-6'>
                   <Form.Group className="mb-3">
+                  {/* <div className='row'>
+                    <div className='col-sm-10 col-md-10 col-lg-10'> */}
                   <Form.Label className={`fs-5 fw-bolder ${disableDevices === "Network Devices" ? "pt-3" : ""}`}>Vulnerability Name/Type<span className="text-danger">*</span></Form.Label>
                       <Controller
                         name="selectedVulnerability"
@@ -1544,6 +1008,11 @@ console.log(identifyingData.selectedProjectName);
                         )}
                       />
                       {errors.selectedVulnerability && <p className="text-danger">{errors.selectedVulnerability.message}</p>} 
+                      {/* </div>
+                      <div className='col-sm-2 col-md-2 col-lg-2'>
+                          <Button variant="success" className="button-middle" onClick={handleShow}><IoMdAdd className="fs-3" /></Button>
+                      </div>
+                    </div> */}
                   </Form.Group>
               </div>
               <div className='col-sm-6 col-md-6 col-lg-6'>
@@ -1753,13 +1222,232 @@ console.log(identifyingData.selectedProjectName);
                     userSelect: "none",
                     cursor: "text",
                   }}
-                  title="Click here and press Ctrl+V or Right Click → Paste"
+                  title="Click here and press Ctrl+V or Right Click â†’ Paste"
                 >
                   Paste or Drag Image Here
                 </div>
               </div>
             )}
           </div>
+
+{/* <div className="col-md-6">
+  {proof.preview ? (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "300px",
+        height: "200px",
+        borderRadius: "6px",
+        border: "1px solid #ccc",
+        padding: "6px",
+        background: "#f9f9f9",
+        position: "relative",
+        overflow: "hidden",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <img
+        src={proof.preview}
+        alt={`Pasted ${index}`}
+        style={{
+          maxWidth: "100%",
+          maxHeight: "100%",
+          objectFit: "contain",
+          borderRadius: "4px",
+          backgroundColor: "white",
+        }}
+      />
+      <button
+        onClick={() => handleDeleteImage(index)}
+        style={{
+          position: "absolute",
+          top: "6px",
+          right: "6px",
+          background: "red",
+          color: "white",
+          border: "none",
+          borderRadius: "50%",
+          width: "24px",
+          height: "24px",
+          cursor: "pointer",
+          fontWeight: "bold",
+          fontSize: "16px",
+          lineHeight: "20px",
+          textAlign: "center",
+        }}
+        title="Remove"
+      >
+        &times;
+      </button>
+    </div>
+  ) : (
+    <div
+      style={{
+        width: "100%",
+        maxWidth: "400px",
+        height: "100px",
+        border: "2px dashed #ccc",
+        borderRadius: "6px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+        color: "#666",
+        backgroundColor: "#f8f9fa",
+        transition: "border-color 0.2s ease-in-out, background-color 0.2s",
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => handleDropOnIndex(e, index)}
+    >
+      <div
+        contentEditable
+        suppressContentEditableWarning={true}
+        onPaste={(e) => handlePasteOnIndex(e, index)}
+        style={{
+          outline: "none",
+          width: "100%",
+          textAlign: "center",
+          color: "#888",
+          fontStyle: "italic",
+          userSelect: "none",
+          cursor: "text",
+        }}
+        title="Click here and press Ctrl+V or Right Click â†’ Paste"
+      >
+        Paste (Ctrl+V or Right Click â†’ Paste), Drag or Upload Image
+      </div>
+
+  
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => handleFileUpload(e, index)}
+        style={{ display: "none" }}
+        id={`file-upload-${index}`}
+      />
+      <label
+        htmlFor={`file-upload-${index}`}
+        style={{
+          marginTop: "8px",
+          padding: "4px 10px",
+          backgroundColor: "#007bff",
+          color: "white",
+          borderRadius: "4px",
+          fontSize: "13px",
+          cursor: "pointer",
+        }}
+      >
+        Upload Image
+      </label>
+    </div>
+  )}
+</div> */}
+                    {/* <div className="col-md-6">
+                      <Form.Control
+                        as="textarea"
+                        placeholder="Enter Proof Of Concept"
+                        value={proof.text}
+                        onChange={(e) => handleTextChange(index, e.target.value)}
+                      />
+                    </div>
+                    <div className="col-md-6">
+                        {proof.preview ? (
+                          <div
+                            style={{
+                              width: "100%",
+                              maxWidth: "300px",
+                              height: "200px",
+                              borderRadius: "6px",
+                              border: "1px solid #ccc",
+                              padding: "6px",
+                              background: "#f9f9f9",
+                              position: "relative",
+                              overflow: "hidden",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <img
+                              src={proof.preview}
+                              alt={`Pasted ${index}`}
+                              style={{
+                                maxWidth: "100%",
+                                maxHeight: "100%",
+                                objectFit: "contain",
+                                borderRadius: "4px",
+                                backgroundColor: "white",
+                              }}
+                            />
+                            <button
+                              onClick={() => handleDeleteImage(index)}
+                              style={{
+                                position: "absolute",
+                                top: "6px",
+                                right: "6px",
+                                background: "red",
+                                color: "white",
+                                border: "none",
+                                borderRadius: "50%",
+                                width: "24px",
+                                height: "24px",
+                                cursor: "pointer",
+                                fontWeight: "bold",
+                                fontSize: "16px",
+                                lineHeight: "20px",
+                                textAlign: "center",
+                              }}
+                              title="Remove"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                    ) : (
+                       <div
+                        style={{
+                          width: "700px",
+                          maxWidth: "400px",
+                          height: "65px",
+                          border: "2px dashed #ccc",
+                          borderRadius: "6px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#888",
+                          backgroundColor: "#f8f9fa",
+                          fontStyle: "italic",
+                          textAlign: "center",
+                        }}
+                      >
+                       <div
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => handleDropOnIndex(e, index)}
+                        onDragEnter={() => setIsDragging(true)}
+                        onDragLeave={() => setIsDragging(false)}
+                        style={{
+                          width: "700%",
+                          maxWidth: "700px",
+                          height: "65px",
+                          border: isDragging ? "2px dashed #007bff" : "2px dashed #ccc",
+                          borderRadius: "6px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#888",
+                          backgroundColor: isDragging ? "#e6f7ff" : "#f8f9fa",
+                          fontStyle: "italic",
+                          textAlign: "center",
+                          transition: "all 0.2s ease-in-out",
+                        }}
+                      >
+                        <p className="m-0">Paste or Drag Image Here</p>
+                      </div>
+
+                      </div>
+                    )}
+                    </div> */}
                   </div>
                 ))}
               </div>
