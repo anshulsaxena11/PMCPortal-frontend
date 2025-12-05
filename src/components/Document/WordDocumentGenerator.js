@@ -46,30 +46,14 @@ const pageFooter = new Footer({
   ],
 });
 
-// Helper to fetch image as Uint8Array
+// Helper to fetch image as Uint8Array directly (preserves full quality, avoids canvas compression)
 const fetchImageAsUint8Array = async (url) => {
   try {
-    const img = new Image();
-    img.crossOrigin = "Anonymous";
-    img.src = url;
-
-    await new Promise((resolve, reject) => {
-      img.onload = resolve;
-      img.onerror = reject;
-    });
-
-    const canvas = document.createElement("canvas");
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(img, 0, 0);
-
-    const blob = await new Promise((resolve) =>
-      canvas.toBlob(resolve, "image/png")
-    );
-    if (!blob) throw new Error("Failed to convert image to blob");
-
-    const arrayBuffer = await blob.arrayBuffer();
+    // Fetch image as binary arraybuffer to preserve original quality (no canvas conversion)
+    const response = await fetch(url, { credentials: 'include' });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    
+    const arrayBuffer = await response.arrayBuffer();
     return new Uint8Array(arrayBuffer);
   } catch (err) {
     console.warn("Image fetch failed:", url, err);
