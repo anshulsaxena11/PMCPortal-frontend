@@ -1,6 +1,4 @@
-// SalesTrackingDashboard.jsx
 
-/* global am4core, am4charts, am4themes_animated */
 import React, { useEffect, useRef, useState } from 'react';
 import { Box, Typography, TextField, Stack, Tooltip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
 import { Card } from "react-bootstrap";
@@ -59,6 +57,16 @@ const tenderCols = [
     },
   },
 ];
+
+const projectCols = [
+  { field: 'projectName', headerName: 'Project Name' },
+  { field: 'directrate', headerName: 'Directorate' },
+  { field: 'orginisationName', headerName: 'Organization' },
+  { field: 'status', headerName: 'Status' },
+  { field: 'startDate', headerName: 'Start Date' },
+  { field: 'endDate', headerName: 'End Date' },
+  { field: 'projectValue', headerName: 'Value' },
+];
 // ----------------------------------------------------
 
 // --- Utility Functions (UPDATED to include Tender FY grouping) ---
@@ -103,7 +111,7 @@ function getFilteredRows(rows, term) {
 }
 // ----------------------------------------------------
 
-export default function SalesTrackingDashboard() {
+export default function ReportDashboard() {
   // --- State ---
   const [search, setSearch] = useState('');
   const [tenderRows, setTendereRows] = useState([]);
@@ -111,8 +119,10 @@ export default function SalesTrackingDashboard() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [selectedDirectorateTender, setSelectedDirectorateTender] = useState("All"); 
+  const [selectedProjectPdfCols, setSelectedProjectPdfCols] = useState(projectCols.map(c => c.field));
   const [directorateTenderOptions, setDirectorateTenderOptions] = useState([]); 
   const [directorateTenderData, setDirectorateTenderData] = useState([]); 
+  const [pdfGenerating, setPdfGenerating] = useState(false);
   const [stats, setStats] = useState([]); 
   const [chartData, setChartData] = useState([]); 
   const [selectedFY, setSelectedFY] = useState("All"); // NEW FY state
@@ -257,285 +267,279 @@ export default function SalesTrackingDashboard() {
   };
 
   // Custom PDF export with selected columns, title, and period info
-  const exportCustomPdf = async () => {
-    // Helper function to normalize status strings
-    const normalize = s => String(s || '').toLowerCase();
+const exportCustomPdf = async () => {
+    setPdfModalOpen(false);
 
-    // Fetch project details
-    let projectDetails = [];
-    let projectDetailsFY = [];
-    try {
-      const projectResponse = await getProjectDetailsList({ page: 1, limit: 1000 });
-      const allProjectsRaw = projectResponse?.data || [];
+    setTimeout(async () => {
+    
+  const normalize = s => String(s || '').toLowerCase();
+  let projectDetails = [];
+  let projectDetailsFY = [];
 
-      // Apply directorate filter to a base set (used for both period and FY calculations)
-      const allProjectsByDir = selectedDirectorateTender !== 'All'
-        ? allProjectsRaw.filter(project => project.directrate === selectedDirectorateTender)
-        : allProjectsRaw;
+  try {
+    const projectResponse = await getProjectDetailsList({ page: 1, limit: 1000 });
+    const allProjectsRaw = projectResponse?.data || [];
 
-      // Period-filtered projects
-      if (startDate && endDate) {
-        const sd = dayjs(startDate).startOf('day').valueOf();
-        const ed = dayjs(endDate).endOf('day').valueOf();
-        projectDetails = allProjectsByDir.filter(project => {
-          const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
-          return projectDate && projectDate >= sd && projectDate <= ed;
-        });
-      } else {
-        projectDetails = allProjectsByDir;
-      }
+    const allProjectsByDir = selectedDirectorateTender !== 'All'
+      ? allProjectsRaw.filter(project => project.directrate === selectedDirectorateTender)
+      : allProjectsRaw;
 
-      // FY-filtered projects for project summary (if FY selected)
-      if (selectedFY && selectedFY !== 'All') {
-        const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
-        if (fyMatch) {
-          const fyStartYear = parseInt(fyMatch[1], 10);
-          const fyEndYear = parseInt(fyMatch[2], 10);
-          const fyStart = dayjs(`${fyStartYear}-04-01`).startOf('day').valueOf();
-          const fyEnd = dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
-          projectDetailsFY = allProjectsByDir.filter(project => {
-            const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
-            return projectDate && projectDate >= fyStart && projectDate <= fyEnd;
-          });
-        } else {
-          projectDetailsFY = allProjectsByDir;
-        }
-      } else {
-        projectDetailsFY = allProjectsByDir;
-      }
-    } catch (error) {
-      console.error('Error fetching project details:', error);
+    if (startDate && endDate) {
+      const sd = dayjs(startDate).startOf('day').valueOf();
+      const ed = dayjs(endDate).endOf('day').valueOf();
+      projectDetails = allProjectsByDir.filter(project => {
+        const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
+        return projectDate && projectDate >= sd && projectDate <= ed;
+      });
+    } else {
+      projectDetails = allProjectsByDir;
     }
 
-    // Calculate FY-level summary (data for entire financial year)
-    let fyTotalTenders = 0, fyUploadCount = 0, fyBiddingCount = 0, fyNotBiddingCount = 0;
     if (selectedFY && selectedFY !== 'All') {
-      // Extract year from FY label like "FY-2024-2025"
       const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
       if (fyMatch) {
         const fyStartYear = parseInt(fyMatch[1], 10);
         const fyEndYear = parseInt(fyMatch[2], 10);
-
-        // Filter tenders by FY (full year data)
-        const fyTenders = filteredRows.filter(t => {
-          if (!t.lastDate) return false;
-          const date = new Date(t.lastDate);
-          const month = date.getMonth();
-          const year = date.getFullYear();
-          const tenderFYStart = month < 3 ? year - 1 : year;
-          const tenderFYEnd = tenderFYStart + 1;
-          return tenderFYStart === fyStartYear && tenderFYEnd === fyEndYear;
+        const fyStart = dayjs(`${fyStartYear}-04-01`).startOf('day').valueOf();
+        const fyEnd = dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
+        projectDetailsFY = allProjectsByDir.filter(project => {
+          const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
+          return projectDate && projectDate >= fyStart && projectDate <= fyEnd;
         });
-
-        fyTotalTenders = fyTenders.length;
-        fyUploadCount = fyTenders.filter(t => {
-          const st = normalize(t.status);
-          return st.includes('not submit') || st.includes('not submitted') || st.includes('upload');
-        }).length;
-        fyBiddingCount = fyTenders.filter(t => {
-          const st = normalize(t.status);
-          return st.includes('submitted') || st.includes('under evaluation') || st.includes('bidding') || st.includes('in progress');
-        }).length;
-        fyNotBiddingCount = fyTenders.filter(t => {
-          const st = normalize(t.status);
-          return st.includes('not bidding') || st.includes('not-bidding') || st.includes('no bid') || st.includes('not bid');
-        }).length;
+      } else {
+        projectDetailsFY = allProjectsByDir;
       }
-    }
-
-    // Period-level summary (from currentSummary which is already filtered by period)
-    const periodTotalTenders = currentSummary?.total || 0;
-    const periodUploadCount = currentSummary?.upload || 0;
-    const periodBiddingCount = currentSummary?.bidding || 0;
-    const periodNotBiddingCount = currentSummary?.notBidding || 0;
-
-    // Calculate project summary statistics for both FY and Period
-    const totalProjectsPeriod = projectDetails.length;
-    const totalProjectValuePeriod = projectDetails.reduce((sum, p) => {
-      const val = Number(p.projectValue) || 0;
-      return sum + val;
-    }, 0);
-    const completedProjectsPeriod = projectDetails.filter(p => {
-      const st = normalize(p.status);
-      return st.includes('completed') || st.includes('closed') || st.includes('done');
-    }).length;
-    const ongoingProjectsPeriod = projectDetails.filter(p => {
-      const st = normalize(p.status);
-      return st.includes('ongoing') || st.includes('in progress') || st.includes('active');
-    }).length;
-
-    const totalProjectsFY = projectDetailsFY.length;
-    const totalProjectValueFY = projectDetailsFY.reduce((sum, p) => {
-      const val = Number(p.projectValue) || 0;
-      return sum + val;
-    }, 0);
-    const completedProjectsFY = projectDetailsFY.filter(p => {
-      const st = normalize(p.status);
-      return st.includes('completed') || st.includes('closed') || st.includes('done');
-    }).length;
-    const ongoingProjectsFY = projectDetailsFY.filter(p => {
-      const st = normalize(p.status);
-      return st.includes('ongoing') || st.includes('in progress') || st.includes('active');
-    }).length;
-
-    // Create HTML content for PDF
-    let headerText = '';
-    if (selectedDirectorateTender !== 'All') {
-      headerText = `${selectedDirectorateTender} - `;
     } else {
-      headerText = 'All Directorates';
+      projectDetailsFY = allProjectsByDir;
     }
+  } catch (error) {
+    console.error('Error fetching project details:', error);
+  }
 
-    if (startDate || endDate) {
-      const startStr = startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A';
-      const endStr = endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A';
-      headerText += ` Report for Period: ${startStr} to ${endStr}`;
+  // --- FY Summary ---
+  let fyTotalTenders = 0, fyUploadCount = 0, fyBiddingCount = 0, fyNotBiddingCount = 0;
+  if (selectedFY && selectedFY !== 'All') {
+    const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
+    if (fyMatch) {
+      const fyStartYear = parseInt(fyMatch[1], 10);
+      const fyEndYear = parseInt(fyMatch[2], 10);
+
+      const fyTenders = filteredRows.filter(t => {
+        if (!t.lastDate) return false;
+        const date = new Date(t.lastDate);
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const tenderFYStart = month < 3 ? year - 1 : year;
+        const tenderFYEnd = tenderFYStart + 1;
+        return tenderFYStart === fyStartYear && tenderFYEnd === fyEndYear;
+      });
+
+      fyTotalTenders = fyTenders.length;
+      fyUploadCount = fyTenders.filter(t => {
+        const st = normalize(t.status);
+        return st.includes('not submit') || st.includes('not submitted') || st.includes('upload');
+      }).length;
+      fyBiddingCount = fyTenders.filter(t => {
+        const st = normalize(t.status);
+        return st.includes('submitted') || st.includes('under evaluation') || st.includes('bidding') || st.includes('in progress');
+      }).length;
+      fyNotBiddingCount = fyTenders.filter(t => {
+        const st = normalize(t.status);
+        return st.includes('not bidding') || st.includes('not-bidding') || st.includes('no bid') || st.includes('not bid');
+      }).length;
     }
+  }
 
+  // --- Period Summary ---
+  const periodTotalTenders = currentSummary?.total || 0;
+  const periodUploadCount = currentSummary?.upload || 0;
+  const periodBiddingCount = currentSummary?.bidding || 0;
+  const periodNotBiddingCount = currentSummary?.notBidding || 0;
+
+  // --- Project Summary ---
+  const calcProjectStats = (projects) => {
+    const totalProjects = projects.length;
+    const totalValue = projects.reduce((sum, p) => sum + (Number(p.projectValue) || 0), 0);
+    const completed = projects.filter(p => {
+      const st = normalize(p.status);
+      return st.includes('completed') || st.includes('closed') || st.includes('done');
+    }).length;
+    const ongoing = projects.filter(p => {
+      const st = normalize(p.status);
+      return st.includes('ongoing') || st.includes('in progress') || st.includes('active');
+    }).length;
+    return { totalProjects, totalValue, completed, ongoing };
+  };
+
+  const statsFY = calcProjectStats(projectDetailsFY);
+  const statsPeriod = calcProjectStats(projectDetails);
+
+  // --- Build Table Rows ---
+  const selectedTenderCols = tenderCols.filter(col => selectedPdfCols.includes(col.field));
+  const selectedProjCols = projectCols.filter(col => selectedProjectPdfCols.includes(col.field));
+
+  const salesDataRows = filteredRows.map((row, idx) => {
+    const cells = selectedTenderCols.map(col => {
+      if (col.field === 'lastDate' && row[col.field]) return dayjs(row[col.field]).format('YYYY-MM-DD');
+      if (col.field === 'valueINR') return (Number(row.valueINR || 0) / 100000).toFixed(2) + ' Lakhs';
+      return String(row[col.field] || 'N/A').substring(0, 80);
+    });
+    return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+  }).join('');
+
+  const projectDataRows = projectDetails.map((project, idx) => {
+    const cells = selectedProjCols.map(col => {
+      let value = project[col.field];
+      if (col.field === 'startDate' || col.field === 'endDate') value = value ? dayjs(value).format('DD/MM/YYYY') : 'N/A';
+      if (col.field === 'projectValue') value = value ? `₹${(Number(value) / 100000).toFixed(2)} Lakhs` : 'N/A';
+      return `<td>${String(value || 'N/A').substring(0, 80)}</td>`;
+    });
+    return `<tr><td>${idx + 1}</td>${cells.join('')}</tr>`;
+  }).join('');
+
+  // --- Header Text ---
+  let headerText = selectedDirectorateTender !== 'All' ? `${selectedDirectorateTender} - ` : 'All Directorates';
+  if (startDate || endDate) {
     const startStr = startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A';
     const endStr = endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A';
+    headerText += ` Report for Period: ${startStr} to ${endStr}`;
+  }
 
-    // Build sales data table rows
-    const selectedColObjs = tenderCols.filter(col => selectedPdfCols.includes(col.field));
-    const salesDataRows = filteredRows.map((row, idx) => {
-      const cells = selectedColObjs.map(col => {
-        if (col.field === 'lastDate' && row[col.field]) {
-          return dayjs(row[col.field]).format('YYYY-MM-DD');
-        }
-        if (col.field === 'valueINR') {
-          const val = Number(row.valueINR) || 0;
-          return (val / 100000).toFixed(2) + ' Lakhs';
-        }
-        return String(row[col.field] || 'N/A').substring(0, 80);
-      });
-      return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
-    }).join('');
+  const startStr = startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A';
+  const endStr = endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A';
 
-    // Build project details table rows
-    const projectDataRows = projectDetails.map((project, idx) => `
+ const htmlContent = `
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+    h2 { font-size: 14px; font-weight: bold; margin-top: 15px; margin-bottom: 8px; }
+    h3 { font-size: 12px; font-weight: bold; margin-bottom: 6px; margin-top: 0; }
+    p { font-size: 12px; margin: 5px 0; }
+    .summary-container { display: flex; gap: 50px; margin-top: 10px; margin-bottom: 15px; margin-left:100px; }
+    .summary-column { flex: 1; }
+    .summary-column p { font-size: 11px; margin: 4px 0; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 11px;
+      page-break-inside: auto; /* allow table to break across pages */
+    }
+
+    thead {
+      display: table-header-group; /* repeat headers on each page */
+    }
+
+    tbody {
+      display: table-row-group;
+    }
+
+    tr {
+      page-break-inside: avoid; /* prevent splitting row */
+      page-break-after: auto;
+    }
+
+    th, td {
+      padding: 6px;
+      border: 1px solid #ddd;
+      word-break: break-word; /* wrap long content */
+      white-space: normal;   /* allow multi-line text */
+    }
+
+    th {
+      background-color: #1E90FF;
+      color: white;
+      text-align: left;
+    }
+
+    tr:nth-child(even) { background-color: #f9f9f9; }
+  </style>
+</head>
+<body>
+  <h1>${headerText}</h1>
+
+  <h2>(1) Summary</h2>
+  <div>
+    <h3 style="margin-top: 10px; margin-left:50px; color: #1E90FF; text-align: left;">1. Sales Tracking</h3>
+    <div class="summary-container">
+      <div class="summary-column">
+        <p><strong>Financial Year: ${selectedFY}</strong></p>
+        <p>Total Tenders: ${fyTotalTenders}</p>
+        <p>Upload / Bidding: ${fyUploadCount} / ${fyBiddingCount}</p>
+        <p>Not Bidding: ${fyNotBiddingCount}</p>
+      </div>
+      <div class="summary-column">
+        <p><strong>Period: ${startStr}-${endStr}</strong></p>
+        <p>Total Tenders: ${periodTotalTenders}</p>
+        <p>Upload / Bidding: ${periodUploadCount} / ${periodBiddingCount}</p>
+        <p>Not Bidding: ${periodNotBiddingCount}</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 15px; margin-left:50px; color: #1E90FF; text-align: left;">2. Project</h3>
+    <div class="summary-container">
+      <div class="summary-column">
+        <p><strong>Total Projects:</strong> ${statsFY.totalProjects}</p>
+        <p><strong>Total Value:</strong> ₹${(statsFY.totalValue / 100000).toFixed(2)} Lakhs</p>
+        <p><strong>Completed:</strong> ${statsFY.completed}</p>
+        <p><strong>Ongoing:</strong> ${statsFY.ongoing}</p>
+      </div>
+      <div class="summary-column">
+        <p><strong>Total Projects:</strong> ${statsPeriod.totalProjects}</p>
+        <p><strong>Total Value:</strong> ₹${(statsPeriod.totalValue / 100000).toFixed(2)} Lakhs</p>
+        <p><strong>Completed:</strong> ${statsPeriod.completed}</p>
+        <p><strong>Ongoing:</strong> ${statsPeriod.ongoing}</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>(2) Sales Data Added in This Period</h2>
+  <table>
+    <thead>
+      <tr>${selectedTenderCols.map(col => `<th>${col.headerName}</th>`).join('')}</tr>
+    </thead>
+    <tbody>${salesDataRows}</tbody>
+  </table>
+
+  <h2>(3) Project Data Added in This Period</h2>
+  <table>
+    <thead>
       <tr>
-        <td>${idx + 1}</td>
-        <td>${String(project.projectName || 'N/A').substring(0, 80)}</td>
-        <td>${String(project.directrate || 'N/A').substring(0, 80)}</td>
-        <td>${String(project.orginisationName || 'N/A').substring(0, 80)}</td>
-        <td>${String(project.status || 'N/A').substring(0, 80)}</td>
-        <td>${project.startDate ? dayjs(project.startDate).format('DD/MM/YYYY') : 'N/A'}</td>
-        <td>${project.endDate ? dayjs(project.endDate).format('DD/MM/YYYY') : 'N/A'}</td>
-        <td>${String(project.projectValue || 'N/A').substring(0, 80)}</td>
+        <th>S.No</th>
+        ${selectedProjCols.map(col => `<th>${col.headerName}</th>`).join('')}
       </tr>
-    `).join('');
+    </thead>
+    <tbody>${projectDataRows}</tbody>
+  </table>
 
-    const htmlContent = `
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          h1 { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
-          h2 { font-size: 14px; font-weight: bold; margin-top: 15px; margin-bottom: 8px; }
-          h3 { font-size: 12px; font-weight: bold; margin-bottom: 6px; margin-top: 0; }
-          p { font-size: 12px; margin: 5px 0; }
-          .summary-container { display: flex; gap: 50px; margin-top: 10px; margin-bottom: 15px; margin-left:100px; }
-          .summary-column { flex: 1; }
-          .summary-column p { font-size: 11px; margin: 4px 0; }
-          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
-          th { background-color: #1E90FF; color: white; padding: 8px; text-align: left; border: 1px solid #ddd; }
-          td { padding: 6px; border: 1px solid #ddd; }
-          tr:nth-child(even) { background-color: #f9f9f9; }
-        </style>
-      </head>
-      <body>
-        <h1>${headerText}</h1>
-  
-        <h2>(1) Summary</h2>
-          <div>
-          <h3 style="margin-top: 10px ; margin-left:50px; color: #1E90FF; text-align: left;">1. Sales Tracking</h3>
-          <div class="summary-container">
-            <div class="summary-column">
-              <p><strong>Financial Year: ${selectedFY}</strong></p>
-              <p>Total Tenders: ${fyTotalTenders}</p>
-              <p>Upload / Bidding: ${fyUploadCount} / ${fyBiddingCount}</p>
-              <p>Not Bidding: ${fyNotBiddingCount}</p>
-            </div>
-            <div class="summary-column">
-              <p><strong>Period:- ${startStr}-${endStr}</strong></p>
-              <p>Total Tenders: ${periodTotalTenders}</p>
-              <p>Upload / Bidding: ${periodUploadCount} / ${periodBiddingCount}</p>
-              <p>Not Bidding: ${periodNotBiddingCount}</p>
-            </div>
-          </div>
+  <div style="text-align: left; margin-top: 18px; font-size: 12px;">
+    <span style="color: red;">*</span>For more details refer to PMC Portal
+  </div>
+</body>
+</html>
+`;
 
-          <h3 style="margin-top: 15px;margin-left:50px; color: #1E90FF; text-align: left;">2. Project</h3>
-          <div class="summary-container">
-            <div class="summary-column">
-              <p><strong>Total Projects:</strong> ${totalProjectsFY}</p>
-              <p><strong>Total Value:</strong> ₹${(totalProjectValueFY / 100000).toFixed(2)} Lakhs</p>
-              <p><strong>Completed:</strong> ${completedProjectsFY}</p>
-              <p><strong>Ongoing:</strong> ${ongoingProjectsFY}</p>
-            </div>
-            <div class="summary-column">
-              <p><strong>Total Projects:</strong> ${totalProjectsPeriod}</p>
-              <p><strong>Total Value:</strong> ₹${(totalProjectValuePeriod / 100000).toFixed(2)} Lakhs</p>
-              <p><strong>Completed:</strong> ${completedProjectsPeriod}</p>
-              <p><strong>Ongoing:</strong> ${ongoingProjectsPeriod}</p>
-            </div>
-          </div>
-        </div>
-        
-        <h2>(2) Sales Data Added in This Period</h2>
-        <table>
-          <thead>
-            <tr>
-              ${selectedColObjs.map(col => `<th>${col.headerName}</th>`).join('')}
-            </tr>
-          </thead>
-          <tbody>
-            ${salesDataRows}
-          </tbody>
-        </table>
-        
-        <h2>(3) Project Data Added in This Period</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>S.No</th>
-              <th>Project Name</th>
-              <th>Directorate</th>
-              <th>Organization</th>
-              <th>Status</th>
-              <th>Start Date</th>
-              <th>End Date</th>
-              <th>Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${projectDataRows}
-          </tbody>
-        </table>
-        <div style="text-align: left; margin-top: 18px; font-size: 12px;"><span style="color: red;">*</span>For more details refer to PMC Portal</div>
-      </body>
-      </html>
-    `;
+  const filename = selectedDirectorateTender !== 'All'
+    ? `${selectedDirectorateTender}_Tender_Report_${dayjs().format('YYYY-MM-DD')}`
+    : `All_Directorates_Tender_Report_${dayjs().format('YYYY-MM-DD')}`;
 
-    // Generate PDF from HTML with proper Unicode support
-    const element = document.createElement('div');
-    element.innerHTML = htmlContent;
-
-    const filename = selectedDirectorateTender !== 'All' 
-      ? `${selectedDirectorateTender}_Tender_Report_${dayjs().format('YYYY-MM-DD')}`
-      : `All_Directorates_Tender_Report_${dayjs().format('YYYY-MM-DD')}`;
-
-    const opt = {
-      margin: 10,
-      filename: `${filename}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
-    };
-
-    html2pdf().set(opt).from(htmlContent).save();
-    setPdfModalOpen(false);
+  const opt = {
+    margin: 10,
+    filename: `${filename}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
   };
+
+  await html2pdf().set(opt).from(htmlContent).save();
+  }, 50);
+
+};
+
   // --- Data Fetching (UPDATED to include FY and Directorate filters) ---
   const fetchTenderData = async (yearFilter = "All", directorateFilter = "All") => {
     setLoading(true);
@@ -917,238 +921,165 @@ setDirectorateTenderOptions(uniqueTenderDirectorates);
           </Typography>
         )}
       </Box>
-
-      <div className="dashboard-wrapper">
-        {/* Left Sidebar: Directorate Wise Tenders */}
-        <aside className="left-sidebar">
-          <h5 className="left-title">Directorate Wise Tenders</h5>
-          <div className="left-scroll">
-            <Card 
-              className="mb-2 left-item" 
-              onClick={() => setSelectedDirectorateTender("All")} 
-              style={{ cursor: 'pointer', background: selectedDirectorateTender === "All" ? '#e0f7fa' : 'white' }}
-            >
-              <Card.Body className="py-2 px-3">
-                <div className="d-flex justify-content-between align-items-center">
-                  <div className="small"><strong>All Directorates ({tenderRows.length})</strong></div>
-                </div>
-              </Card.Body>
-            </Card>
-            {directorateTenderData.map((d, i) => (
-              <Card
-                key={i} 
-                className="mb-2 left-item" 
-                onClick={() => setSelectedDirectorateTender(d.directorate)}
-                style={{ cursor: 'pointer', background: selectedDirectorateTender === d.directorate ? '#e0f7fa' : 'white' }}
-              >
-                <Card.Body className="py-2 px-3">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <div className="small"><strong>{d.directorate}</strong></div>
-                    <div className="text-end">
-                      <div className="fw-bold">{d.count} Tenders</div>
-                      <div className="small">Value: {(d.value / 1e5).toFixed(2)} Lakhs</div>
-                    </div>
-                  </div>                 
-                </Card.Body>
-              </Card>
-            ))}
-          </div>
-        </aside>
-
-        {/* Right Content: Sales Overview Stats */}
-        <main className="right-content">
-          <h5 className="mb-3">Sales Overview</h5>
-
-          <div className="stats-grid">
-
-              {stats.map((s, i) => (
-              <Card key={i} className="stat-card">
-                <div className={`stat-header`}>
-                  {s.title}
-                </div>
-                <div className="stat-content">
-                  <div className={`stat-value`}>{s.value}</div>
-                </div>
-              </Card>
-            ))}
-            
-            <Card  className="stat-card">
-                <div className= 'Current Tenders'>
-                 <h5>Current Tenders </h5>
-                 </div>
-                <div className="stat-content">
-                  Total : {currentSummary ? currentSummary.total : '...'}<br></br>
-                 Upload / Bidding: {currentSummary ? currentSummary.upload : '...'} / {currentSummary ? currentSummary.bidding : '...'}
-                </div>
-                <div>Not Bidding: {currentSummary ? currentSummary.notBidding : '...'}</div>
-                
-              </Card>
-
-              <Card  className="stat-card">
-                <div className= 'Deleted Tenders'>
-                  <h5>Deleted Tenders </h5>
-                 Total : {deletedSummary ? deletedSummary.total : '...'}<br></br>
-                 Upload / Bidding: {deletedSummary ? deletedSummary.upload : '...'} / {deletedSummary ? deletedSummary.bidding : '...'}
-                </div>
-                <div>Not Bidding: {deletedSummary ? deletedSummary.notBidding : '...'}</div>
-                <div className="stat-content">
-                   <div style={{ marginTop: 8 }}>Won / Lost: {deletedSummary ? deletedSummary.won : '...'} / {deletedSummary ? deletedSummary.lost : '...'}</div>
-                </div>
-              </Card>
-
-          
-          </div>
-        </main>
-      </div>
-      
-      {/* Chart Section */}
-      <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 1 }}>
-        Tender Value Overview (Lakhs INR)
-      </Typography>
-      <div id="chartdiv" ref={chartDivRef} style={{ width: '100%', height: 420 }} />
-
-      {/* Filtering and DataGrid Section */}
-      <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 1 }}>
-        Tender Details
-      </Typography>
-
-      <Stack direction="row" spacing={2} mb={2} alignItems="center" flexWrap="wrap">
-        <TextField
-          label="Search..."
-          variant="outlined"
-          value={search}
-          size="small"
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{
-            width: 250,
-            backgroundColor: 'white',
-            '& .MuiInputBase-root': { height: 40 },
-            flexGrow: 1,
-          }}
-        />
-        <Button 
-          variant="contained" 
-          color="secondary" 
-          size="small"
-          onClick={() => exportToPdf(filteredRows, `Tender_Report_${selectedFY}`)}
-          sx={{ minWidth: 100, height: 40 }}
-          disabled={!!dateError}
-        >
-          Download PDF
-        </Button>
-        {/* <Button 
-          variant="outlined"
-          color="primary"
-          size="small"
-          onClick={() => setPdfModalOpen(true)}
-          sx={{ minWidth: 160, height: 40, ml: 1 }}
-        >
-          Customize & Download PDF
-        </Button> */}
-        <Button 
-          variant="contained" 
-          color="primary" 
-          size="small"
-          onClick={() => exportToCsv(filteredRows, `Tender_Data_${selectedFY}`)}
-          sx={{ minWidth: 100, height: 40 }}
-          disabled={!!dateError}
-        >
-          Download CSV
-        </Button>
-      </Stack>
-
-      <Box sx={{ height: 400 }}>
-        <CustomDataGrid
-          rows={filteredRows.map((row, index) => ({...row, sno: index + 1}))}
-          columns={tenderCols}
-          loading={loading}
-          paginationModel={{ page, pageSize }}
-          onPaginationModelChange={({ page, pageSize }) => {
-            setPage(page);
-            setPageSize(pageSize);
-          }}
-          rowCount={filteredRows.length}
-          paginationMode="client"
-          autoHeight
-        />
-      </Box>
-
-      {/* PDF Customization Modal */}
-      <Dialog open={pdfModalOpen} onClose={() => setPdfModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Customize & Download PDF</DialogTitle>
         <DialogContent sx={{ pt: 2 }}>
           {/* Report Info Box: Directorate */}
-          <Box sx={{ mb: 2, p: 1.5, backgroundColor: '#fff3e0', borderRadius: 1, border: '1px solid #ffe0b2' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#e65100' }}>
-              Directorate:
-            </Typography>
-            <Typography variant="body2" sx={{ mt: 0.5, color: '#bf360c' }}>
-              {selectedDirectorateTender !== 'All' ? selectedDirectorateTender : 'All Directorates'}
-            </Typography>
-          </Box>
+         <Box sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 1, 
+            mb: 2 
+            }}>
 
-          {/* Report Info Box: Period */}
-          {(startDate || endDate) && (
-            <Box sx={{ mb: 2, p: 1.5, backgroundColor: '#e3f2fd', borderRadius: 1, border: '1px solid #bbdefb' }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-                Period:
-              </Typography>
-              <Typography variant="body2" sx={{ mt: 0.5, color: '#1565c0' }}>
-                {startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A'} to {endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A'}
-              </Typography>
+            {/* Directorate Box */}
+            <Box sx={{ 
+                px: 1.5, py: 0.8, 
+                backgroundColor: '#fff3e0', 
+                borderRadius: 1, 
+                border: '1px solid #ffe0b2', 
+                minWidth: 150 
+            }}>
+                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#e65100' }}>
+                Directorate:
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.3, color: '#bf360c' }}>
+                {selectedDirectorateTender !== 'All' ? selectedDirectorateTender : 'All Directorates'}
+                </Typography>
             </Box>
-          )}
-
-          {/* Validation Message */}
-          {(!selectedDirectorateTender || selectedDirectorateTender === 'All' || !startDate || !endDate) && (
-            <Box sx={{ mb: 2, p: 1.5, backgroundColor: '#ffebee', borderRadius: 1, border: '1px solid #ffcdd2' }}>
-              <Typography variant="caption" sx={{ color: '#c62828' }}>
-                ⚠️ Please select: <strong>Directorate</strong>, <strong>Start Date</strong>, and <strong>End Date</strong> to download PDF.
-              </Typography>
+            <Box sx={{ 
+                px: 1.5, py: 0.8, 
+                backgroundColor: '#fff3e0', 
+                borderRadius: 1, 
+                border: '1px solid #ffe0b2', 
+                minWidth: 150 
+            }}>
+                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#e65100' }}>
+                Financial Year  :
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.3, color: '#bf360c' }}>
+                {selectedFY !== 'All' ? selectedFY : 'All Financial Years'}
+                </Typography>
             </Box>
-          )}
 
-          <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 'bold' }}>
-            Select Columns to Include:
-          </Typography>
-          <FormGroup>
+            {/* Period Box */}
+            {(startDate || endDate) && (
+                <Box sx={{ 
+                px: 1.5, py: 0.8, 
+                backgroundColor: '#e3f2fd', 
+                borderRadius: 1, 
+                border: '1px solid #bbdefb', 
+                minWidth: 180 
+                }}>
+                <Typography variant="caption" sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+                    Period:
+                </Typography>
+                <Typography variant="body2" sx={{ mt: 0.3, color: '#1565c0' }}>
+                    {startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A'} to {endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A'}
+                </Typography>
+                </Box>
+            )}
+
+            {/* Validation Message */}
+            {( !startDate || !endDate ) && (
+                <Box sx={{ 
+                px: 1.5, py: 0.8, 
+                backgroundColor: '#ffebee', 
+                borderRadius: 1, 
+                border: '1px solid #ffcdd2', 
+                minWidth: 250 
+                }}>
+                <Typography variant="caption" sx={{ color: '#c62828' }}>
+                    ⚠️ Please select , <strong>Start Date</strong>, and <strong>End Date</strong> to download PDF.
+                </Typography>
+                </Box>
+            )}
+
+            </Box>
+
+        <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 'bold' }}>
+            Select Columns of Sales Tracking to Include:
+            </Typography>
+            <FormGroup
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', // responsive columns
+                gap: 1
+            }}
+            >
             {tenderCols.map((col) => (
-              <FormControlLabel
+                <FormControlLabel
                 key={col.field}
                 control={
-                  <Checkbox
+                    <Checkbox
                     checked={selectedPdfCols.includes(col.field)}
                     onChange={(e) => {
-                      if (e.target.checked) {
+                        if (e.target.checked) {
                         setSelectedPdfCols([...selectedPdfCols, col.field]);
-                      } else {
+                        } else {
                         setSelectedPdfCols(selectedPdfCols.filter(f => f !== col.field));
-                      }
+                        }
                     }}
-                  />
+                    />
                 }
                 label={col.headerName}
-              />
+                />
             ))}
-          </FormGroup>
-          <Typography variant="caption" sx={{ display: 'block', mt: 2, color: 'text.secondary' }}>
+            </FormGroup>
+            <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
             Selected Columns: {selectedPdfCols.length} / {tenderCols.length}
-          </Typography>
+            </Typography>
+
+            <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 'bold' }}>
+            Select Columns of Projects to Include:
+            </Typography>
+            <FormGroup
+            sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', // responsive columns
+                gap: 1,
+                mt: 1
+            }}
+            >
+            {projectCols.map((col) => (
+                <FormControlLabel
+                key={col.field}
+                control={
+                    <Checkbox
+                    checked={selectedProjectPdfCols.includes(col.field)}
+                    onChange={(e) => {
+                        if (e.target.checked) {
+                        setSelectedProjectPdfCols([...selectedProjectPdfCols, col.field]);
+                        } else {
+                        setSelectedProjectPdfCols(selectedProjectPdfCols.filter(f => f !== col.field));
+                        }
+                    }}
+                    />
+                }
+                label={col.headerName}
+                />
+            ))}
+            </FormGroup>
+            <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
+            Selected Columns: {selectedProjectPdfCols.length} / {projectCols.length}
+            </Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPdfModalOpen(false)} color="inherit">
+          {/* <Button onClick={() => setPdfModalOpen(false)} color="inherit">
             Cancel
-          </Button>
+          </Button> */}
           <Button
             onClick={exportCustomPdf}
             variant="contained"
             color="primary"
-            disabled={selectedPdfCols.length === 0 || selectedDirectorateTender === 'All' || !startDate || !endDate}
+             disabled={
+                (selectedPdfCols.length === 0 && selectedProjectPdfCols.length === 0) || // no columns selected
+                !startDate || // start date missing
+                !endDate   
+            }
           >
             Download PDF
           </Button>
-        </DialogActions>
-      </Dialog>
+         </DialogActions> 
+      {/* </Dialog> */}
     </>
   );
 }
