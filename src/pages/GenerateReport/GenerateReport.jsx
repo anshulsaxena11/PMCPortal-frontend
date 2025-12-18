@@ -80,7 +80,7 @@ const projectCols = [
   { field: 'projectValue', headerName: 'Value',flex: 1 ,
      align: 'right',
     renderCell: (params) => {
-      const val = params?.row?.Value;
+      const val = params?.row?.projectValue;
       if (!val || isNaN(val)) return 'N/A';
       const croreValue = Number(val) / 100000;
       const formattedCr = croreValue.toLocaleString('en-IN', {
