@@ -57,6 +57,7 @@ import CertificateMasterView from "../../pages/CertificationMaster/CertificateMa
 import CertificateMasterForm from "../../pages/CertificationMaster/CertificateMasterForm/CertificateMasterForm.jsx"
 import CertificateMasterEdit from "../../pages/CertificationMaster/CertificateMasterEdit/CertificationMasterEdit.jsx"
 import Profile from "../../pages/profile/Profile.jsx";
+import GenerateReport from "../../pages/GenerateReport/GenerateReport.jsx";
 import UserList from "../../pages/profile/UserList.jsx";
 import UserProfile from "../../pages/profile/UserProfile.jsx";
 import './contentBody.css'
@@ -142,6 +143,7 @@ const ContentBody = ({ isSidebarExpanded }) => {
           <Route path="/Certificate-Master-View" element={<CertificateMasterView/>}/>
           <Route path="/Certificate-Master-Form" element={<CertificateMasterForm/>}/>
           <Route path="/Certificate-Master-Edit" element={<CertificateMasterEdit/>}/>
+          <Route path="/Generate-Report" element={<GenerateReport/>}/>
         </Routes>
       </div>
     </div>

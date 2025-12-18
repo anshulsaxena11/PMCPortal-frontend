@@ -161,6 +161,7 @@ const handleMouseEnter = () => {
     { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
     { role: "Admin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
     { role: "Admin", label: "Generate File", icon: <TbReportAnalytics />, path: "/ReportPdfGenerator" },
+    { role: "Admin", label: "Report", icon: <TbReportAnalytics />, path: "/Generate-Report" },
     { role: "Admin", label: "Project Team Members", icon: <BsMicrosoftTeams />, path: "/admin-Emp" },
     { role: "Admin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
     { role: "Admin", label: "Skill Mapping", icon: <GiSkills />, path: "/skills-Mapping" },
