@@ -25,6 +25,7 @@ import TaskForceMemberList from "../pages/taskForceMember/TaskForceMemberList/Ta
 import DocumentRepository from "../pages/documentRepository/documentRepository";
 import DomainMasterList from "../pages/domainMaster/domainMasterList/DomainMasterList"
 import CertificateMasterList from "../pages/CertificationMaster/CertificationMasterList/CertificateMasterList"
+import GenerateReport from "../pages/GenerateReport/GenerateReport";
 import Profile from "../pages/profile/Profile";
 
 const AppRoutes = () => {
@@ -55,6 +56,7 @@ const AppRoutes = () => {
       <Route path="/Domain-Sector-Master" element={<DomainMasterList/>}/>
       <Route path="/profile" element={<Profile/>}/>
       <Route path="/Certificate-Master" element={<CertificateMasterList/>}/>
+      <Route path="/Generate-Report" element={<GenerateReport/>}/>
     </Routes>
   );
 };
