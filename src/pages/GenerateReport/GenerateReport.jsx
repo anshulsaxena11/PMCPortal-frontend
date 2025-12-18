@@ -1268,7 +1268,7 @@ const paginatedProjectRows = filteredProjectRows
     <div>   
         <Box sx={{ width: '100%' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center">
-                <Heading title="Generate File" />
+                <Heading title="Generate Report" />
             </Stack>
             <hr></hr>
             <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
