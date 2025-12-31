@@ -1393,12 +1393,49 @@ const paginatedProjectRows = filteredProjectRows
                           Download CSV
                         </Button>
                     </DialogActions>       
-            </Box>
-            <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 2 }}>
-                <Tab label="Sales Tracking" />
-                <Tab label="Project Details" />
-            </Tabs>
-              {activeTab === 0 && (
+                  </Box>
+                      <Tabs
+                          value={activeTab}
+                          onChange={handleTabChange}
+                          sx={{
+                            mb: 3,
+                            p: 0.5,
+                            bgcolor: '#AAC9D5',
+                            borderRadius: 3,
+                            minHeight: 44,
+                            '& .MuiTabs-indicator': {
+                              display: 'none',
+                            },
+
+                            '& .MuiTab-root': {
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              fontSize: '14px',
+                              minHeight: 40,
+                              px: 3,
+                              borderRadius: 2.5,
+                              color: 'text.secondary',
+                              transition: 'all 0.3s ease',
+                              border: '1px solid rgba(0,0,0,0.15)',     
+                              mx: 0.5,                                   
+                              backgroundColor: 'rgba(255,255,255,0.35)',
+                              '&:hover': {
+                                backgroundColor: 'rgba(255,255,255,0.55)',
+                              },
+                            },
+
+                            '& .Mui-selected': {
+                              color: '#fff',
+                              background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
+                              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.35)',
+                              border: '1px solid #1976d2',              
+                            },
+                          }}
+                        >
+                          <Tab label="📁 Project Details" />
+                          <Tab label="📊 Sales Tracking" />
+                        </Tabs>
+              {activeTab === 1 && (
                 <Box sx={{ height: 400 }}>
                 <CustomDataGrid
                     rows={filteredRows.map((row, index) => ({...row, sno: index + 1}))}
@@ -1415,7 +1452,7 @@ const paginatedProjectRows = filteredProjectRows
                 />
                 </Box>
             )}
-             {activeTab === 1 && (
+             {activeTab === 0 && (
             <Box sx={{ height: 400 }}>
               <CustomDataGrid
              rows={paginatedProjectRows}
