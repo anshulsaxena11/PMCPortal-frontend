@@ -648,6 +648,7 @@ const exportCustomPdf = async () => {
     setLoading(true);
     try {
       const tenderResponse = await getAllTenderList({ isDeleted: false });
+      console.log('Fetched tender data:', tenderResponse);
       let tenderData = tenderResponse?.data || [];
       
       // APPLY DIRECTORATE FILTER
@@ -1205,7 +1206,7 @@ const paginatedProjectRows = filteredProjectRows
                             },
 
                             '& .Mui-selected': {
-                              color: '#fff',
+                              color: 'white !important',
                               background: 'linear-gradient(135deg, #1976d2, #42a5f5)',
                               boxShadow: '0 4px 12px rgba(25, 118, 210, 0.35)',
                               border: '1px solid #1976d2',              
