@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Tabs, Tab , Stack, Tooltip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, FormControlLabel, Checkbox } from '@mui/material';
+import { Box, Tabs, Tab , Stack, Tooltip, Button, Dialog, DialogTitle, DialogContent, DialogActions, FormGroup, FormControlLabel, Checkbox, Backdrop, CircularProgress } from '@mui/material';
 import { Card } from "react-bootstrap";
 import dayjs from 'dayjs';
 import { BsFillFileEarmarkPdfFill } from "react-icons/bs";
@@ -100,24 +100,24 @@ const projectCols = [
 
 // --- Utility Functions (UPDATED to include Tender FY grouping) ---
 function groupByFinancialYearTender(data) {
-    const yearMap = {};
-    data.forEach((tender) => {
-        const { lastDate, valueINR } = tender;
-        // Use lastDate as proxy for tender year
-        if (!lastDate) return; 
-        const date = new Date(lastDate);
-        const month = date.getMonth();
-        const year = date.getFullYear();
-        const fyStartYear = month < 3 ? year - 1 : year;
-        const fyEndYear = fyStartYear + 1;
-        const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
-        const value = parseFloat(valueINR || "0");
+  const yearMap = {};
+  data.forEach((tender) => {
+    // Use `createdAt` as the source date for sales/tender financial year
+    const { createdAt, valueINR } = tender;
+    if (!createdAt) return;
+    const date = new Date(createdAt);
+    const month = date.getMonth();
+    const year = date.getFullYear();
+    const fyStartYear = month < 3 ? year - 1 : year;
+    const fyEndYear = fyStartYear + 1;
+    const fyLabel = `FY-${fyStartYear}-${fyEndYear}`;
+    const value = parseFloat(valueINR || "0");
 
-        if (!yearMap[fyLabel]) {
-            yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, startYear: fyStartYear };
-        }
-        yearMap[fyLabel].Total += value;
-    });
+    if (!yearMap[fyLabel]) {
+      yearMap[fyLabel] = { financialYear: fyLabel, Total: 0, startYear: fyStartYear };
+    }
+    yearMap[fyLabel].Total += value;
+  });
 
     return Object.values(yearMap)
         .map(({ financialYear, Total, startYear }) => ({
@@ -222,6 +222,35 @@ const [search, setSearch] = useState('');
     setFinancialYears(["All", ...years]);
   }, []);
   // -------------------------------------------
+
+  // --- FY bounds for DatePicker and auto-adjust dates when FY changes ---
+  const [fyMinDate, setFyMinDate] = useState(null);
+  const [fyMaxDate, setFyMaxDate] = useState(null);
+
+  useEffect(() => {
+    if (selectedFY && selectedFY !== 'All') {
+      const m = selectedFY.match(/FY-(\d+)-(\d+)/);
+      if (m) {
+        const fyStart = dayjs(`${m[1]}-04-01`).startOf('day');
+        const fyEnd = dayjs(`${m[2]}-03-31`).endOf('day');
+        setFyMinDate(fyStart);
+        setFyMaxDate(fyEnd);
+
+        // auto-correct start/end if outside FY bounds
+        if (!startDate || dayjs(startDate).isBefore(fyStart) || dayjs(startDate).isAfter(fyEnd)) {
+          setStartDate(fyStart);
+        }
+        if (!endDate || dayjs(endDate).isBefore(fyStart) || dayjs(endDate).isAfter(fyEnd)) {
+          setEndDate(fyEnd);
+        }
+        return;
+      }
+    }
+
+    // if 'All' selected, clear FY bounds (no extra restrictions)
+    setFyMinDate(null);
+    setFyMaxDate(null);
+  }, [selectedFY]);
 
 
   // --- Export Functionality (UPDATED CSV - uses basic browser download) ---
@@ -333,148 +362,146 @@ const exportToCsv = () => {
   }, 50);
 };
 const exportCustomPdf = async () => {
+    // close modal but show a global generating overlay to avoid UI flicker
     setPdfModalOpen(false);
-    
+    setPdfGenerating(true);
 
-    setTimeout(async () => {
-    
-  const normalize = s => String(s || '').toLowerCase();
-  let projectDetails = [];
-  let projectDetailsFY = [];
+    const normalize = s => String(s || '').toLowerCase();
+    let projectDetails = [];
+    let projectDetailsFY = [];
 
-  try {
-    const projectResponse = await getProjectDetailsList({ page: 1, limit: 1000 });
-    const allProjectsRaw = projectResponse?.data || [];
+    try {
+      const projectResponse = await getProjectDetailsList({ page: 1, limit: 1000 });
+      const allProjectsRaw = projectResponse?.data || [];
 
-    const allProjectsByDir = selectedDirectorateTender !== 'All'
-      ? allProjectsRaw.filter(project => project.directrate === selectedDirectorateTender)
-      : allProjectsRaw;
+      const allProjectsByDir = selectedDirectorateTender !== 'All'
+        ? allProjectsRaw.filter(project => project.directrate === selectedDirectorateTender)
+        : allProjectsRaw;
 
-    if (startDate && endDate) {
-      const sd = dayjs(startDate).startOf('day').valueOf();
-      const ed = dayjs(endDate).endOf('day').valueOf();
-      projectDetails = allProjectsByDir.filter(project => {
-        const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
-        return projectDate && projectDate >= sd && projectDate <= ed;
-      });
-    } else {
-      projectDetails = allProjectsByDir;
+      if (startDate && endDate) {
+        const sd = dayjs(startDate).startOf('day').valueOf();
+        const ed = dayjs(endDate).endOf('day').valueOf();
+        projectDetails = allProjectsByDir.filter(project => {
+          const projectDate = project.startDate ? dayjs(project.startDate).valueOf() : null;
+          return projectDate && projectDate >= sd && projectDate <= ed;
+        });
+      } else {
+        projectDetails = allProjectsByDir;
+      }
+
+      if (selectedFY && selectedFY !== 'All') {
+        const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
+        if (fyMatch) {
+          const fyStartYear = parseInt(fyMatch[1], 10);
+          const fyEndYear = parseInt(fyMatch[2], 10);
+          const fyStart = dayjs(`${fyStartYear}-04-01`).startOf('day').valueOf();
+          const fyEnd = dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
+          projectDetailsFY = allProjectsByDir.filter(project => {
+            const projectDate = project.startDate ? dayjs(project.startDate).valueOf() : null;
+            return projectDate && projectDate >= fyStart && projectDate <= fyEnd;
+          });
+        } else {
+          projectDetailsFY = allProjectsByDir;
+        }
+      } else {
+        projectDetailsFY = allProjectsByDir;
+      }
+    } catch (error) {
+      console.error('Error fetching project details:', error);
     }
 
+    // --- FY Summary ---
+    let fyTotalTenders = 0, fyUploadCount = 0, fyBiddingCount = 0, fyNotBiddingCount = 0;
     if (selectedFY && selectedFY !== 'All') {
       const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
       if (fyMatch) {
         const fyStartYear = parseInt(fyMatch[1], 10);
         const fyEndYear = parseInt(fyMatch[2], 10);
+
         const fyStart = dayjs(`${fyStartYear}-04-01`).startOf('day').valueOf();
-        const fyEnd = dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
-        projectDetailsFY = allProjectsByDir.filter(project => {
-          const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
-          return projectDate && projectDate >= fyStart && projectDate <= fyEnd;
+        const fyEnd = startDate ? dayjs(startDate).endOf('day').valueOf() : dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
+
+        const fyTenders = filteredRows.filter(t => {
+          if (!t.createdAt) return false;
+          const ts = dayjs(t.createdAt).valueOf();
+          return ts >= fyStart && ts <= fyEnd;
         });
-      } else {
-        projectDetailsFY = allProjectsByDir;
+
+        fyTotalTenders = fyTenders.length;
+        fyUploadCount = fyTenders.filter(t => {
+          const st = normalize(t.status);
+          return st.includes('not submit') || st.includes('not submitted') || st.includes('upload');
+        }).length;
+        fyBiddingCount = fyTenders.filter(t => {
+          const st = normalize(t.status);
+          return st.includes('submitted') || st.includes('under evaluation') || st.includes('bidding') || st.includes('in progress');
+        }).length;
+        fyNotBiddingCount = fyTenders.filter(t => {
+          const st = normalize(t.status);
+          return st.includes('not bidding') || st.includes('not-bidding') || st.includes('no bid') || st.includes('not bid');
+        }).length;
       }
-    } else {
-      projectDetailsFY = allProjectsByDir;
     }
-  } catch (error) {
-    console.error('Error fetching project details:', error);
-  }
 
-  // --- FY Summary ---
-  let fyTotalTenders = 0, fyUploadCount = 0, fyBiddingCount = 0, fyNotBiddingCount = 0;
-  if (selectedFY && selectedFY !== 'All') {
-    const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
-    if (fyMatch) {
-      const fyStartYear = parseInt(fyMatch[1], 10);
-      const fyEndYear = parseInt(fyMatch[2], 10);
+    // --- Period Summary ---
+    const periodTotalTenders = currentSummary?.total || 0;
+    const periodUploadCount = currentSummary?.upload || 0;
+    const periodBiddingCount = currentSummary?.bidding || 0;
+    const periodNotBiddingCount = currentSummary?.notBidding || 0;
 
-      const fyTenders = filteredRows.filter(t => {
-        if (!t.lastDate) return false;
-        const date = new Date(t.lastDate);
-        const month = date.getMonth();
-        const year = date.getFullYear();
-        const tenderFYStart = month < 3 ? year - 1 : year;
-        const tenderFYEnd = tenderFYStart + 1;
-        return tenderFYStart === fyStartYear && tenderFYEnd === fyEndYear;
+    // --- Project Summary ---
+    const calcProjectStats = (projects) => {
+      const totalProjects = projects.length;
+      const totalValue = projects.reduce((sum, p) => sum + (Number(p.projectValue) || 0), 0);
+      const completed = projects.filter(p => {
+        const st = normalize(p.status);
+        return st.includes('completed') || st.includes('closed') || st.includes('done');
+      }).length;
+      const ongoing = projects.filter(p => {
+        const st = normalize(p.status);
+        return st.includes('ongoing') || st.includes('in progress') || st.includes('active');
+      }).length;
+      return { totalProjects, totalValue, completed, ongoing };
+    };
+
+    const statsFY = calcProjectStats(projectDetailsFY);
+    const statsPeriod = calcProjectStats(projectDetails);
+
+    // --- Build Table Rows ---
+    const selectedTenderCols = tenderCols.filter(col => selectedPdfCols.includes(col.field));
+    const selectedProjCols = projectCols.filter(col => selectedProjectPdfCols.includes(col.field));
+
+    const salesDataRows = filteredRows.map((row, idx) => {
+      const cells = selectedTenderCols.map(col => {
+        if (col.field === 'lastDate' && row[col.field]) return dayjs(row[col.field]).format('YYYY-MM-DD');
+        if (col.field === 'valueINR') return (Number(row.valueINR || 0) / 100000).toFixed(2) + ' Lakhs';
+        return String(row[col.field] || 'N/A').substring(0, 80);
       });
+      return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
+    }).join('');
 
-      fyTotalTenders = fyTenders.length;
-      fyUploadCount = fyTenders.filter(t => {
-        const st = normalize(t.status);
-        return st.includes('not submit') || st.includes('not submitted') || st.includes('upload');
-      }).length;
-      fyBiddingCount = fyTenders.filter(t => {
-        const st = normalize(t.status);
-        return st.includes('submitted') || st.includes('under evaluation') || st.includes('bidding') || st.includes('in progress');
-      }).length;
-      fyNotBiddingCount = fyTenders.filter(t => {
-        const st = normalize(t.status);
-        return st.includes('not bidding') || st.includes('not-bidding') || st.includes('no bid') || st.includes('not bid');
-      }).length;
+    const projectDataRows = projectDetails.map((project, idx) => {
+      const cells = selectedProjCols.map(col => {
+        let value = project[col.field];
+        if (col.field === 'startDate' || col.field === 'endDate') value = value ? dayjs(value).format('DD/MM/YYYY') : 'N/A';
+        if (col.field === 'projectValue') value = value ? `₹${(Number(value) / 100000).toFixed(2)} Lakhs` : 'N/A';
+        return `<td>${String(value || 'N/A').substring(0, 80)}</td>`;
+      });
+      return `<tr><td>${idx + 1}</td>${cells.join('')}</tr>`;
+    }).join('');
+
+    // --- Header Text ---
+    let headerText = selectedDirectorateTender !== 'All' ? `${selectedDirectorateTender} - ` : 'All Directorates';
+    if (startDate || endDate) {
+      const startStr = startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A';
+      const endStr = endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A';
+      headerText += ` Report for Period: ${startStr} to ${endStr}`;
     }
-  }
 
-  // --- Period Summary ---
-  const periodTotalTenders = currentSummary?.total || 0;
-  const periodUploadCount = currentSummary?.upload || 0;
-  const periodBiddingCount = currentSummary?.bidding || 0;
-  const periodNotBiddingCount = currentSummary?.notBidding || 0;
-
-  // --- Project Summary ---
-  const calcProjectStats = (projects) => {
-    const totalProjects = projects.length;
-    const totalValue = projects.reduce((sum, p) => sum + (Number(p.projectValue) || 0), 0);
-    const completed = projects.filter(p => {
-      const st = normalize(p.status);
-      return st.includes('completed') || st.includes('closed') || st.includes('done');
-    }).length;
-    const ongoing = projects.filter(p => {
-      const st = normalize(p.status);
-      return st.includes('ongoing') || st.includes('in progress') || st.includes('active');
-    }).length;
-    return { totalProjects, totalValue, completed, ongoing };
-  };
-
-  const statsFY = calcProjectStats(projectDetailsFY);
-  const statsPeriod = calcProjectStats(projectDetails);
-
-  // --- Build Table Rows ---
-  const selectedTenderCols = tenderCols.filter(col => selectedPdfCols.includes(col.field));
-  const selectedProjCols = projectCols.filter(col => selectedProjectPdfCols.includes(col.field));
-
-  const salesDataRows = filteredRows.map((row, idx) => {
-    const cells = selectedTenderCols.map(col => {
-      if (col.field === 'lastDate' && row[col.field]) return dayjs(row[col.field]).format('YYYY-MM-DD');
-      if (col.field === 'valueINR') return (Number(row.valueINR || 0) / 100000).toFixed(2) + ' Lakhs';
-      return String(row[col.field] || 'N/A').substring(0, 80);
-    });
-    return `<tr>${cells.map(c => `<td>${c}</td>`).join('')}</tr>`;
-  }).join('');
-
-  const projectDataRows = projectDetails.map((project, idx) => {
-    const cells = selectedProjCols.map(col => {
-      let value = project[col.field];
-      if (col.field === 'startDate' || col.field === 'endDate') value = value ? dayjs(value).format('DD/MM/YYYY') : 'N/A';
-      if (col.field === 'projectValue') value = value ? `₹${(Number(value) / 100000).toFixed(2)} Lakhs` : 'N/A';
-      return `<td>${String(value || 'N/A').substring(0, 80)}</td>`;
-    });
-    return `<tr><td>${idx + 1}</td>${cells.join('')}</tr>`;
-  }).join('');
-
-  // --- Header Text ---
-  let headerText = selectedDirectorateTender !== 'All' ? `${selectedDirectorateTender} - ` : 'All Directorates';
-  if (startDate || endDate) {
     const startStr = startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A';
     const endStr = endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A';
-    headerText += ` Report for Period: ${startStr} to ${endStr}`;
-  }
 
-  const startStr = startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A';
-  const endStr = endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A';
-
- const htmlContent = `
+   const htmlContent = `
 <html>
 <head>
   <meta charset="UTF-8">
@@ -530,16 +557,22 @@ const exportCustomPdf = async () => {
 
   <h2>(1) Summary</h2>
   <div>
+   <div class="summary-container">
+    <div class="summary-column">
+      <p><strong>Financial Year: ${selectedFY}</strong></p>
+    </div>
+     <div class="summary-column">
+      <p><strong>Period: ${startStr}-${endStr}</strong></p>
+    </div>
+   </div>
     <h3 style="margin-top: 10px; margin-left:50px; color: #1E90FF; text-align: left;">1. Sales Tracking</h3>
     <div class="summary-container">
       <div class="summary-column">
-        <p><strong>Financial Year: ${selectedFY}</strong></p>
         <p>Total Tenders: ${fyTotalTenders}</p>
         <p>Upload / Bidding: ${fyUploadCount} / ${fyBiddingCount}</p>
         <p>Not Bidding: ${fyNotBiddingCount}</p>
       </div>
       <div class="summary-column">
-        <p><strong>Period: ${startStr}-${endStr}</strong></p>
         <p>Total Tenders: ${periodTotalTenders}</p>
         <p>Upload / Bidding: ${periodUploadCount} / ${periodBiddingCount}</p>
         <p>Not Bidding: ${periodNotBiddingCount}</p>
@@ -589,319 +622,26 @@ const exportCustomPdf = async () => {
 </html>
 `;
 
-  const filename = selectedDirectorateTender !== 'All'
-    ? `${selectedDirectorateTender}_Tender_Report_${dayjs().format('YYYY-MM-DD')}`
-    : `All_Directorates_Tender_Report_${dayjs().format('YYYY-MM-DD')}`;
+    const filename = selectedDirectorateTender !== 'All'
+      ? `${selectedDirectorateTender}_Tender_Report_${dayjs().format('YYYY-MM-DD')}`
+      : `All_Directorates_Tender_Report_${dayjs().format('YYYY-MM-DD')}`;
 
-  const opt = {
-    margin: 10,
-    filename: `${filename}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
-  };
-  try{
-    await html2pdf().set(opt).from(htmlContent).save();
-  }catch(err){
-    console.error('Error generating PDF:', err);
-  }
-
-  }, 50);
+    const opt = {
+      margin: 10,
+      filename: `${filename}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: 'landscape', unit: 'mm', format: 'a4' }
+    };
+    try{
+      await html2pdf().set(opt).from(htmlContent).save();
+    }catch(err){
+      console.error('Error generating PDF:', err);
+    } finally {
+      setPdfGenerating(false);
+    }
 
 };
-// const exportCustomPdf = async () => {
-//   setPdfModalOpen(false);
-
-//   setTimeout(async () => {
-//     // Normalize string: trim and lowercase for safe comparison
-//     const normalize = s => String(s || '').trim().toLowerCase();
-    
-//     let projectDetails = [];
-//     let projectDetailsFY = [];
-
-//     try {
-//       const projectResponse = await getProjectDetailsList({ page: 1, limit: 1000 });
-//       const allProjectsRaw = projectResponse?.data || [];
-
-//       // Fix typo here: 'directrate' -> 'directorate'
-//       const allProjectsByDir = selectedDirectorateTender !== 'All'
-//         ? allProjectsRaw.filter(project => project.directorate === selectedDirectorateTender)
-//         : allProjectsRaw;
-
-//       if (startDate && endDate) {
-//         const sd = dayjs(startDate).startOf('day').valueOf();
-//         const ed = dayjs(endDate).endOf('day').valueOf();
-
-//         projectDetails = allProjectsByDir.filter(project => {
-//           const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
-//           return projectDate && projectDate >= sd && projectDate <= ed;
-//         });
-//       } else {
-//         projectDetails = allProjectsByDir;
-//       }
-
-//       if (selectedFY && selectedFY !== 'All') {
-//         const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
-//         if (fyMatch) {
-//           const fyStartYear = parseInt(fyMatch[1], 10);
-//           const fyEndYear = parseInt(fyMatch[2], 10);
-
-//           const fyStart = dayjs(`${fyStartYear}-04-01`).startOf('day').valueOf();
-//           const fyEnd = dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
-
-//           projectDetailsFY = allProjectsByDir.filter(project => {
-//             const projectDate = project.createdAt ? dayjs(project.createdAt).valueOf() : null;
-//             return projectDate && projectDate >= fyStart && projectDate <= fyEnd;
-//           });
-//         } else {
-//           projectDetailsFY = allProjectsByDir;
-//         }
-//       } else {
-//         projectDetailsFY = allProjectsByDir;
-//       }
-//     } catch (error) {
-//       console.error('Error fetching project details:', error);
-//     }
-
-//     // --- FY Summary ---
-//     let fyTotalTenders = 0, fyUploadCount = 0, fyBiddingCount = 0, fyNotBiddingCount = 0;
-
-//     if (selectedFY && selectedFY !== 'All' && Array.isArray(filteredRows)) {
-//       const fyMatch = selectedFY.match(/FY-(\d+)-(\d+)/);
-//       if (fyMatch) {
-//         const fyStartYear = parseInt(fyMatch[1], 10);
-//         const fyEndYear = parseInt(fyMatch[2], 10);
-
-//         const fyTenders = filteredRows.filter(t => {
-//           if (!t.lastDate) return false;
-//           const date = new Date(t.lastDate);
-//           const month = date.getMonth();
-//           const year = date.getFullYear();
-
-//           // Financial year logic: FY starts from April
-//           const tenderFYStart = month < 3 ? year - 1 : year;
-//           const tenderFYEnd = tenderFYStart + 1;
-
-//           return tenderFYStart === fyStartYear && tenderFYEnd === fyEndYear;
-//         });
-
-//         fyTotalTenders = fyTenders.length;
-
-//         fyUploadCount = fyTenders.filter(t => {
-//           const st = normalize(t.status);
-//           return st.includes('not submit') || st.includes('not submitted') || st.includes('upload');
-//         }).length;
-
-//         fyBiddingCount = fyTenders.filter(t => {
-//           const st = normalize(t.status);
-//           return st.includes('submitted') || st.includes('under evaluation') || st.includes('bidding') || st.includes('in progress');
-//         }).length;
-
-//         fyNotBiddingCount = fyTenders.filter(t => {
-//           const st = normalize(t.status);
-//           return st.includes('not bidding') || st.includes('not-bidding') || st.includes('no bid') || st.includes('not bid');
-//         }).length;
-//       }
-//     }
-
-//     // --- Period Summary ---
-//     const periodTotalTenders = currentSummary?.total || 0;
-//     const periodUploadCount = currentSummary?.upload || 0;
-//     const periodBiddingCount = currentSummary?.bidding || 0;
-//     const periodNotBiddingCount = currentSummary?.notBidding || 0;
-
-//     // --- Project Summary helper ---
-//     const calcProjectStats = (projects) => {
-//       const totalProjects = projects.length;
-//       const totalValue = projects.reduce((sum, p) => sum + (Number(p.projectValue) || 0), 0);
-
-//       const completed = projects.filter(p => {
-//         const st = normalize(p.status);
-//         return st.includes('completed') || st.includes('closed') || st.includes('done');
-//       }).length;
-
-//       const ongoing = projects.filter(p => {
-//         const st = normalize(p.status);
-//         return st.includes('ongoing') || st.includes('in progress') || st.includes('active');
-//       }).length;
-
-//       return { totalProjects, totalValue, completed, ongoing };
-//     };
-
-//     const statsFY = calcProjectStats(projectDetailsFY);
-//     const statsPeriod = calcProjectStats(projectDetails);
-
-//     // --- Build Columns ---
-//     const selectedTenderCols = tenderCols.filter(col => selectedPdfCols.includes(col.field));
-//     const selectedProjCols = projectCols.filter(col => selectedProjectPdfCols.includes(col.field));
-
-//     // --- Build jsPDF document ---
-//     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-//     const marginLeft = 20;
-//     let currentY = 20;
-
-//     const headerText = selectedDirectorateTender !== 'All' ? `${selectedDirectorateTender} - ` : 'All Directorates';
-//     const startStr = startDate ? dayjs(startDate).format('DD/MM/YYYY') : 'N/A';
-//     const endStr = endDate ? dayjs(endDate).format('DD/MM/YYYY') : 'N/A';
-//     const fullHeader = (startDate || endDate)
-//       ? `${headerText} Report for Period: ${startStr} to ${endStr}`
-//       : headerText;
-
-//     // Header
-//     doc.setFont('helvetica', 'bold');
-//     doc.setFontSize(16);
-//     doc.text(fullHeader, marginLeft, currentY);
-//     currentY += 12;
-
-//     // Summary Section
-//     doc.setFontSize(14);
-//     doc.setTextColor('BLACK'); // Dodger Blue
-//     doc.text('(1) Summary', marginLeft, currentY);
-//     currentY += 8;
-
-//     // Sales Tracking
-//     doc.setFontSize(14);
-//     doc.setTextColor('black'); // normal text
-// doc.setFontSize(10);
-
-// doc.text(
-//   `Financial Year: ${selectedFY}                                                                          Period: ${startStr} - ${endStr}`, 
-//   marginLeft + 50, 
-//   currentY
-// );
-// currentY += 6;
-//     doc.setFontSize(12);
-//     doc.setTextColor('#1E90FF');
-//     doc.text('1. Sales Tracking', marginLeft + 30, currentY);
-//     doc.setTextColor('black');
-//     doc.setFontSize(10);
-//     currentY += 6;
-//     doc.text(`Total Tenders: ${fyTotalTenders}`, marginLeft + 50, currentY);
-//     currentY += 6;
-//     doc.text(`Upload / Bidding: ${fyUploadCount} / ${fyBiddingCount}`, marginLeft + 50, currentY);
-//     currentY += 6;
-//     doc.text(`Not Bidding: ${fyNotBiddingCount}`, marginLeft + 50, currentY);
-
-//     // Period Summary on right side
-//     const summaryRightX = 175;
-//     currentY -= 14;
-//     doc.text(`Total Tenders: ${periodTotalTenders}`, summaryRightX, currentY);
-//     currentY += 6;
-//     doc.text(`Upload / Bidding: ${periodUploadCount} / ${periodBiddingCount}`, summaryRightX, currentY);
-//     currentY += 6;
-//     doc.text(`Not Bidding: ${periodNotBiddingCount}`, summaryRightX, currentY);
-//     currentY += 12;
-
-//     // Project Summary
-//     doc.setTextColor('#1E90FF');
-//     doc.text('2. Project', marginLeft + 30, currentY);
-//     doc.setTextColor('black');
-//     currentY += 6;
-
-//     doc.text(`Total Projects: ${statsFY.totalProjects}`, marginLeft + 50, currentY);
-//     currentY += 6;
-//     doc.text(`Total Value: ₹${(statsFY.totalValue / 100000).toFixed(2)} Lakhs`, marginLeft + 50, currentY);
-//     currentY += 6;
-//     doc.text(`Completed: ${statsFY.completed}`, marginLeft + 50, currentY);
-//     currentY += 6;
-//     doc.text(`Ongoing: ${statsFY.ongoing}`, marginLeft + 50, currentY);
-
-//     currentY -= 18;
-//     doc.text(`Total Projects: ${statsPeriod.totalProjects}`, summaryRightX, currentY);
-//     currentY += 6;
-//     doc.text(`Total Value: ₹${(statsPeriod.totalValue / 100000).toFixed(2)} Lakhs`, summaryRightX, currentY);
-//     currentY += 6;
-//     doc.text(`Completed: ${statsPeriod.completed}`, summaryRightX, currentY);
-//     currentY += 6;
-//     doc.text(`Ongoing: ${statsPeriod.ongoing}`, summaryRightX, currentY);
-//     currentY += 12;
-
-//     // --- Sales Data Table ---
-//     doc.setTextColor('#1E90FF');
-//     doc.setFontSize(14);
-//     doc.text('(2) Sales Data Added in This Period', marginLeft, currentY);
-//     currentY += 6;
-
-//     const salesTableColumns = selectedTenderCols.map(col => ({ header: col.headerName, dataKey: col.field }));
-//     const salesTableRows = filteredRows.map(row => {
-//       const obj = {};
-//       selectedTenderCols.forEach(col => {
-//         if (col.field === 'lastDate' && row[col.field]) {
-//           obj[col.field] = dayjs(row[col.field]).format('YYYY-MM-DD');
-//         } else if (col.field === 'valueINR') {
-//           obj[col.field] = (Number(row.valueINR || 0) / 100000).toFixed(2) + ' Lakhs';
-//         } else {
-//           obj[col.field] = String(row[col.field] || 'N/A').substring(0, 80);
-//         }
-//       });
-//       return obj;
-//     });
-
-//     doc.autoTable({
-//       startY: currentY,
-//       head: [salesTableColumns.map(col => col.header)],
-//       body: salesTableRows.map(row => salesTableColumns.map(col => row[col.dataKey])),
-//       styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak', halign: 'left', valign: 'middle', fontStyle: 'normal' },
-//       headStyles: { fillColor: '#1E90FF', textColor: '#fff', fontStyle: 'normal' },
-//       alternateRowStyles: { fillColor: '#f9f9f9' },
-//       theme: 'striped',
-//       margin: { left: marginLeft, right: marginLeft },
-//     });
-
-//     currentY = doc.lastAutoTable.finalY + 10;
-
-//     // --- Project Data Table ---
-//     doc.setTextColor('#1E90FF');
-//     doc.setFontSize(14);
-//     doc.text('(3) Project Data Added in This Period', marginLeft, currentY);
-//     currentY += 6;
-
-//     const projectTableColumns = [{ header: 'S.No', dataKey: 'sno' }, ...selectedProjCols.map(col => ({ header: col.headerName, dataKey: col.field }))];
-//     const projectTableRows = projectDetails.map((project, idx) => {
-//       const obj = { sno: idx + 1 };
-//       selectedProjCols.forEach(col => {
-//         let value = project[col.field];
-//         if (col.field === 'startDate' || col.field === 'endDate') {
-//           value = value ? dayjs(value).format('DD/MM/YYYY') : 'N/A';
-//         }
-//         if (col.field === 'projectValue') {
-//           value = value ? `₹${(Number(value) / 100000).toFixed(2)} Lakhs` : 'N/A';
-//         }
-//         obj[col.field] = String(value || 'N/A').substring(0, 80);
-//       });
-//       return obj;
-//     });
-
-//     doc.autoTable({
-//       startY: currentY,
-//       head: [projectTableColumns.map(col => col.header)],
-//       body: projectTableRows.map(row => projectTableColumns.map(col => row[col.dataKey])),
-//       styles: { fontSize: 10, cellPadding: 3, overflow: 'linebreak', halign: 'left', valign: 'middle', fontStyle: 'normal' },
-//       headStyles: { fillColor: '#1E90FF', textColor: '#fff', fontStyle: 'normal' },
-//       alternateRowStyles: { fillColor: '#f9f9f9' },
-//       theme: 'striped',
-//       margin: { left: marginLeft, right: marginLeft },
-//     });
-
-//     currentY = doc.lastAutoTable.finalY + 10;
-
-//     // --- Footer Note ---
-//     doc.setFontSize(12);
-//     doc.setTextColor('red');
-//     doc.text('*', marginLeft, currentY);
-//     doc.setTextColor('black');
-//     doc.text('For more details refer to PMC Portal', marginLeft + 6, currentY);
-
-//     // --- Save PDF ---
-//     const filename = selectedDirectorateTender !== 'All'
-//       ? `${selectedDirectorateTender}_Tender_Report_${dayjs().format('YYYY-MM-DD')}`
-//       : `All_Directorates_Tender_Report_${dayjs().format('YYYY-MM-DD')}`;
-
-//     doc.save(`${filename}.pdf`);
-
-//   }, 50);
-// };
-
 
   // --- Data Fetching (UPDATED to include FY and Directorate filters) ---
   const fetchTenderData = async (yearFilter = "All", directorateFilter = "All") => {
@@ -915,11 +655,11 @@ const exportCustomPdf = async () => {
         tenderData = tenderData.filter(t => t.directrate === directorateFilter);
       }
 
-      // APPLY FINANCIAL YEAR FILTER
+      // APPLY FINANCIAL YEAR FILTER (sales tracking uses createdAt)
       if (yearFilter !== "All") {
         tenderData = tenderData.filter((t) => {
-          if (!t.lastDate) return false;
-          const date = new Date(t.lastDate);
+          if (!t.createdAt) return false;
+          const date = new Date(t.createdAt);
           const month = date.getMonth();
           const year = date.getFullYear();
           const fyStartYear = month < 3 ? year - 1 : year;
@@ -934,10 +674,10 @@ const exportCustomPdf = async () => {
         const sd = startDate ? dayjs(startDate).startOf('day') : null;
         const ed = endDate ? dayjs(endDate).endOf('day') : null;
         if (sd) {
-          tenderData = tenderData.filter(t => t.lastDate && dayjs(t.lastDate).valueOf() >= sd.valueOf());
+          tenderData = tenderData.filter(t => t.createdAt && dayjs(t.createdAt).valueOf() >= sd.valueOf());
         }
         if (ed) {
-          tenderData = tenderData.filter(t => t.lastDate && dayjs(t.lastDate).valueOf() <= ed.valueOf());
+          tenderData = tenderData.filter(t => t.createdAt && dayjs(t.createdAt).valueOf() <= ed.valueOf());
         }
       } catch (errDateFilter) {
         console.warn('Date range filtering skipped due to invalid dates', errDateFilter);
@@ -999,19 +739,35 @@ setDirectorateTenderOptions(uniqueTenderDirectorates);
 
       // --- Status counts for Upload / Bidding / Not Bidding ---
       const normalize = s => String(s || '').toLowerCase();
-      const uploadCount = processedTenderRows.filter(t => normalize(t.status).includes('upload')).length;
-      const biddingCount = processedTenderRows.filter(t => {
+
+      // Period summary should be calculated for the selected date range (startDate..endDate)
+      // using all tenders (filtered by directorate), not the FY-filtered `processedTenderRows`.
+      const sd = startDate ? dayjs(startDate).startOf('day').valueOf() : null;
+      const ed = endDate ? dayjs(endDate).endOf('day').valueOf() : null;
+
+      const allByDir = allProcessedTenderRows.filter(t => directorateFilter === "All" ? true : (t.directrate === directorateFilter));
+
+      const periodRows = allByDir.filter(t => {
+        if (!t.createdAt) return false;
+        const tv = dayjs(t.createdAt).valueOf();
+        if (sd && tv < sd) return false;
+        if (ed && tv > ed) return false;
+        return true;
+      });
+
+      const uploadCount = periodRows.filter(t => normalize(t.status).includes('upload')).length;
+      const biddingCount = periodRows.filter(t => {
         const st = normalize(t.status);
         return st.includes('submitted') || st.includes('under evaluation') || st.includes('bidding') || st.includes('in progress');
       }).length;
-      const notBiddingCount = processedTenderRows.filter(t => {
+      const notBiddingCount = periodRows.filter(t => {
         const st = normalize(t.status);
         return st.includes('not bidding') || st.includes('not-bidding') || st.includes('no bid') || st.includes('not submit') || st.includes('not submitted');
       }).length;
 
-      // set current summary box data
+      // set current summary box data (period-based)
       setCurrentSummary({
-        total: processedTenderRows.length,
+        total: periodRows.length,
         upload: uploadCount,
         bidding: biddingCount,
         notBidding: notBiddingCount
@@ -1031,8 +787,8 @@ setDirectorateTenderOptions(uniqueTenderDirectorates);
 
         if (yearFilter !== "All") {
           deletedData = deletedData.filter((t) => {
-            if (!t.lastDate) return false;
-            const date = new Date(t.lastDate);
+            if (!t.createdAt) return false;
+            const date = new Date(t.createdAt);
             const month = date.getMonth();
             const year = date.getFullYear();
             const fyStartYear = month < 3 ? year - 1 : year;
@@ -1183,15 +939,27 @@ setDirectorateTenderOptions(uniqueTenderDirectorates);
   }, [chartData]);
   // ----------------------
   
-  // --- Filtering Logic (Same as before) ---
+  // --- Filtering Logic (updated to include Financial Year filter using createdAt) ---
   let filteredRows = tenderRows;
-  
+
+  if (selectedFY !== 'All') {
+    filteredRows = filteredRows.filter((t) => {
+      if (!t.createdAt) return false;
+      const d = new Date(t.createdAt);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const fyStartYear = m < 3 ? y - 1 : y;
+      const fyEndYear = fyStartYear + 1;
+      return `FY-${fyStartYear}-${fyEndYear}` === selectedFY;
+    });
+  }
+
   if (selectedDirectorateTender !== "All") {
     filteredRows = filteredRows.filter(
       (row) => row.directrate === selectedDirectorateTender
     );
   }
-  
+
   filteredRows = getFilteredRows(filteredRows, search);
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
@@ -1207,10 +975,10 @@ setDirectorateTenderOptions(uniqueTenderDirectorates);
         projects = projects.filter(p => p.directrate === directorateFilter);
       }
 
-      // Financial Year filter
+      // Financial Year filter for projects: use `startDate` field
       if (yearFilter !== "All") {
         projects = projects.filter(p => {
-          const date = p.createdAt ? new Date(p.createdAt) : null;
+          const date = p.startDate ? new Date(p.startDate) : null;
           if (!date) return false;
           const month = date.getMonth();
           const year = date.getFullYear();
@@ -1224,7 +992,7 @@ setDirectorateTenderOptions(uniqueTenderDirectorates);
         const ed = end ? dayjs(end).endOf('day') : null;
 
         projects = projects.filter(p => {
-          const d = p.createdAt ? dayjs(p.createdAt) : null;
+          const d = p.startDate ? dayjs(p.startDate) : null;
           if (!d) return false;
           if (sd && d.isBefore(sd)) return false;
           if (ed && d.isAfter(ed)) return false;
@@ -1307,7 +1075,12 @@ const paginatedProjectRows = filteredProjectRows
                     value={startDate}
                     onChange={(newValue) => handleStartDateChange(newValue)}
                     format="DD/MM/YYYY"
-                    maxDate={endDate ? dayjs(endDate) : undefined}
+                    minDate={fyMinDate || undefined}
+                    maxDate={(() => {
+                      const ed = endDate ? dayjs(endDate) : null;
+                      if (ed && fyMaxDate) return ed.isBefore(fyMaxDate) ? ed : fyMaxDate;
+                      return ed || fyMaxDate || undefined;
+                    })()}
                     slotProps={{ textField: { size: "small", error: !!dateError && startDate && endDate && dayjs(endDate).isBefore(dayjs(startDate), 'day'), helperText: (!!dateError && startDate && endDate && dayjs(endDate).isBefore(dayjs(startDate), 'day')) ? dateError : '' } }}
                     />
                     {startDate && (
@@ -1330,7 +1103,12 @@ const paginatedProjectRows = filteredProjectRows
                     value={endDate}
                     onChange={(newValue) => handleEndDateChange(newValue)}
                     format="DD/MM/YYYY"
-                    minDate={startDate ? dayjs(startDate) : undefined}
+                    minDate={(() => {
+                      const sd = startDate ? dayjs(startDate) : null;
+                      if (sd && fyMinDate) return sd.isAfter(fyMinDate) ? sd : fyMinDate;
+                      return sd || fyMinDate || undefined;
+                    })()}
+                    maxDate={fyMaxDate || undefined}
                     slotProps={{ textField: { size: "small", error: !!dateError && startDate && endDate && dayjs(endDate).isBefore(dayjs(startDate), 'day'), helperText: (!!dateError && startDate && endDate && dayjs(endDate).isBefore(dayjs(startDate), 'day')) ? dateError : '' } }}
                     />
                     {endDate && (
@@ -1354,7 +1132,8 @@ const paginatedProjectRows = filteredProjectRows
                           disabled={
                             (selectedPdfCols.length === 0 && selectedProjectPdfCols.length === 0) || // no columns selected
                             !startDate || // start date missing
-                            !endDate   
+                            !endDate ||
+                            pdfGenerating  
                         }
                          sx={{
                             minWidth: 140,
@@ -1377,7 +1156,8 @@ const paginatedProjectRows = filteredProjectRows
                           disabled={
                             (selectedPdfCols.length === 0 && selectedProjectPdfCols.length === 0) || // no columns selected
                             !startDate || 
-                            !endDate   
+                            !endDate ||
+                            pdfGenerating  
                         }
                           sx={{
                             minWidth: 140,
@@ -1414,7 +1194,7 @@ const paginatedProjectRows = filteredProjectRows
                               minHeight: 40,
                               px: 3,
                               borderRadius: 2.5,
-                              color: 'text.secondary',
+                              color: 'text.primary',
                               transition: 'all 0.3s ease',
                               border: '1px solid rgba(0,0,0,0.15)',     
                               mx: 0.5,                                   
@@ -1455,7 +1235,7 @@ const paginatedProjectRows = filteredProjectRows
              {activeTab === 0 && (
             <Box sx={{ height: 400 }}>
               <CustomDataGrid
-             rows={paginatedProjectRows}
+                rows={filteredProjectRows.map((row, index) => ({ ...row, sno: index + 1 }))}
                 columns={[
                   { field: 'sno', headerName: 'S.No', width: 80 },
                   ...projectCols
@@ -1472,6 +1252,9 @@ const paginatedProjectRows = filteredProjectRows
               />
             </Box>
           )}
+          <Backdrop open={pdfGenerating} sx={{ zIndex: (theme) => theme.zIndex.drawer + 2, color: '#fff' }}>
+            <CircularProgress color="inherit" />
+          </Backdrop>
         </Box>
     </div>
   );
