@@ -157,10 +157,17 @@ const handleMouseEnter = () => {
   const menuItems = [
     { role: "Admin", label: "Dashboard", icon: <RiDashboard3Fill />, path: "/" },
     { role: "Admin", label: `Sample Bid Docs`, icon: <VscRepo  />, path: "/Document-Reprositary" },
-    { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
-    { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
-    { role: "Admin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
-    { role: "Admin", label: "Generate File", icon: <TbReportAnalytics />, path: "/ReportPdfGenerator" },
+    {
+      role: "Admin",
+      label: "Project",
+      icon: <RiAlignItemBottomLine />,
+      children: [
+        { role: "Admin", label: "Projects", icon: <GoProjectSymlink />, path: "/home" },
+        { role: "Admin", label: "Project Management", icon: <FaTimeline />, path: "/Timeline" },
+        { role: "Admin", label: "Vulnerabilities", icon: <BiSolidReport />, path: "/report" },
+        { role: "Admin", label: "Generate File", icon: <TbReportAnalytics />, path: "/ReportPdfGenerator" },    
+      ],
+    },
     { role: "Admin", label: "Report", icon: <TbReportAnalytics />, path: "/Generate-Report" },
     { role: "Admin", label: "Project Team Members", icon: <BsMicrosoftTeams />, path: "/admin-Emp" },
     { role: "Admin", label: "Project-EMP Mapping", icon: <FaSitemap />, path: "/user-Emp" },
