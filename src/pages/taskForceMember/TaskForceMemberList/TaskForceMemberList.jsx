@@ -272,7 +272,7 @@ const TaskForceMemberList = () =>{
                 />
               </Stack>
             )}
-          {(emailEnabled === false &&
+          {(emailEnabled === false || emailEnabled === null) && (
             <Button
               variant="contained"
               sx={{ mt: 3 }}
