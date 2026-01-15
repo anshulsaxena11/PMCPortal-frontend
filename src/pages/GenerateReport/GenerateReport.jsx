@@ -420,11 +420,12 @@ const exportCustomPdf = async () => {
 
         const fyStart = dayjs(`${fyStartYear}-04-01`).startOf('day').valueOf();
         const fyEnd = startDate ? dayjs(startDate).endOf('day').valueOf() : dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
+        const fyEndDate = dayjs(`${fyEndYear}-03-31`).endOf('day').valueOf();
 
         const fyTenders = filteredRows.filter(t => {
           if (!t.createdAt) return false;
-          const ts = dayjs(t.createdAt).valueOf();
-          return ts >= fyStart && ts <= fyEnd;
+          const ts = dayjs(t.createdAt).startOf('day').valueOf();
+          return ts >= fyStart && ts <= fyEndDate;
         });
 
         fyTotalTenders = fyTenders.length;
